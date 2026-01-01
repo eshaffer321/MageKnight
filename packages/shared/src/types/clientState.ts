@@ -96,6 +96,7 @@ export interface ClientSite {
   readonly type: string;
   readonly owner: string | null;
   readonly isConquered: boolean;
+  readonly isBurned: boolean;
   readonly cityColor?: string;
   readonly mineColor?: string;
 }
@@ -106,7 +107,7 @@ export interface ClientHexState {
   readonly terrain: Terrain;
   readonly tileId: string;
   readonly site: ClientSite | null;
-  readonly rampagingEnemy: string | null; // "orc_marauder" | "draconum" | null
+  readonly rampagingEnemies: readonly string[]; // "orc_marauder" | "draconum"
   readonly enemies: readonly string[]; // enemy token IDs
   readonly shieldTokens: readonly string[]; // player IDs
 }

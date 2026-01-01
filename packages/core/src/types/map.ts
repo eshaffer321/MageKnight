@@ -25,8 +25,8 @@ export enum TileId {
 // City colors for city sites
 export type CityColor = "red" | "blue" | "green" | "white";
 
-// Mine colors (mana types that can be mined)
-export type MineColor = "red" | "blue" | "green" | "white" | "gold";
+// Mine colors (mana types that can be mined - basic crystals only)
+export type MineColor = "red" | "blue" | "green" | "white";
 
 // Site types that can exist on hexes
 export enum SiteType {
@@ -65,6 +65,7 @@ export interface Site {
   readonly type: SiteType;
   readonly owner: string | null; // player ID who conquered it
   readonly isConquered: boolean;
+  readonly isBurned: boolean; // only relevant for monasteries
   // Subtypes for specific sites
   readonly cityColor?: CityColor;
   readonly mineColor?: MineColor;
@@ -76,7 +77,7 @@ export interface HexState {
   readonly terrain: Terrain;
   readonly tileId: TileId;
   readonly site: Site | null;
-  readonly rampagingEnemy: RampagingEnemyType | null; // spawned on tile reveal
+  readonly rampagingEnemies: readonly RampagingEnemyType[]; // spawned on tile reveal
   readonly enemies: readonly EnemyTokenId[]; // enemy tokens from sites/events
   readonly shieldTokens: readonly string[]; // player IDs with shields here
 }
@@ -88,11 +89,10 @@ export interface TilePlacement {
   readonly revealed: boolean;
 }
 
-// The draw piles for tiles
+// The draw piles for tiles (tiles are permanent once placed, no discard)
 export interface TileDeck {
   readonly countryside: readonly TileId[];
   readonly core: readonly TileId[];
-  readonly discard: readonly TileId[];
 }
 
 // Full map state
@@ -110,7 +110,6 @@ export function createEmptyMapState(): MapState {
     tileDeck: {
       countryside: [],
       core: [],
-      discard: [],
     },
   };
 }

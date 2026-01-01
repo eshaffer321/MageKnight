@@ -3,7 +3,11 @@
  */
 
 import type { Player } from "../types/player.js";
-import { type MapState, createEmptyMapState } from "../types/map.js";
+import {
+  type MapState,
+  type CityColor,
+  createEmptyMapState,
+} from "../types/map.js";
 import { type ManaSource, createEmptyManaSource } from "../types/mana.js";
 import { type GameOffers, createEmptyOffers } from "../types/offers.js";
 import {
@@ -11,6 +15,7 @@ import {
   createEmptyEnemyTokenPiles,
 } from "../types/enemy.js";
 import { type GameDecks, createEmptyDecks } from "../types/decks.js";
+import type { CityState } from "../types/city.js";
 
 export type GamePhase =
   | "setup"
@@ -30,6 +35,7 @@ export type { ManaSource } from "../types/mana.js";
 export type { GameOffers } from "../types/offers.js";
 export type { EnemyTokenPiles } from "../types/enemy.js";
 export type { GameDecks } from "../types/decks.js";
+export type { CityState } from "../types/city.js";
 
 export interface GameState {
   readonly phase: GamePhase;
@@ -54,6 +60,9 @@ export interface GameState {
   // All draw decks (spells, advanced actions, artifacts, units)
   readonly decks: GameDecks;
 
+  // City states (only revealed cities have entries)
+  readonly cities: Partial<Record<CityColor, CityState>>;
+
   // Wound pile (effectively unlimited)
   readonly woundPileCount: number;
 
@@ -76,6 +85,7 @@ export function createInitialGameState(): GameState {
     offers: createEmptyOffers(),
     enemyTokens: createEmptyEnemyTokenPiles(),
     decks: createEmptyDecks(),
+    cities: {},
     woundPileCount: 10, // start with some wounds available
     scenarioEndTriggered: false,
   };

@@ -206,6 +206,7 @@ export function placeTile(tileId: TileId, centerCoord: HexCoord): HexState[] {
           type: localHex.site,
           owner: null,
           isConquered: false,
+          isBurned: false,
           // City color would be set based on tile data - default to red for now
           ...(localHex.site === SiteType.City && { cityColor: "red" as const }),
         }
@@ -216,7 +217,7 @@ export function placeTile(tileId: TileId, centerCoord: HexCoord): HexState[] {
       terrain: localHex.terrain,
       tileId,
       site,
-      rampagingEnemy: null, // spawned separately based on tile/scenario rules
+      rampagingEnemies: [], // spawned separately based on tile/scenario rules
       enemies: [],
       shieldTokens: [],
     };
