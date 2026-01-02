@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/setup-monorepo-skeleton-PoVlR]
   pull_request:
-    branches: [main]
+    branches: [main, claude/setup-monorepo-skeleton-PoVlR]
 
 jobs:
   build-and-test:
