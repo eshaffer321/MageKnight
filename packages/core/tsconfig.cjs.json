@@ -9,5 +9,5 @@
     "declarationMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["__tests__/**/*"]
+  "exclude": ["__tests__/**/*", "src/**/__tests__/**/*"]
 }
