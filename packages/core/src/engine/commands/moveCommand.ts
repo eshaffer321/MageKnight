@@ -12,13 +12,14 @@ export interface MoveCommandParams {
   readonly from: HexCoord;
   readonly to: HexCoord;
   readonly terrainCost: number;
+  readonly hadMovedThisTurn: boolean; // capture state before this move for proper undo
 }
 
 /**
  * Create a move command.
  *
- * The terrainCost is passed in because it was calculated at creation time
- * (with modifiers applied). This ensures undo restores the exact cost.
+ * The terrainCost and hadMovedThisTurn are passed in because they were captured
+ * at creation time. This ensures undo restores the exact previous state.
  */
 export function createMoveCommand(params: MoveCommandParams): Command {
   return {
@@ -79,7 +80,7 @@ export function createMoveCommand(params: MoveCommandParams): Command {
         ...player,
         position: params.from,
         movePoints: player.movePoints + params.terrainCost,
-        // Note: hasMovedThisTurn stays true - we don't track if this was the first move
+        hasMovedThisTurn: params.hadMovedThisTurn,
       };
 
       const updatedPlayers: Player[] = [...state.players];

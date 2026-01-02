@@ -57,7 +57,8 @@ export function popCommand(stack: CommandStackState): {
   }
 
   const newCommands = stack.commands.slice(0, -1);
-  const command = stack.commands[stack.commands.length - 1];
+  // We know command exists because we checked length > 0 above
+  const command = stack.commands[stack.commands.length - 1] as Command;
 
   return {
     stack: { ...stack, commands: newCommands },
