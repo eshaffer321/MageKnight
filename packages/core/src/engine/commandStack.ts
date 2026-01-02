@@ -6,6 +6,18 @@
  */
 
 import type { Command, UndoCheckpoint } from "./commands.js";
+import {
+  DRAW_CARD_COMMAND,
+  DRAW_ENEMY_COMMAND,
+  REVEAL_TILE_COMMAND,
+  ROLL_DIE_COMMAND,
+} from "./commands/commandTypes.js";
+import {
+  CHECKPOINT_REASON_CARD_DRAWN,
+  CHECKPOINT_REASON_DIE_ROLLED,
+  CHECKPOINT_REASON_ENEMY_DRAWN,
+  CHECKPOINT_REASON_TILE_REVEALED,
+} from "./commands.js";
 
 export interface CommandStackState {
   readonly commands: readonly Command[];
@@ -87,15 +99,15 @@ export function clearCommandStack(
  */
 function getCheckpointReason(commandType: string): UndoCheckpoint["reason"] {
   switch (commandType) {
-    case "REVEAL_TILE":
-      return "tile_revealed";
-    case "DRAW_ENEMY":
-      return "enemy_drawn";
-    case "DRAW_CARD":
-      return "card_drawn";
-    case "ROLL_DIE":
-      return "die_rolled";
+    case REVEAL_TILE_COMMAND:
+      return CHECKPOINT_REASON_TILE_REVEALED;
+    case DRAW_ENEMY_COMMAND:
+      return CHECKPOINT_REASON_ENEMY_DRAWN;
+    case DRAW_CARD_COMMAND:
+      return CHECKPOINT_REASON_CARD_DRAWN;
+    case ROLL_DIE_COMMAND:
+      return CHECKPOINT_REASON_DIE_ROLLED;
     default:
-      return "tile_revealed"; // fallback
+      return CHECKPOINT_REASON_TILE_REVEALED; // fallback
   }
 }

@@ -5,12 +5,18 @@
 import type { CardId, ManaColor } from "@mage-knight/shared";
 
 // Card types in the game
+export const DEED_CARD_TYPE_BASIC_ACTION = "basic_action" as const;
+export const DEED_CARD_TYPE_ADVANCED_ACTION = "advanced_action" as const;
+export const DEED_CARD_TYPE_SPELL = "spell" as const;
+export const DEED_CARD_TYPE_ARTIFACT = "artifact" as const;
+export const DEED_CARD_TYPE_WOUND = "wound" as const;
+
 export type DeedCardType =
-  | "basic_action"
-  | "advanced_action"
-  | "spell"
-  | "artifact"
-  | "wound";
+  | typeof DEED_CARD_TYPE_BASIC_ACTION
+  | typeof DEED_CARD_TYPE_ADVANCED_ACTION
+  | typeof DEED_CARD_TYPE_SPELL
+  | typeof DEED_CARD_TYPE_ARTIFACT
+  | typeof DEED_CARD_TYPE_WOUND;
 
 // Effect placeholder - we'll expand this later
 // For now just describe what the effect does
@@ -30,11 +36,25 @@ export interface DeedCard {
 }
 
 // Recruitment site types - where a unit can be recruited (icons on unit cards)
-export type RecruitmentSite = "village" | "keep" | "mage_tower" | "monastery" | "city";
+export const RECRUITMENT_SITE_VILLAGE = "village" as const;
+export const RECRUITMENT_SITE_KEEP = "keep" as const;
+export const RECRUITMENT_SITE_MAGE_TOWER = "mage_tower" as const;
+export const RECRUITMENT_SITE_MONASTERY = "monastery" as const;
+export const RECRUITMENT_SITE_CITY = "city" as const;
+
+export type RecruitmentSite =
+  | typeof RECRUITMENT_SITE_VILLAGE
+  | typeof RECRUITMENT_SITE_KEEP
+  | typeof RECRUITMENT_SITE_MAGE_TOWER
+  | typeof RECRUITMENT_SITE_MONASTERY
+  | typeof RECRUITMENT_SITE_CITY;
 
 // Unit tier - determines when units appear in the offer
 // Silver units are available from the start, gold units after core tiles are revealed
-export type UnitTier = "silver" | "gold";
+export const UNIT_TIER_SILVER = "silver" as const;
+export const UNIT_TIER_GOLD = "gold" as const;
+
+export type UnitTier = typeof UNIT_TIER_SILVER | typeof UNIT_TIER_GOLD;
 
 // Unit ability placeholder - expand later
 export interface UnitAbility {

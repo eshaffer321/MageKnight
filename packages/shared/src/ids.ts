@@ -13,5 +13,13 @@ export type SkillId = string & { readonly __brand: "SkillId" };
 // Basic mana colors (can be crystals)
 export type BasicManaColor = "red" | "blue" | "green" | "white";
 
+export const BASIC_MANA_RED = "red" as const;
+export const BASIC_MANA_BLUE = "blue" as const;
+export const BASIC_MANA_GREEN = "green" as const;
+export const BASIC_MANA_WHITE = "white" as const;
+
+// Special mana colors (not basic)
+export type SpecialManaColor = "gold" | "black";
+
 // All mana colors including special
-export type ManaColor = BasicManaColor | "gold" | "black";
+export type ManaColor = BasicManaColor | SpecialManaColor;

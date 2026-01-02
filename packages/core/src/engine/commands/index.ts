@@ -4,6 +4,7 @@
 
 import type { GameState } from "../../state/GameState.js";
 import type { PlayerAction, HexCoord } from "@mage-knight/shared";
+import { MOVE_ACTION } from "@mage-knight/shared";
 import type { Command } from "../commands.js";
 import { createMoveCommand } from "./moveCommand.js";
 import { getEffectiveTerrainCost } from "../modifiers.js";
@@ -17,7 +18,7 @@ type CommandFactory = (
 
 // Helper to get move target
 function getMoveTarget(action: PlayerAction): HexCoord | null {
-  if (action.type === "MOVE" && "target" in action) {
+  if (action.type === MOVE_ACTION && "target" in action) {
     return action.target;
   }
   return null;

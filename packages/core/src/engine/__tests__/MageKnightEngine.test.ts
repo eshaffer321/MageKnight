@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { MageKnightEngine, createEngine } from "../MageKnightEngine.js";
 import { createInitialGameState } from "../../state/GameState.js";
 import type { GameState } from "../../state/GameState.js";
+import { MOVE_UNDONE, PLAYER_MOVED } from "@mage-knight/shared";
+import { MOVE_COMMAND } from "../commands/moveCommand.js";
 import type { Player } from "../../types/player.js";
 import type { HexState } from "../../types/map.js";
 import { Hero } from "../../types/hero.js";
@@ -103,7 +105,7 @@ describe("MageKnightEngine", () => {
       const state = createTestGameState();
 
       const result = engine.processAction(state, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 1, r: 0 },
       });
 
@@ -119,7 +121,7 @@ describe("MageKnightEngine", () => {
 
       // Should have PLAYER_MOVED event
       expect(result.events).toContainEqual({
-        type: "PLAYER_MOVED",
+        type: PLAYER_MOVED,
         playerId: "player1",
         from: { q: 0, r: 0 },
         to: { q: 1, r: 0 },
@@ -136,7 +138,7 @@ describe("MageKnightEngine", () => {
       });
 
       const result = engine.processAction(state, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 1, r: 0 },
       });
 
@@ -157,7 +159,7 @@ describe("MageKnightEngine", () => {
       const state = createTestGameState();
 
       const result = engine.processAction(state, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 2, r: 0 }, // Two hexes away
       });
 
@@ -173,7 +175,7 @@ describe("MageKnightEngine", () => {
       const state = createTestGameState();
 
       const result = engine.processAction(state, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 1, r: -1 }, // Adjacent to (0,0) but not in our test map
       });
 
@@ -192,7 +194,7 @@ describe("MageKnightEngine", () => {
       });
 
       const result = engine.processAction(state, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 1, r: 0 }, // Plains costs 2
       });
 
@@ -214,7 +216,7 @@ describe("MageKnightEngine", () => {
       });
 
       const result = engine.processAction(state, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 1, r: 0 },
       });
 
@@ -230,7 +232,7 @@ describe("MageKnightEngine", () => {
       const state = createTestGameState();
 
       const result = engine.processAction(state, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 0, r: 1 }, // Forest
       });
 
@@ -248,7 +250,7 @@ describe("MageKnightEngine", () => {
       const stateWithPoints = { ...state, players: [player] };
 
       const result = engine.processAction(stateWithPoints, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 0, r: 1 }, // Forest
       });
 
@@ -262,7 +264,7 @@ describe("MageKnightEngine", () => {
       });
 
       const result = engine.processAction(state, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 1, r: 0 },
       });
 
@@ -281,7 +283,7 @@ describe("MageKnightEngine", () => {
 
       // First, move
       const afterMove = engine.processAction(state, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 1, r: 0 },
       });
 
@@ -300,7 +302,7 @@ describe("MageKnightEngine", () => {
 
       // Should have MOVE_UNDONE event
       expect(afterUndo.events).toContainEqual({
-        type: "MOVE_UNDONE",
+        type: MOVE_UNDONE,
         playerId: "player1",
         from: { q: 1, r: 0 },
         to: { q: 0, r: 0 },
@@ -315,7 +317,7 @@ describe("MageKnightEngine", () => {
 
       // Move twice
       const afterMove1 = engine.processAction(state, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 1, r: 0 },
       });
 
@@ -332,7 +334,7 @@ describe("MageKnightEngine", () => {
       };
 
       const afterMove2 = engine.processAction(stateWithMoreHexes, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 2, r: 0 },
       });
 
@@ -418,7 +420,7 @@ describe("MageKnightEngine", () => {
       };
 
       const result = engine.processAction(stateWithModifier, "player1", {
-        type: "MOVE",
+        type: MOVE_COMMAND,
         target: { q: 1, r: 0 }, // Plains, normally costs 2
       });
 

@@ -2,6 +2,8 @@
  * Game state types and management
  */
 
+import type { GamePhase, TimeOfDay } from "@mage-knight/shared";
+import { GAME_PHASE_SETUP, TIME_OF_DAY_DAY } from "@mage-knight/shared";
 import type { Player } from "../types/player.js";
 import {
   type MapState,
@@ -22,17 +24,10 @@ import {
   createEmptyCommandStack,
 } from "../engine/commandStack.js";
 
-export type GamePhase =
-  | "setup"
-  | "round"
-  | "end";
-
 // Combat state - will be fleshed out when we build combat
 export interface CombatState {
   readonly _placeholder?: undefined; // TODO: enemies, phases, damage assignment, etc.
 }
-
-export type TimeOfDay = "day" | "night";
 
 // Re-export types for convenience
 export type { MapState } from "../types/map.js";
@@ -85,8 +80,8 @@ export interface GameState {
 
 export function createInitialGameState(): GameState {
   return {
-    phase: "setup",
-    timeOfDay: "day",
+    phase: GAME_PHASE_SETUP,
+    timeOfDay: TIME_OF_DAY_DAY,
     round: 1,
     turnOrder: [],
     currentPlayerIndex: 0,

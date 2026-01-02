@@ -5,7 +5,11 @@
 import type { Command, CommandResult } from "../commands.js";
 import type { GameState } from "../../state/GameState.js";
 import type { HexCoord } from "@mage-knight/shared";
+import { createTileRevealedEvent } from "@mage-knight/shared";
 import type { TileId } from "../../types/map.js";
+import { REVEAL_TILE_COMMAND } from "./commandTypes.js";
+
+export { REVEAL_TILE_COMMAND };
 
 export interface RevealTileCommandParams {
   readonly playerId: string;
@@ -23,7 +27,7 @@ export function createRevealTileCommand(
   params: RevealTileCommandParams
 ): Command {
   return {
-    type: "REVEAL_TILE",
+    type: REVEAL_TILE_COMMAND,
     playerId: params.playerId,
     isReversible: false, // Can't unsee a tile!
 
@@ -34,12 +38,7 @@ export function createRevealTileCommand(
       return {
         state, // would be modified
         events: [
-          {
-            type: "TILE_REVEALED" as const,
-            playerId: params.playerId,
-            tileId: params.tileId,
-            position: params.position,
-          },
+          createTileRevealedEvent(params.playerId, params.position, params.tileId),
         ],
       };
     },

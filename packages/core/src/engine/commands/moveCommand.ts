@@ -5,7 +5,11 @@
 import type { Command, CommandResult } from "../commands.js";
 import type { GameState } from "../../state/GameState.js";
 import type { HexCoord } from "@mage-knight/shared";
+import { createMoveUndoneEvent, createPlayerMovedEvent } from "@mage-knight/shared";
 import type { Player } from "../../types/player.js";
+import { MOVE_COMMAND } from "./commandTypes.js";
+
+export { MOVE_COMMAND };
 
 export interface MoveCommandParams {
   readonly playerId: string;
@@ -23,7 +27,7 @@ export interface MoveCommandParams {
  */
 export function createMoveCommand(params: MoveCommandParams): Command {
   return {
-    type: "MOVE",
+    type: MOVE_COMMAND,
     playerId: params.playerId,
     isReversible: true, // movement is reversible unless it triggers a reveal
 
@@ -54,10 +58,7 @@ export function createMoveCommand(params: MoveCommandParams): Command {
         state: { ...state, players: updatedPlayers },
         events: [
           {
-            type: "PLAYER_MOVED" as const,
-            playerId: params.playerId,
-            from: params.from,
-            to: params.to,
+            ...createPlayerMovedEvent(params.playerId, params.from, params.to),
           },
         ],
       };
@@ -89,12 +90,7 @@ export function createMoveCommand(params: MoveCommandParams): Command {
       return {
         state: { ...state, players: updatedPlayers },
         events: [
-          {
-            type: "MOVE_UNDONE" as const,
-            playerId: params.playerId,
-            from: params.to, // reversed
-            to: params.from,
-          },
+          createMoveUndoneEvent(params.playerId, params.to, params.from), // reversed
         ],
       };
     },

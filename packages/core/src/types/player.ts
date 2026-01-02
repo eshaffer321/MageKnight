@@ -2,7 +2,13 @@
  * Player types for Mage Knight
  */
 
-import type { HexCoord, CardId, SkillId, ManaColor } from "@mage-knight/shared";
+import type {
+  HexCoord,
+  CardId,
+  SkillId,
+  ManaColor,
+  ManaTokenSource,
+} from "@mage-knight/shared";
 import type { Hero } from "./hero.js";
 
 // Core-only branded ID type
@@ -11,7 +17,7 @@ export type TacticCardId = string & { readonly __brand: "TacticCardId" };
 // Mana token in play area (temporary, not crystals)
 export interface ManaToken {
   readonly color: ManaColor;
-  readonly source: "die" | "card" | "skill" | "site";
+  readonly source: ManaTokenSource;
 }
 
 // Skill cooldown tracking

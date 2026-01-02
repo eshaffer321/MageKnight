@@ -11,6 +11,8 @@
 import type { CardId, SkillId, ManaColor } from "../ids.js";
 import type { HexCoord } from "../hex.js";
 import type { Terrain } from "../terrain.js";
+import type { GamePhase, TimeOfDay } from "../stateConstants.js";
+import type { ManaTokenSource } from "../valueConstants.js";
 
 // Crystals (same as core, but defined here for independence)
 export interface ClientCrystals {
@@ -31,7 +33,7 @@ export interface ClientPlayerUnit {
 // Mana token in play area
 export interface ClientManaToken {
   readonly color: ManaColor;
-  readonly source: "die" | "card" | "skill" | "site";
+  readonly source: ManaTokenSource;
 }
 
 // Client-visible player state
@@ -138,8 +140,8 @@ export interface ClientGameOffers {
 
 // The full client-visible game state
 export interface ClientGameState {
-  readonly phase: "setup" | "round" | "end";
-  readonly timeOfDay: "day" | "night";
+  readonly phase: GamePhase;
+  readonly timeOfDay: TimeOfDay;
   readonly round: number;
 
   // Turn order

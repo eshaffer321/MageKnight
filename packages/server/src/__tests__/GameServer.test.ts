@@ -3,6 +3,8 @@ import { createGameServer, GameServer } from "../index.js";
 import type { GameEvent, ClientGameState } from "@mage-knight/shared";
 import type { HexState } from "@mage-knight/core";
 
+import { PLAYER_MOVED } from "@mage-knight/shared";
+
 describe("GameServer", () => {
   let server: GameServer;
 
@@ -128,7 +130,7 @@ describe("GameServer", () => {
       const [events] = callback.mock.calls[0] as [GameEvent[]];
       expect(events).toContainEqual(
         expect.objectContaining({
-          type: "PLAYER_MOVED",
+          type: PLAYER_MOVED,
           playerId: "player1",
         })
       );

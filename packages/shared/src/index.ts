@@ -4,7 +4,13 @@
  */
 
 // Branded IDs
-export type { CardId, SkillId, BasicManaColor, ManaColor } from "./ids.js";
+export type { CardId, SkillId, BasicManaColor, SpecialManaColor, ManaColor } from "./ids.js";
+export {
+  BASIC_MANA_RED,
+  BASIC_MANA_BLUE,
+  BASIC_MANA_GREEN,
+  BASIC_MANA_WHITE,
+} from "./ids.js";
 
 // Hex coordinates
 export type { HexCoord, HexDirection } from "./hex.js";
@@ -12,9 +18,24 @@ export { HEX_DIRECTIONS, hexKey, getNeighbor, getAllNeighbors } from "./hex.js";
 
 // Terrain
 export type { Terrain, MovementCost, MovementCosts } from "./terrain.js";
-export { DEFAULT_MOVEMENT_COSTS } from "./terrain.js";
+export {
+  DEFAULT_MOVEMENT_COSTS,
+  TERRAIN_PLAINS,
+  TERRAIN_HILLS,
+  TERRAIN_FOREST,
+  TERRAIN_WASTELAND,
+  TERRAIN_DESERT,
+  TERRAIN_SWAMP,
+  TERRAIN_LAKE,
+  TERRAIN_MOUNTAIN,
+  TERRAIN_OCEAN,
+} from "./terrain.js";
+
+// Shared state constants/types
+export * from "./stateConstants.js";
 
 // Events
+export * from "./events.js";
 export type {
   GameEvent,
   GameEventType,
@@ -68,6 +89,7 @@ export type {
 } from "./events.js";
 
 // Actions
+export * from "./actions.js";
 export type {
   PlayerAction,
   PlayerActionType,
@@ -123,3 +145,6 @@ export type {
   ClientGameState,
   ClientCombatState,
 } from "./types/clientState.js";
+
+// Shared value constants (sub-unions)
+export * from "./valueConstants.js";

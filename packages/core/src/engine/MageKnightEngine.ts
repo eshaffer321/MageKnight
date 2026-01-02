@@ -7,6 +7,12 @@
 
 import type { GameState } from "../state/GameState.js";
 import type { PlayerAction, GameEvent } from "@mage-knight/shared";
+import {
+  createInvalidActionEvent,
+  createUndoCheckpointSetEvent,
+  createUndoFailedEvent,
+} from "@mage-knight/shared";
+import { UNDO_ACTION } from "@mage-knight/shared";
 import { validateAction } from "./validators/index.js";
 import { createCommandForAction } from "./commands/index.js";
 import { pushCommand, popCommand, canUndo } from "./commandStack.js";
@@ -25,7 +31,7 @@ export class MageKnightEngine {
     action: PlayerAction
   ): ActionResult {
     // UNDO has special handling
-    if (action.type === "UNDO") {
+    if (action.type === UNDO_ACTION) {
       return this.handleUndo(state, playerId);
     }
 
@@ -35,12 +41,11 @@ export class MageKnightEngine {
       return {
         state,
         events: [
-          {
-            type: "INVALID_ACTION",
+          createInvalidActionEvent(
             playerId,
-            actionType: action.type,
-            reason: validation.error.message,
-          },
+            action.type,
+            validation.error.message
+          ),
         ],
       };
     }
@@ -51,12 +56,7 @@ export class MageKnightEngine {
       return {
         state,
         events: [
-          {
-            type: "INVALID_ACTION",
-            playerId,
-            actionType: action.type,
-            reason: "Action not implemented",
-          },
+          createInvalidActionEvent(playerId, action.type, "Action not implemented"),
         ],
       };
     }
@@ -70,11 +70,7 @@ export class MageKnightEngine {
     // Build events
     const events: GameEvent[] = [...result.events];
     if (!command.isReversible) {
-      events.push({
-        type: "UNDO_CHECKPOINT_SET",
-        playerId,
-        reason: command.type,
-      });
+      events.push(createUndoCheckpointSetEvent(playerId, command.type));
     }
 
     return {
@@ -94,11 +90,7 @@ export class MageKnightEngine {
       return {
         state,
         events: [
-          {
-            type: "UNDO_FAILED",
-            playerId,
-            reason: "not_your_turn",
-          },
+          createUndoFailedEvent(playerId, "not_your_turn"),
         ],
       };
     }
@@ -108,13 +100,10 @@ export class MageKnightEngine {
       return {
         state,
         events: [
-          {
-            type: "UNDO_FAILED",
+          createUndoFailedEvent(
             playerId,
-            reason: state.commandStack.checkpoint
-              ? "checkpoint_reached"
-              : "nothing_to_undo",
-          },
+            state.commandStack.checkpoint ? "checkpoint_reached" : "nothing_to_undo"
+          ),
         ],
       };
     }
@@ -125,11 +114,7 @@ export class MageKnightEngine {
       return {
         state,
         events: [
-          {
-            type: "UNDO_FAILED",
-            playerId,
-            reason: "nothing_to_undo",
-          },
+          createUndoFailedEvent(playerId, "nothing_to_undo"),
         ],
       };
     }

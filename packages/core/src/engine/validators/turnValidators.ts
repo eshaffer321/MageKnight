@@ -6,6 +6,13 @@ import type { GameState } from "../../state/GameState.js";
 import type { PlayerAction } from "@mage-knight/shared";
 import type { ValidationResult } from "./types.js";
 import { valid, invalid } from "./types.js";
+import {
+  ALREADY_ACTED,
+  IN_COMBAT,
+  NOT_YOUR_TURN,
+  PLAYER_NOT_FOUND,
+  WRONG_PHASE,
+} from "./validationCodes.js";
 
 // Check it's this player's turn
 export function validateIsPlayersTurn(
@@ -15,7 +22,7 @@ export function validateIsPlayersTurn(
 ): ValidationResult {
   const currentPlayerId = state.turnOrder[state.currentPlayerIndex];
   if (currentPlayerId !== playerId) {
-    return invalid("NOT_YOUR_TURN", "It is not your turn");
+    return invalid(NOT_YOUR_TURN, "It is not your turn");
   }
   return valid();
 }
@@ -28,7 +35,7 @@ export function validateRoundPhase(
 ): ValidationResult {
   if (state.phase !== "round") {
     return invalid(
-      "WRONG_PHASE",
+      WRONG_PHASE,
       `Cannot perform actions during ${state.phase} phase`
     );
   }
@@ -42,7 +49,7 @@ export function validateNotInCombat(
   _action: PlayerAction
 ): ValidationResult {
   if (state.combat !== null) {
-    return invalid("IN_COMBAT", "Cannot perform this action during combat");
+    return invalid(IN_COMBAT, "Cannot perform this action during combat");
   }
   return valid();
 }
@@ -55,10 +62,10 @@ export function validateHasNotActed(
 ): ValidationResult {
   const player = state.players.find((p) => p.id === playerId);
   if (!player) {
-    return invalid("PLAYER_NOT_FOUND", "Player not found");
+    return invalid(PLAYER_NOT_FOUND, "Player not found");
   }
   if (player.hasTakenActionThisTurn) {
-    return invalid("ALREADY_ACTED", "You have already taken an action this turn");
+    return invalid(ALREADY_ACTED, "You have already taken an action this turn");
   }
   return valid();
 }

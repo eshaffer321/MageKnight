@@ -8,6 +8,19 @@
 import type { GameState } from "../state/GameState.js";
 import type { GameEvent } from "@mage-knight/shared";
 
+export const CHECKPOINT_REASON_TILE_REVEALED = "tile_revealed" as const;
+export const CHECKPOINT_REASON_ENEMY_DRAWN = "enemy_drawn" as const;
+export const CHECKPOINT_REASON_CARD_DRAWN = "card_drawn" as const;
+export const CHECKPOINT_REASON_DIE_ROLLED = "die_rolled" as const;
+export const CHECKPOINT_REASON_PLAYER_REACTED = "player_reacted" as const;
+
+export type CheckpointReason =
+  | typeof CHECKPOINT_REASON_TILE_REVEALED
+  | typeof CHECKPOINT_REASON_ENEMY_DRAWN
+  | typeof CHECKPOINT_REASON_CARD_DRAWN
+  | typeof CHECKPOINT_REASON_DIE_ROLLED
+  | typeof CHECKPOINT_REASON_PLAYER_REACTED;
+
 // Result of executing or undoing a command
 export interface CommandResult {
   readonly state: GameState;
@@ -29,11 +42,6 @@ export interface Command {
 
 // Marks the point where undo is no longer possible
 export interface UndoCheckpoint {
-  readonly reason:
-    | "tile_revealed"
-    | "enemy_drawn"
-    | "card_drawn"
-    | "die_rolled"
-    | "player_reacted";
+  readonly reason: CheckpointReason;
   readonly timestamp: number;
 }

@@ -2,10 +2,8 @@
  * Mana source types for Mage Knight
  */
 
+export type { SpecialManaColor } from "@mage-knight/shared";
 import type { ManaColor } from "@mage-knight/shared";
-
-// Special mana colors (not basic)
-export type SpecialManaColor = "gold" | "black";
 
 // Represents a die in the source
 export interface SourceDie {

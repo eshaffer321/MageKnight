@@ -8,13 +8,10 @@ export type * from "./types/index.js";
 export { Hero, HEROES } from "./types/index.js";
 
 // State
-export type {
-  GameState,
-  GamePhase,
-  TimeOfDay,
-  MapState,
-} from "./state/GameState.js";
+export type { GameState, MapState } from "./state/GameState.js";
 export { createInitialGameState } from "./state/GameState.js";
+// Re-export GamePhase and TimeOfDay from shared for convenience
+export type { GamePhase, TimeOfDay } from "@mage-knight/shared";
 
 // Hex (re-exported from shared for convenience)
 export type { HexCoord, HexDirection } from "./hex/HexCoord.js";

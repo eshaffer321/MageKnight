@@ -4,13 +4,23 @@
 
 import type { GameState } from "../../state/GameState.js";
 import type { PlayerAction, HexCoord } from "@mage-knight/shared";
+import { MOVE_ACTION } from "@mage-knight/shared";
 import type { ValidationResult } from "./types.js";
 import { valid, invalid } from "./types.js";
 import { getEffectiveTerrainCost } from "../modifiers.js";
+import {
+  HEX_NOT_FOUND,
+  IMPASSABLE,
+  INVALID_ACTION,
+  NOT_ADJACENT,
+  NOT_ENOUGH_MOVE_POINTS,
+  NOT_ON_MAP,
+  PLAYER_NOT_FOUND,
+} from "./validationCodes.js";
 
 // Helper to get target from action (type guard)
 function getMoveTarget(action: PlayerAction): HexCoord | null {
-  if (action.type === "MOVE" && "target" in action) {
+  if (action.type === MOVE_ACTION && "target" in action) {
     return action.target;
   }
   return null;
@@ -39,10 +49,10 @@ export function validatePlayerOnMap(
 ): ValidationResult {
   const player = state.players.find((p) => p.id === playerId);
   if (!player) {
-    return invalid("PLAYER_NOT_FOUND", "Player not found");
+    return invalid(PLAYER_NOT_FOUND, "Player not found");
   }
   if (!player.position) {
-    return invalid("NOT_ON_MAP", "Player is not on the map");
+    return invalid(NOT_ON_MAP, "Player is not on the map");
   }
   return valid();
 }
@@ -57,11 +67,11 @@ export function validateTargetAdjacent(
   const target = getMoveTarget(action);
 
   if (!player?.position || !target) {
-    return invalid("INVALID_ACTION", "Invalid move action");
+    return invalid(INVALID_ACTION, "Invalid move action");
   }
 
   if (!isAdjacent(player.position, target)) {
-    return invalid("NOT_ADJACENT", "Target hex is not adjacent");
+    return invalid(NOT_ADJACENT, "Target hex is not adjacent");
   }
   return valid();
 }
@@ -74,13 +84,13 @@ export function validateTargetHexExists(
 ): ValidationResult {
   const target = getMoveTarget(action);
   if (!target) {
-    return invalid("INVALID_ACTION", "Invalid move action");
+    return invalid(INVALID_ACTION, "Invalid move action");
   }
 
   const hexKey = `${target.q},${target.r}`;
   const hex = state.map.hexes[hexKey];
   if (!hex) {
-    return invalid("HEX_NOT_FOUND", "Target hex does not exist");
+    return invalid(HEX_NOT_FOUND, "Target hex does not exist");
   }
   return valid();
 }
@@ -93,18 +103,18 @@ export function validateTerrainPassable(
 ): ValidationResult {
   const target = getMoveTarget(action);
   if (!target) {
-    return invalid("INVALID_ACTION", "Invalid move action");
+    return invalid(INVALID_ACTION, "Invalid move action");
   }
 
   const hexKey = `${target.q},${target.r}`;
   const hex = state.map.hexes[hexKey];
   if (!hex) {
-    return invalid("HEX_NOT_FOUND", "Target hex does not exist");
+    return invalid(HEX_NOT_FOUND, "Target hex does not exist");
   }
 
   const cost = getEffectiveTerrainCost(state, hex.terrain, playerId);
   if (cost === Infinity) {
-    return invalid("IMPASSABLE", "Target terrain is impassable");
+    return invalid(IMPASSABLE, "Target terrain is impassable");
   }
   return valid();
 }
@@ -119,19 +129,19 @@ export function validateEnoughMovePoints(
   const target = getMoveTarget(action);
 
   if (!player || !target) {
-    return invalid("INVALID_ACTION", "Invalid move action");
+    return invalid(INVALID_ACTION, "Invalid move action");
   }
 
   const hexKey = `${target.q},${target.r}`;
   const hex = state.map.hexes[hexKey];
   if (!hex) {
-    return invalid("HEX_NOT_FOUND", "Target hex does not exist");
+    return invalid(HEX_NOT_FOUND, "Target hex does not exist");
   }
 
   const cost = getEffectiveTerrainCost(state, hex.terrain, playerId);
   if (player.movePoints < cost) {
     return invalid(
-      "NOT_ENOUGH_MOVE_POINTS",
+      NOT_ENOUGH_MOVE_POINTS,
       `Need ${cost} move points, have ${player.movePoints}`
     );
   }

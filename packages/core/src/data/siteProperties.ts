@@ -98,6 +98,38 @@ export const SITE_PROPERTIES: Record<SiteType, SiteProperties> = {
     adventureSite: false,
     allowsMultipleHeroes: true, // when conquered
   },
+
+  // Lost Legion expansion sites
+  [SiteType.DeepMine]: {
+    fortified: false,
+    inhabited: false,
+    adventureSite: false,
+    allowsMultipleHeroes: false,
+  },
+  [SiteType.Maze]: {
+    fortified: false,
+    inhabited: false,
+    adventureSite: true, // numbered adventure site (6/4/2)
+    allowsMultipleHeroes: false,
+  },
+  [SiteType.Labyrinth]: {
+    fortified: false,
+    inhabited: false,
+    adventureSite: true, // core version of Maze (6/4/2)
+    allowsMultipleHeroes: false,
+  },
+  [SiteType.RefugeeCamp]: {
+    fortified: false,
+    inhabited: true, // safe site similar to village
+    adventureSite: false,
+    allowsMultipleHeroes: false,
+  },
+  [SiteType.VolkaresCamp]: {
+    fortified: true, // has walls
+    inhabited: false,
+    adventureSite: false, // special scenario site
+    allowsMultipleHeroes: false,
+  },
 };
 
 // Helper functions for querying site properties

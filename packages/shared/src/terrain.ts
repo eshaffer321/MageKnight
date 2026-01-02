@@ -13,6 +13,16 @@ export type Terrain =
   | "mountain"
   | "ocean";
 
+export const TERRAIN_PLAINS = "plains" as const;
+export const TERRAIN_HILLS = "hills" as const;
+export const TERRAIN_FOREST = "forest" as const;
+export const TERRAIN_WASTELAND = "wasteland" as const;
+export const TERRAIN_DESERT = "desert" as const;
+export const TERRAIN_SWAMP = "swamp" as const;
+export const TERRAIN_LAKE = "lake" as const;
+export const TERRAIN_MOUNTAIN = "mountain" as const;
+export const TERRAIN_OCEAN = "ocean" as const;
+
 export interface MovementCost {
   readonly day: number;
   readonly night: number;

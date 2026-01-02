@@ -15,6 +15,30 @@ import type {
 } from "../types/modifiers.js";
 import type { Terrain } from "@mage-knight/shared";
 import { DEFAULT_MOVEMENT_COSTS } from "@mage-knight/shared";
+import {
+  DURATION_COMBAT,
+  DURATION_ROUND,
+  DURATION_TURN,
+  DURATION_UNTIL_NEXT_TURN,
+  EFFECT_ENEMY_STAT,
+  EFFECT_RULE_OVERRIDE,
+  EFFECT_SIDEWAYS_VALUE,
+  EFFECT_TERRAIN_COST,
+  ENEMY_STAT_ARMOR,
+  ENEMY_STAT_ATTACK,
+  EXPIRATION_COMBAT_END,
+  EXPIRATION_ROUND_END,
+  EXPIRATION_TURN_END,
+  EXPIRATION_TURN_START,
+  RULE_TERRAIN_DAY_NIGHT_SWAP,
+  SCOPE_ALL_ENEMIES,
+  SCOPE_ALL_PLAYERS,
+  SCOPE_ONE_ENEMY,
+  SCOPE_OTHER_PLAYERS,
+  SCOPE_SELF,
+  SIDEWAYS_CONDITION_NO_MANA_USED,
+  SIDEWAYS_CONDITION_WITH_MANA_MATCHING_COLOR,
+} from "./modifierConstants.js";
 
 // === Query helpers ===
 
@@ -37,13 +61,13 @@ export function getModifiersForPlayer(
 ): ActiveModifier[] {
   return state.activeModifiers.filter((m) => {
     const scope = m.scope;
-    if (scope.type === "self") {
+    if (scope.type === SCOPE_SELF) {
       return m.createdByPlayerId === playerId;
     }
-    if (scope.type === "all_players") {
+    if (scope.type === SCOPE_ALL_PLAYERS) {
       return true;
     }
-    if (scope.type === "other_players") {
+    if (scope.type === SCOPE_OTHER_PLAYERS) {
       return m.createdByPlayerId !== playerId;
     }
     // For enemy/unit scopes, check if this player owns the context
@@ -59,8 +83,9 @@ export function getModifiersForEnemy(
   enemyId: string
 ): ActiveModifier[] {
   return state.activeModifiers.filter((m) => {
-    if (m.scope.type === "one_enemy" && m.scope.enemyId === enemyId) return true;
-    if (m.scope.type === "all_enemies") return true;
+    if (m.scope.type === SCOPE_ONE_ENEMY && m.scope.enemyId === enemyId)
+      return true;
+    if (m.scope.type === SCOPE_ALL_ENEMIES) return true;
     return false;
   });
 }
@@ -84,8 +109,8 @@ export function getEffectiveTerrainCost(
   // Check for day/night swap rule
   const swapModifiers = getModifiersForPlayer(state, playerId).filter(
     (m) =>
-      m.effect.type === "rule_override" &&
-      m.effect.rule === "terrain_day_night_swap"
+      m.effect.type === EFFECT_RULE_OVERRIDE &&
+      m.effect.rule === RULE_TERRAIN_DAY_NIGHT_SWAP
   );
 
   if (swapModifiers.length > 0) {
@@ -95,7 +120,7 @@ export function getEffectiveTerrainCost(
 
   // Apply terrain cost modifiers
   const terrainModifiers = getModifiersForPlayer(state, playerId)
-    .filter((m) => m.effect.type === "terrain_cost")
+    .filter((m) => m.effect.type === EFFECT_TERRAIN_COST)
     .map((m) => m.effect as TerrainCostModifier)
     .filter((e) => e.terrain === terrain || e.terrain === "all");
 
@@ -121,7 +146,7 @@ export function getEffectiveSidewaysValue(
   const baseValue = 1;
 
   const modifiers = getModifiersForPlayer(state, playerId)
-    .filter((m) => m.effect.type === "sideways_value")
+    .filter((m) => m.effect.type === EFFECT_SIDEWAYS_VALUE)
     .map((m) => m.effect as SidewaysValueModifier);
 
   let bestValue = baseValue;
@@ -130,9 +155,13 @@ export function getEffectiveSidewaysValue(
     // Check if this modifier applies
     if (isWound && !mod.forWounds) continue;
 
-    if (mod.condition === "no_mana_used" && manaUsedThisTurn) continue;
+    if (mod.condition === SIDEWAYS_CONDITION_NO_MANA_USED && manaUsedThisTurn)
+      continue;
 
-    if (mod.condition === "with_mana_matching_color" && !manaColorMatchesCard)
+    if (
+      mod.condition === SIDEWAYS_CONDITION_WITH_MANA_MATCHING_COLOR &&
+      !manaColorMatchesCard
+    )
       continue;
 
     bestValue = Math.max(bestValue, mod.newValue);
@@ -150,7 +179,7 @@ export function isRuleActive(
   rule: RuleOverrideModifier["rule"]
 ): boolean {
   return getModifiersForPlayer(state, playerId).some(
-    (m) => m.effect.type === "rule_override" && m.effect.rule === rule
+    (m) => m.effect.type === EFFECT_RULE_OVERRIDE && m.effect.rule === rule
   );
 }
 
@@ -165,7 +194,9 @@ export function getEffectiveEnemyArmor(
   resistanceCount: number
 ): number {
   const modifiers = getModifiersForEnemy(state, enemyId)
-    .filter((m) => m.effect.type === "enemy_stat" && m.effect.stat === "armor")
+    .filter(
+      (m) => m.effect.type === EFFECT_ENEMY_STAT && m.effect.stat === ENEMY_STAT_ARMOR
+    )
     .map((m) => m.effect as EnemyStatModifier);
 
   let armor = baseArmor;
@@ -193,7 +224,10 @@ export function getEffectiveEnemyAttack(
   baseAttack: number
 ): number {
   const modifiers = getModifiersForEnemy(state, enemyId)
-    .filter((m) => m.effect.type === "enemy_stat" && m.effect.stat === "attack")
+    .filter(
+      (m) =>
+        m.effect.type === EFFECT_ENEMY_STAT && m.effect.stat === ENEMY_STAT_ATTACK
+    )
     .map((m) => m.effect as EnemyStatModifier);
 
   let attack = baseAttack;
@@ -241,10 +275,10 @@ export function removeModifier(
 // === Expiration ===
 
 export type ExpirationTrigger =
-  | { readonly type: "turn_end"; readonly playerId: string }
-  | { readonly type: "combat_end" }
-  | { readonly type: "round_end" }
-  | { readonly type: "turn_start"; readonly playerId: string }; // for "until_next_turn" modifiers
+  | { readonly type: typeof EXPIRATION_TURN_END; readonly playerId: string }
+  | { readonly type: typeof EXPIRATION_COMBAT_END }
+  | { readonly type: typeof EXPIRATION_ROUND_END }
+  | { readonly type: typeof EXPIRATION_TURN_START; readonly playerId: string }; // for "until_next_turn" modifiers
 
 /**
  * Expire modifiers based on a game event trigger.
@@ -255,26 +289,26 @@ export function expireModifiers(
 ): GameState {
   const remaining = state.activeModifiers.filter((m) => {
     switch (trigger.type) {
-      case "turn_end":
+      case EXPIRATION_TURN_END:
         // Expire "turn" duration modifiers from this player
         if (
-          m.duration === "turn" &&
+          m.duration === DURATION_TURN &&
           m.createdByPlayerId === trigger.playerId
         ) {
           return false;
         }
         return true;
 
-      case "combat_end":
-        return m.duration !== "combat";
+      case EXPIRATION_COMBAT_END:
+        return m.duration !== DURATION_COMBAT;
 
-      case "round_end":
-        return m.duration !== "round";
+      case EXPIRATION_ROUND_END:
+        return m.duration !== DURATION_ROUND;
 
-      case "turn_start":
+      case EXPIRATION_TURN_START:
         // Expire "until_next_turn" modifiers when their creator's turn starts
         if (
-          m.duration === "until_next_turn" &&
+          m.duration === DURATION_UNTIL_NEXT_TURN &&
           m.createdByPlayerId === trigger.playerId
         ) {
           return false;
