@@ -95,6 +95,11 @@ export interface BuyHealingAction {
   readonly amount: number;
 }
 
+// Undo action
+export interface UndoAction {
+  readonly type: "UNDO";
+}
+
 export type PlayerAction =
   // Movement
   | MoveAction
@@ -118,6 +123,8 @@ export type PlayerAction =
   | RecruitUnitAction
   | BuySpellAction
   | LearnAdvancedActionAction
-  | BuyHealingAction;
+  | BuyHealingAction
+  // Undo
+  | UndoAction;
 
 export type PlayerActionType = PlayerAction["type"];

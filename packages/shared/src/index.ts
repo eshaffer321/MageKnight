@@ -61,6 +61,10 @@ export type {
   // Offers
   OfferRefreshedEvent,
   OfferCardTakenEvent,
+  // Undo
+  MoveUndoneEvent,
+  UndoFailedEvent,
+  UndoCheckpointSetEvent,
 } from "./events.js";
 
 // Actions
@@ -90,6 +94,8 @@ export type {
   BuySpellAction,
   LearnAdvancedActionAction,
   BuyHealingAction,
+  // Undo
+  UndoAction,
 } from "./actions.js";
 
 // Connection

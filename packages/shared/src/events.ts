@@ -46,13 +46,14 @@ export interface EndOfRoundAnnouncedEvent {
 // Movement events
 export interface PlayerMovedEvent {
   readonly type: "PLAYER_MOVED";
-  readonly playerIndex: number;
+  readonly playerId: string;
   readonly from: HexCoord;
   readonly to: HexCoord;
 }
 
 export interface TileRevealedEvent {
   readonly type: "TILE_REVEALED";
+  readonly playerId: string;
   readonly position: HexCoord;
   readonly tileId: string;
 }
@@ -225,6 +226,26 @@ export interface OfferCardTakenEvent {
   readonly cardId: CardId;
 }
 
+// Undo events
+export interface MoveUndoneEvent {
+  readonly type: "MOVE_UNDONE";
+  readonly playerId: string;
+  readonly from: HexCoord;
+  readonly to: HexCoord;
+}
+
+export interface UndoFailedEvent {
+  readonly type: "UNDO_FAILED";
+  readonly playerId: string;
+  readonly reason: "nothing_to_undo" | "checkpoint_reached";
+}
+
+export interface UndoCheckpointSetEvent {
+  readonly type: "UNDO_CHECKPOINT_SET";
+  readonly playerId: string;
+  readonly reason: string;
+}
+
 export type GameEvent =
   // Game lifecycle
   | GameStartedEvent
@@ -268,6 +289,10 @@ export type GameEvent =
   | SkillGainedEvent
   // Offers
   | OfferRefreshedEvent
-  | OfferCardTakenEvent;
+  | OfferCardTakenEvent
+  // Undo
+  | MoveUndoneEvent
+  | UndoFailedEvent
+  | UndoCheckpointSetEvent;
 
 export type GameEventType = GameEvent["type"];

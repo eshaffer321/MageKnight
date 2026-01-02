@@ -56,3 +56,22 @@ export {
   removeModifier,
   expireModifiers,
 } from "./engine/index.js";
+
+// Command system (undo support)
+export type {
+  Command,
+  CommandResult,
+  UndoCheckpoint,
+  CommandStackState,
+  MoveCommandParams,
+  RevealTileCommandParams,
+} from "./engine/index.js";
+export {
+  createEmptyCommandStack,
+  pushCommand,
+  popCommand,
+  canUndo,
+  clearCommandStack,
+  createMoveCommand,
+  createRevealTileCommand,
+} from "./engine/index.js";

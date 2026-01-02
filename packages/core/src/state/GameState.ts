@@ -17,6 +17,10 @@ import {
 import { type GameDecks, createEmptyDecks } from "../types/decks.js";
 import type { CityState } from "../types/city.js";
 import type { ActiveModifier } from "../types/modifiers.js";
+import {
+  type CommandStackState,
+  createEmptyCommandStack,
+} from "../engine/commandStack.js";
 
 export type GamePhase =
   | "setup"
@@ -38,6 +42,7 @@ export type { EnemyTokenPiles } from "../types/enemy.js";
 export type { GameDecks } from "../types/decks.js";
 export type { CityState } from "../types/city.js";
 export type { ActiveModifier } from "../types/modifiers.js";
+export type { CommandStackState } from "../engine/commandStack.js";
 
 export interface GameState {
   readonly phase: GamePhase;
@@ -68,6 +73,9 @@ export interface GameState {
   // Active modifiers (from skills, cards, units, etc.)
   readonly activeModifiers: readonly ActiveModifier[];
 
+  // Command stack for undo support (cleared at end of turn)
+  readonly commandStack: CommandStackState;
+
   // Wound pile (effectively unlimited)
   readonly woundPileCount: number;
 
@@ -92,6 +100,7 @@ export function createInitialGameState(): GameState {
     decks: createEmptyDecks(),
     cities: {},
     activeModifiers: [],
+    commandStack: createEmptyCommandStack(),
     woundPileCount: 10, // start with some wounds available
     scenarioEndTriggered: false,
   };
