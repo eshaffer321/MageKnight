@@ -237,7 +237,15 @@ export interface MoveUndoneEvent {
 export interface UndoFailedEvent {
   readonly type: "UNDO_FAILED";
   readonly playerId: string;
-  readonly reason: "nothing_to_undo" | "checkpoint_reached";
+  readonly reason: "nothing_to_undo" | "checkpoint_reached" | "not_your_turn";
+}
+
+// Validation events
+export interface InvalidActionEvent {
+  readonly type: "INVALID_ACTION";
+  readonly playerId: string;
+  readonly actionType: string;
+  readonly reason: string;
 }
 
 export interface UndoCheckpointSetEvent {
@@ -293,6 +301,8 @@ export type GameEvent =
   // Undo
   | MoveUndoneEvent
   | UndoFailedEvent
-  | UndoCheckpointSetEvent;
+  | UndoCheckpointSetEvent
+  // Validation
+  | InvalidActionEvent;
 
 export type GameEventType = GameEvent["type"];

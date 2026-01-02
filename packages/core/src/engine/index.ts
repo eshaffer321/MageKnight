@@ -2,10 +2,43 @@
  * Game engine functions
  *
  * This module contains the core game logic including:
- * - Modifier management and effective value calculations
+ * - MageKnightEngine for action processing
+ * - Validator system for action validation
  * - Command pattern for undo support
- * - (Future) Action processing, combat resolution, etc.
+ * - Modifier management and effective value calculations
  */
+
+// Engine
+export { MageKnightEngine, createEngine } from "./MageKnightEngine.js";
+export type { ActionResult } from "./MageKnightEngine.js";
+
+// Commands
+export { createCommandForAction } from "./commands/index.js";
+export type { Command, CommandResult, UndoCheckpoint } from "./commands.js";
+export type { CommandStackState } from "./commandStack.js";
+export {
+  createEmptyCommandStack,
+  pushCommand,
+  popCommand,
+  canUndo,
+  clearCommandStack,
+} from "./commandStack.js";
+
+// Command implementations
+export {
+  createMoveCommand,
+  type MoveCommandParams,
+  createRevealTileCommand,
+  type RevealTileCommandParams,
+} from "./commands/index.js";
+
+// Validators
+export { validateAction, getValidatorsForAction } from "./validators/index.js";
+export type {
+  Validator,
+  ValidationResult,
+  ValidationError,
+} from "./validators/types.js";
 
 // Modifier system
 export type { ExpirationTrigger } from "./modifiers.js";
@@ -25,22 +58,3 @@ export {
   removeModifier,
   expireModifiers,
 } from "./modifiers.js";
-
-// Command system
-export type { Command, CommandResult, UndoCheckpoint } from "./commands.js";
-export type { CommandStackState } from "./commandStack.js";
-export {
-  createEmptyCommandStack,
-  pushCommand,
-  popCommand,
-  canUndo,
-  clearCommandStack,
-} from "./commandStack.js";
-
-// Command implementations
-export {
-  createMoveCommand,
-  type MoveCommandParams,
-  createRevealTileCommand,
-  type RevealTileCommandParams,
-} from "./commands/index.js";
