@@ -72,3 +72,18 @@ export { createEmptyDecks } from "./decks.js";
 // City types
 export type { CityShield, CityState } from "./city.js";
 export { determineCityLeader, createCityState } from "./city.js";
+
+// Modifier types
+export type {
+  ModifierDuration,
+  ModifierScope,
+  ModifierSource,
+  TerrainCostModifier,
+  SidewaysValueModifier,
+  CombatValueModifier,
+  EnemyStatModifier,
+  RuleOverrideModifier,
+  AbilityNullifierModifier,
+  ModifierEffect,
+  ActiveModifier,
+} from "./modifiers.js";

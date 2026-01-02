@@ -37,3 +37,16 @@ export {
   isAdventureSite,
   allowsMultipleHeroes,
 } from "./data/siteProperties.js";
+
+// Engine (modifier system, calculations)
+export type { ExpirationTrigger } from "./engine/index.js";
+export {
+  getModifiersOfType,
+  getModifiersForPlayer,
+  getEffectiveTerrainCost,
+  getEffectiveSidewaysValue,
+  isRuleActive,
+  addModifier,
+  removeModifier,
+  expireModifiers,
+} from "./engine/index.js";

@@ -16,6 +16,7 @@ import {
 } from "../types/enemy.js";
 import { type GameDecks, createEmptyDecks } from "../types/decks.js";
 import type { CityState } from "../types/city.js";
+import type { ActiveModifier } from "../types/modifiers.js";
 
 export type GamePhase =
   | "setup"
@@ -36,6 +37,7 @@ export type { GameOffers } from "../types/offers.js";
 export type { EnemyTokenPiles } from "../types/enemy.js";
 export type { GameDecks } from "../types/decks.js";
 export type { CityState } from "../types/city.js";
+export type { ActiveModifier } from "../types/modifiers.js";
 
 export interface GameState {
   readonly phase: GamePhase;
@@ -63,6 +65,9 @@ export interface GameState {
   // City states (only revealed cities have entries)
   readonly cities: Partial<Record<CityColor, CityState>>;
 
+  // Active modifiers (from skills, cards, units, etc.)
+  readonly activeModifiers: readonly ActiveModifier[];
+
   // Wound pile (effectively unlimited)
   readonly woundPileCount: number;
 
@@ -86,6 +91,7 @@ export function createInitialGameState(): GameState {
     enemyTokens: createEmptyEnemyTokenPiles(),
     decks: createEmptyDecks(),
     cities: {},
+    activeModifiers: [],
     woundPileCount: 10, // start with some wounds available
     scenarioEndTriggered: false,
   };
