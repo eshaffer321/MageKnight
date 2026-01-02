@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**PRs should always target the `main` branch.**
+
 ## Build & Test Commands
 
 ```bash

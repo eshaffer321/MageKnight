@@ -5,6 +5,7 @@
 
 // Types
 export type * from "./types/index.js";
+export { Hero, HEROES } from "./types/index.js";
 
 // State
 export type {
@@ -38,7 +39,11 @@ export {
   allowsMultipleHeroes,
 } from "./data/siteProperties.js";
 
-// Engine (modifier system, calculations)
+// Engine
+export { MageKnightEngine, createEngine } from "./engine/index.js";
+export type { ActionResult } from "./engine/index.js";
+
+// Modifiers
 export type { ExpirationTrigger } from "./engine/index.js";
 export {
   // Query helpers
