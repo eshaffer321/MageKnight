@@ -19,18 +19,15 @@ import {
 import { type GameDecks, createEmptyDecks } from "../types/decks.js";
 import type { CityState } from "../types/city.js";
 import type { ActiveModifier } from "../types/modifiers.js";
+import type { CombatState } from "../types/combat.js";
 import {
   type CommandStackState,
   createEmptyCommandStack,
 } from "../engine/commandStack.js";
 import { type RngState, createRng } from "../utils/rng.js";
 
-// Combat state - will be fleshed out when we build combat
-export interface CombatState {
-  readonly _placeholder?: undefined; // TODO: enemies, phases, damage assignment, etc.
-}
-
 // Re-export types for convenience
+export type { CombatState } from "../types/combat.js";
 export type { MapState } from "../types/map.js";
 export type { ManaSource } from "../types/mana.js";
 export type { GameOffers } from "../types/offers.js";

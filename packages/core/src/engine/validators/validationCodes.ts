@@ -62,6 +62,16 @@ export const BLACK_MANA_DAY = "BLACK_MANA_DAY" as const;
 export const GOLD_MANA_NIGHT = "GOLD_MANA_NIGHT" as const;
 export const POWERED_WITHOUT_MANA = "POWERED_WITHOUT_MANA" as const;
 
+// Combat validation codes
+export const ALREADY_IN_COMBAT = "ALREADY_IN_COMBAT" as const;
+export const NOT_IN_COMBAT = "NOT_IN_COMBAT" as const;
+export const WRONG_COMBAT_PHASE = "WRONG_COMBAT_PHASE" as const;
+export const ENEMY_NOT_FOUND = "ENEMY_NOT_FOUND" as const;
+export const ENEMY_ALREADY_BLOCKED = "ENEMY_ALREADY_BLOCKED" as const;
+export const ENEMY_ALREADY_DEFEATED = "ENEMY_ALREADY_DEFEATED" as const;
+export const INVALID_ATTACK_TYPE = "INVALID_ATTACK_TYPE" as const;
+export const DAMAGE_NOT_ASSIGNED = "DAMAGE_NOT_ASSIGNED" as const;
+
 export type ValidationErrorCode =
   | typeof NOT_YOUR_TURN
   | typeof WRONG_PHASE
@@ -106,6 +116,15 @@ export type ValidationErrorCode =
   | typeof BLACK_MANA_INVALID
   | typeof BLACK_MANA_DAY
   | typeof GOLD_MANA_NIGHT
-  | typeof POWERED_WITHOUT_MANA;
+  | typeof POWERED_WITHOUT_MANA
+  // Combat validation
+  | typeof ALREADY_IN_COMBAT
+  | typeof NOT_IN_COMBAT
+  | typeof WRONG_COMBAT_PHASE
+  | typeof ENEMY_NOT_FOUND
+  | typeof ENEMY_ALREADY_BLOCKED
+  | typeof ENEMY_ALREADY_DEFEATED
+  | typeof INVALID_ATTACK_TYPE
+  | typeof DAMAGE_NOT_ASSIGNED;
 
 

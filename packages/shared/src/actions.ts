@@ -5,6 +5,7 @@
 import type { HexCoord, HexDirection } from "./hex.js";
 import type { CardId, SkillId, BasicManaColor, ManaColor } from "./ids.js";
 import type { ManaSourceType } from "./valueConstants.js";
+import type { EnemyId } from "./enemies.js";
 import {
   PLAY_SIDEWAYS_AS_ATTACK,
   PLAY_SIDEWAYS_AS_BLOCK,
@@ -153,6 +154,59 @@ export interface ResolveChoiceAction {
   readonly choiceIndex: number; // Which option to choose (0, 1, etc.)
 }
 
+// Combat action constants
+export const ENTER_COMBAT_ACTION = "ENTER_COMBAT" as const;
+export const END_COMBAT_PHASE_ACTION = "END_COMBAT_PHASE" as const;
+export const DECLARE_BLOCK_ACTION = "DECLARE_BLOCK" as const;
+export const DECLARE_ATTACK_ACTION = "DECLARE_ATTACK" as const;
+export const ASSIGN_DAMAGE_ACTION = "ASSIGN_DAMAGE" as const;
+
+// Combat attack type constants (for actions)
+export const COMBAT_TYPE_NORMAL = "normal" as const;
+export const COMBAT_TYPE_RANGED = "ranged" as const;
+export const COMBAT_TYPE_SIEGE = "siege" as const;
+
+export type CombatType =
+  | typeof COMBAT_TYPE_NORMAL
+  | typeof COMBAT_TYPE_RANGED
+  | typeof COMBAT_TYPE_SIEGE;
+
+// Enter combat with specified enemies
+export interface EnterCombatAction {
+  readonly type: typeof ENTER_COMBAT_ACTION;
+  readonly enemyIds: readonly EnemyId[];
+}
+
+// Advance to next combat phase (or skip current)
+export interface EndCombatPhaseAction {
+  readonly type: typeof END_COMBAT_PHASE_ACTION;
+}
+
+// Declare a block against one enemy
+export interface DeclareBlockAction {
+  readonly type: typeof DECLARE_BLOCK_ACTION;
+  readonly targetEnemyInstanceId: string;
+  readonly blockValue: number; // Total block from cards played this turn
+  // Future: cardIds, sidewaysCardIds for tracking sources
+}
+
+// Declare an attack against enemies
+export interface DeclareAttackAction {
+  readonly type: typeof DECLARE_ATTACK_ACTION;
+  readonly targetEnemyInstanceIds: readonly string[];
+  readonly attackValue: number; // Total attack from cards played
+  readonly attackType: CombatType; // normal, ranged, siege
+  // Future: cardIds, manaSpent for tracking sources
+}
+
+// Assign damage from unblocked enemy to hero
+export interface AssignDamageAction {
+  readonly type: typeof ASSIGN_DAMAGE_ACTION;
+  readonly enemyInstanceId: string;
+  // Phase 1: All damage goes to hero
+  // Future: assignments array for units
+}
+
 export type PlayerAction =
   // Movement
   | MoveAction
@@ -180,6 +234,12 @@ export type PlayerAction =
   // Undo
   | UndoAction
   // Choice resolution
-  | ResolveChoiceAction;
+  | ResolveChoiceAction
+  // Combat
+  | EnterCombatAction
+  | EndCombatPhaseAction
+  | DeclareBlockAction
+  | DeclareAttackAction
+  | AssignDamageAction;
 
 export type PlayerActionType = PlayerAction["type"];

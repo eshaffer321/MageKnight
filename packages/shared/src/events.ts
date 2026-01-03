@@ -157,16 +157,75 @@ export function createTileExploredEvent(
 export const COMBAT_STARTED = "COMBAT_STARTED" as const;
 export interface CombatStartedEvent {
   readonly type: typeof COMBAT_STARTED;
-  readonly playerIndex: number;
-  readonly position: HexCoord;
-  readonly enemies: readonly string[];
+  readonly playerId: string;
+  readonly enemies: readonly {
+    instanceId: string;
+    name: string;
+    attack: number;
+    armor: number;
+  }[];
+}
+
+export const COMBAT_PHASE_CHANGED = "COMBAT_PHASE_CHANGED" as const;
+export interface CombatPhaseChangedEvent {
+  readonly type: typeof COMBAT_PHASE_CHANGED;
+  readonly previousPhase: string;
+  readonly newPhase: string;
+}
+
+export const ENEMY_BLOCKED = "ENEMY_BLOCKED" as const;
+export interface EnemyBlockedEvent {
+  readonly type: typeof ENEMY_BLOCKED;
+  readonly enemyInstanceId: string;
+  readonly blockValue: number;
+}
+
+export const BLOCK_FAILED = "BLOCK_FAILED" as const;
+export interface BlockFailedEvent {
+  readonly type: typeof BLOCK_FAILED;
+  readonly enemyInstanceId: string;
+  readonly blockValue: number;
+  readonly requiredBlock: number;
+}
+
+export const ENEMY_DEFEATED = "ENEMY_DEFEATED" as const;
+export interface EnemyDefeatedEvent {
+  readonly type: typeof ENEMY_DEFEATED;
+  readonly enemyInstanceId: string;
+  readonly enemyName: string;
+  readonly fameGained: number;
+}
+
+export const ATTACK_FAILED = "ATTACK_FAILED" as const;
+export interface AttackFailedEvent {
+  readonly type: typeof ATTACK_FAILED;
+  readonly targetEnemyInstanceIds: readonly string[];
+  readonly attackValue: number;
+  readonly requiredAttack: number;
+}
+
+export const DAMAGE_ASSIGNED = "DAMAGE_ASSIGNED" as const;
+export interface DamageAssignedEvent {
+  readonly type: typeof DAMAGE_ASSIGNED;
+  readonly enemyInstanceId: string;
+  readonly damage: number;
+  readonly woundsTaken: number;
 }
 
 export const COMBAT_ENDED = "COMBAT_ENDED" as const;
 export interface CombatEndedEvent {
   readonly type: typeof COMBAT_ENDED;
-  readonly playerIndex: number;
   readonly victory: boolean;
+  readonly totalFameGained: number;
+  readonly enemiesDefeated: number;
+  readonly enemiesSurvived: number;
+}
+
+export const PLAYER_KNOCKED_OUT = "PLAYER_KNOCKED_OUT" as const;
+export interface PlayerKnockedOutEvent {
+  readonly type: typeof PLAYER_KNOCKED_OUT;
+  readonly playerId: string;
+  readonly woundsThisCombat: number;
 }
 
 // Card events
@@ -544,7 +603,14 @@ export type GameEvent =
   | TileExploredEvent
   // Combat
   | CombatStartedEvent
+  | CombatPhaseChangedEvent
+  | EnemyBlockedEvent
+  | BlockFailedEvent
+  | EnemyDefeatedEvent
+  | AttackFailedEvent
+  | DamageAssignedEvent
   | CombatEndedEvent
+  | PlayerKnockedOutEvent
   // Cards
   | CardPlayedEvent
   | CardDrawnEvent

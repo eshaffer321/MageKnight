@@ -14,6 +14,11 @@ import {
   UNDO_ACTION,
   RESOLVE_CHOICE_ACTION,
   REST_ACTION,
+  ENTER_COMBAT_ACTION,
+  END_COMBAT_PHASE_ACTION,
+  DECLARE_BLOCK_ACTION,
+  DECLARE_ATTACK_ACTION,
+  ASSIGN_DAMAGE_ACTION,
 } from "@mage-knight/shared";
 import { valid } from "./types.js";
 
@@ -78,6 +83,20 @@ import {
   validateStandardRest,
   validateSlowRecovery,
 } from "./restValidators.js";
+
+// Combat validators
+import {
+  validateNotAlreadyInCombat,
+  validateIsInCombat,
+  validateBlockPhase,
+  validateAttackPhase,
+  validateAttackType,
+  validateAssignDamagePhase,
+  validateBlockTargetEnemy,
+  validateAssignDamageTargetEnemy,
+  validateAttackTargets,
+  validateDamageAssignedBeforeLeaving,
+} from "./combatValidators.js";
 
 // TODO: RULES LIMITATION - Immediate Choice Resolution
 // =====================================================
@@ -177,7 +196,37 @@ const validatorRegistry: Record<string, Validator[]> = {
     validateStandardRest, // Checks standard rest rules (exactly one non-wound)
     validateSlowRecovery, // Checks slow recovery rules (all wounds in hand)
   ],
-  // Add more action types as implemented
+  // Combat actions
+  [ENTER_COMBAT_ACTION]: [
+    validateIsPlayersTurn,
+    validateRoundPhase,
+    validateNoChoicePending,
+    validateNotAlreadyInCombat,
+  ],
+  [END_COMBAT_PHASE_ACTION]: [
+    validateIsPlayersTurn,
+    validateIsInCombat,
+    validateDamageAssignedBeforeLeaving,
+  ],
+  [DECLARE_BLOCK_ACTION]: [
+    validateIsPlayersTurn,
+    validateIsInCombat,
+    validateBlockPhase,
+    validateBlockTargetEnemy,
+  ],
+  [DECLARE_ATTACK_ACTION]: [
+    validateIsPlayersTurn,
+    validateIsInCombat,
+    validateAttackPhase,
+    validateAttackType,
+    validateAttackTargets,
+  ],
+  [ASSIGN_DAMAGE_ACTION]: [
+    validateIsPlayersTurn,
+    validateIsInCombat,
+    validateAssignDamagePhase,
+    validateAssignDamageTargetEnemy,
+  ],
 };
 
 // Run all validators for an action type

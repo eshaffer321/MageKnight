@@ -11,6 +11,9 @@ import {
   createInvalidActionEvent,
   createUndoCheckpointSetEvent,
   createUndoFailedEvent,
+  UNDO_FAILED_CHECKPOINT_REACHED,
+  UNDO_FAILED_NOTHING_TO_UNDO,
+  UNDO_FAILED_NOT_YOUR_TURN,
 } from "@mage-knight/shared";
 import { UNDO_ACTION } from "@mage-knight/shared";
 import { validateAction } from "./validators/index.js";
@@ -90,7 +93,7 @@ export class MageKnightEngine {
       return {
         state,
         events: [
-          createUndoFailedEvent(playerId, "not_your_turn"),
+          createUndoFailedEvent(playerId, UNDO_FAILED_NOT_YOUR_TURN),
         ],
       };
     }
@@ -102,7 +105,9 @@ export class MageKnightEngine {
         events: [
           createUndoFailedEvent(
             playerId,
-            state.commandStack.checkpoint ? "checkpoint_reached" : "nothing_to_undo"
+            state.commandStack.checkpoint
+              ? UNDO_FAILED_CHECKPOINT_REACHED
+              : UNDO_FAILED_NOTHING_TO_UNDO
           ),
         ],
       };
@@ -114,7 +119,7 @@ export class MageKnightEngine {
       return {
         state,
         events: [
-          createUndoFailedEvent(playerId, "nothing_to_undo"),
+          createUndoFailedEvent(playerId, UNDO_FAILED_NOTHING_TO_UNDO),
         ],
       };
     }

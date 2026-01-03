@@ -12,6 +12,11 @@ import {
   PLAY_CARD_SIDEWAYS_ACTION,
   RESOLVE_CHOICE_ACTION,
   REST_ACTION,
+  ENTER_COMBAT_ACTION,
+  END_COMBAT_PHASE_ACTION,
+  DECLARE_BLOCK_ACTION,
+  DECLARE_ATTACK_ACTION,
+  ASSIGN_DAMAGE_ACTION,
   hexKey,
 } from "@mage-knight/shared";
 import type { Command } from "../commands.js";
@@ -24,6 +29,13 @@ import type { SidewaysAs } from "./playCardSidewaysCommand.js";
 import { createResolveChoiceCommand } from "./resolveChoiceCommand.js";
 import { createRestCommand } from "./restCommand.js";
 import { getEffectiveTerrainCost } from "../modifiers.js";
+import {
+  createEnterCombatCommand,
+  createEndCombatPhaseCommand,
+  createDeclareBlockCommand,
+  createDeclareAttackCommand,
+  createAssignDamageCommand,
+} from "./combat/index.js";
 
 // Command factory function type
 type CommandFactory = (
@@ -256,6 +268,71 @@ function createRestCommandFromAction(
   });
 }
 
+// Enter combat command factory
+function createEnterCombatCommandFromAction(
+  _state: GameState,
+  playerId: string,
+  action: PlayerAction
+): Command | null {
+  if (action.type !== ENTER_COMBAT_ACTION) return null;
+  return createEnterCombatCommand({
+    playerId,
+    enemyIds: action.enemyIds,
+  });
+}
+
+// End combat phase command factory
+function createEndCombatPhaseCommandFromAction(
+  _state: GameState,
+  playerId: string,
+  action: PlayerAction
+): Command | null {
+  if (action.type !== END_COMBAT_PHASE_ACTION) return null;
+  return createEndCombatPhaseCommand({ playerId });
+}
+
+// Declare block command factory
+function createDeclareBlockCommandFromAction(
+  _state: GameState,
+  playerId: string,
+  action: PlayerAction
+): Command | null {
+  if (action.type !== DECLARE_BLOCK_ACTION) return null;
+  return createDeclareBlockCommand({
+    playerId,
+    targetEnemyInstanceId: action.targetEnemyInstanceId,
+    blockValue: action.blockValue,
+  });
+}
+
+// Declare attack command factory
+function createDeclareAttackCommandFromAction(
+  _state: GameState,
+  playerId: string,
+  action: PlayerAction
+): Command | null {
+  if (action.type !== DECLARE_ATTACK_ACTION) return null;
+  return createDeclareAttackCommand({
+    playerId,
+    targetEnemyInstanceIds: action.targetEnemyInstanceIds,
+    attackValue: action.attackValue,
+    attackType: action.attackType,
+  });
+}
+
+// Assign damage command factory
+function createAssignDamageCommandFromAction(
+  _state: GameState,
+  playerId: string,
+  action: PlayerAction
+): Command | null {
+  if (action.type !== ASSIGN_DAMAGE_ACTION) return null;
+  return createAssignDamageCommand({
+    playerId,
+    enemyInstanceId: action.enemyInstanceId,
+  });
+}
+
 // Command factory registry
 const commandFactoryRegistry: Record<string, CommandFactory> = {
   [MOVE_ACTION]: createMoveCommandFromAction,
@@ -265,6 +342,11 @@ const commandFactoryRegistry: Record<string, CommandFactory> = {
   [PLAY_CARD_SIDEWAYS_ACTION]: createPlayCardSidewaysCommandFromAction,
   [RESOLVE_CHOICE_ACTION]: createResolveChoiceCommandFromAction,
   [REST_ACTION]: createRestCommandFromAction,
+  [ENTER_COMBAT_ACTION]: createEnterCombatCommandFromAction,
+  [END_COMBAT_PHASE_ACTION]: createEndCombatPhaseCommandFromAction,
+  [DECLARE_BLOCK_ACTION]: createDeclareBlockCommandFromAction,
+  [DECLARE_ATTACK_ACTION]: createDeclareAttackCommandFromAction,
+  [ASSIGN_DAMAGE_ACTION]: createAssignDamageCommandFromAction,
 };
 
 // Get command for an action
@@ -312,3 +394,6 @@ export {
   createRestCommand,
   type RestCommandParams,
 } from "./restCommand.js";
+
+// Combat commands
+export * from "./combat/index.js";

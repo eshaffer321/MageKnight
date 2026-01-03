@@ -1,11 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createGameServer, GameServer } from "../index.js";
 import type { GameEvent, ClientGameState } from "@mage-knight/shared";
-import { SiteType } from "@mage-knight/core";
-import { hexKey } from "@mage-knight/shared";
+import {
+  END_TURN_ACTION,
+  GAME_STARTED,
+  MOVE_ACTION,
+  PLAYER_MOVED,
+  TERRAIN_PLAINS,
+  UNDO_ACTION,
+  hexKey,
+} from "@mage-knight/shared";
+import { SiteType, TileId } from "@mage-knight/core";
 import type { HexState } from "@mage-knight/core";
-
-import { PLAYER_MOVED } from "@mage-knight/shared";
 
 describe("GameServer", () => {
   let server: GameServer;
@@ -65,7 +71,7 @@ describe("GameServer", () => {
       callback2.mockClear();
 
       // Player1 sends an action (will fail validation since not on map, but that's ok)
-      server.handleAction("player1", { type: "END_TURN" });
+      server.handleAction("player1", { type: END_TURN_ACTION });
 
       // Both players should receive the broadcast
       expect(callback1).toHaveBeenCalledTimes(1);
@@ -79,8 +85,8 @@ describe("GameServer", () => {
       const state = server.getState();
       const testHex: HexState = {
         coord: { q: 0, r: 0 },
-        terrain: "plains",
-        tileId: "starting_a",
+        terrain: TERRAIN_PLAINS,
+        tileId: TileId.StartingTileA,
         site: null,
         enemies: [],
         shieldTokens: [],
@@ -88,8 +94,8 @@ describe("GameServer", () => {
       };
       const targetHex: HexState = {
         coord: { q: 1, r: 0 },
-        terrain: "plains",
-        tileId: "starting_a",
+        terrain: TERRAIN_PLAINS,
+        tileId: TileId.StartingTileA,
         site: null,
         enemies: [],
         shieldTokens: [],
@@ -107,8 +113,8 @@ describe("GameServer", () => {
         map: {
           ...state.map,
           hexes: {
-            "0,0": testHex,
-            "1,0": targetHex,
+            [hexKey({ q: 0, r: 0 })]: testHex,
+            [hexKey({ q: 1, r: 0 })]: targetHex,
           },
         },
       };
@@ -122,7 +128,10 @@ describe("GameServer", () => {
       callback.mockClear();
 
       // Now move
-      server.handleAction("player1", { type: "MOVE", target: { q: 1, r: 0 } });
+      server.handleAction("player1", {
+        type: MOVE_ACTION,
+        target: { q: 1, r: 0 },
+      });
 
       // Should have moved
       const newState = server.getState();
@@ -150,7 +159,7 @@ describe("GameServer", () => {
 
       callbacks.forEach((cb) => cb.mockClear());
 
-      server.handleAction("player1", { type: "UNDO" });
+      server.handleAction("player1", { type: UNDO_ACTION });
 
       // All three should receive broadcast
       expect(callbacks[0]).toHaveBeenCalledTimes(1);
@@ -173,7 +182,7 @@ describe("GameServer", () => {
       const [events] = callback.mock.calls[0] as [GameEvent[]];
       expect(events).toContainEqual(
         expect.objectContaining({
-          type: "GAME_STARTED",
+          type: GAME_STARTED,
           playerCount: 2,
         })
       );

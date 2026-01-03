@@ -171,3 +171,6 @@ export type {
 
 // Shared value constants (sub-unions)
 export * from "./valueConstants.js";
+
+// Enemy definitions
+export * from "./enemies.js";
