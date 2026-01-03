@@ -8,6 +8,7 @@ import {
   type Player,
   type HexState,
   type TilePlacement,
+  type RngState,
   createInitialGameState,
   MageKnightEngine,
   createEngine,
@@ -17,7 +18,7 @@ import {
   SiteType,
   placeTile,
   hexKey,
-  shuffle,
+  shuffleWithRng,
 } from "@mage-knight/core";
 import {
   LocalConnection,
@@ -175,10 +176,12 @@ export class GameServer {
   private engine: MageKnightEngine;
   private state: GameState;
   private readonly connections: Map<string, EventCallback> = new Map();
+  private readonly seed: number | undefined;
 
-  constructor() {
+  constructor(seed?: number) {
     this.engine = createEngine();
-    this.state = createInitialGameState();
+    this.seed = seed;
+    this.state = createInitialGameState(seed);
   }
 
   /**
@@ -256,9 +259,10 @@ export class GameServer {
   /**
    * Create initial game state with players.
    * Places starting tile and positions all players on the portal hex.
+   * Uses seeded RNG for reproducible initial deck shuffles.
    */
   private createGameWithPlayers(playerIds: string[]): GameState {
-    const baseState = createInitialGameState();
+    const baseState = createInitialGameState(this.seed);
 
     // Place starting tile at origin
     const tileOrigin = { q: 0, r: 0 };
@@ -275,10 +279,18 @@ export class GameServer {
     const portalHex = placedHexes.find((h) => h.site?.type === SiteType.Portal);
     const startPosition = portalHex?.coord ?? { q: 0, r: 0 };
 
-    // Create players on the portal with move points
-    const players = playerIds.map((id, index) =>
-      this.createPlayer(id, index, startPosition)
-    );
+    // Create players on the portal with seeded RNG for deck shuffles
+    let currentRng: RngState = baseState.rng;
+    const players: Player[] = [];
+
+    for (let index = 0; index < playerIds.length; index++) {
+      const id = playerIds[index];
+      if (id !== undefined) {
+        const { player, rng } = this.createPlayer(id, index, startPosition, currentRng);
+        players.push(player);
+        currentRng = rng;
+      }
+    }
 
     // Create tile placement record
     const tilePlacement: TilePlacement = {
@@ -293,6 +305,7 @@ export class GameServer {
       turnOrder: playerIds,
       currentPlayerIndex: 0,
       players,
+      rng: currentRng, // Updated RNG state after all shuffles
       map: {
         ...baseState.map,
         hexes,
@@ -303,13 +316,15 @@ export class GameServer {
 
   /**
    * Create a player with default values.
-   * Shuffles the hero's starting deck and draws an initial hand.
+   * Shuffles the hero's starting deck using seeded RNG and draws an initial hand.
+   * Returns both the player and the updated RNG state.
    */
   private createPlayer(
     id: string,
     index: number,
-    position: { q: number; r: number }
-  ): Player {
+    position: { q: number; r: number },
+    rng: RngState
+  ): { player: Player; rng: RngState } {
     const heroes: readonly Hero[] = [
       Hero.Arythea,
       Hero.Tovak,
@@ -320,16 +335,16 @@ export class GameServer {
     const hero = heroes[heroIndex] ?? Hero.Arythea;
     const heroDefinition = HEROES[hero];
 
-    // Create and shuffle starting deck
+    // Create and shuffle starting deck with seeded RNG
     const allCards = [...heroDefinition.startingCards];
-    const shuffledDeck = shuffle(allCards);
+    const { result: shuffledDeck, rng: newRng } = shuffleWithRng(allCards, rng);
 
     // Draw starting hand (hand limit at level 1 is 5)
     const handLimit = 5;
     const startingHand = shuffledDeck.slice(0, handLimit);
     const remainingDeck = shuffledDeck.slice(handLimit);
 
-    return {
+    const player: Player = {
       id,
       hero,
       position, // Start on the portal
@@ -366,6 +381,8 @@ export class GameServer {
         block: 0,
       },
     };
+
+    return { player, rng: newRng };
   }
 }
 
@@ -387,10 +404,11 @@ class EngineAdapter implements GameEngine {
   private readonly mageKnightEngine: MageKnightEngine;
 
   constructor(
-    private readonly playerId: string
+    private readonly playerId: string,
+    seed?: number
   ) {
     this.mageKnightEngine = createEngine();
-    this.state = createInitialGameState();
+    this.state = createInitialGameState(seed);
   }
 
   processAction(playerId: string, action: PlayerAction): ActionResult {
@@ -413,9 +431,11 @@ class EngineAdapter implements GameEngine {
 
 /**
  * Create a single-player game instance with LocalConnection.
+ * @param playerId - The player's ID
+ * @param seed - Optional seed for reproducible RNG
  */
-export function createGame(playerId: string): GameInstance {
-  const engineAdapter = new EngineAdapter(playerId);
+export function createGame(playerId: string, seed?: number): GameInstance {
+  const engineAdapter = new EngineAdapter(playerId, seed);
   const connection = new LocalConnection(engineAdapter, playerId);
 
   return {
@@ -426,9 +446,10 @@ export function createGame(playerId: string): GameInstance {
 
 /**
  * Create a multiplayer game server.
+ * @param seed - Optional seed for reproducible RNG
  */
-export function createGameServer(): GameServer {
-  return new GameServer();
+export function createGameServer(seed?: number): GameServer {
+  return new GameServer(seed);
 }
 
 // Re-export types

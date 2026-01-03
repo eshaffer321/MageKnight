@@ -19,7 +19,7 @@ import { TURN_ENDED, ROUND_ENDED } from "@mage-knight/shared";
 import { expireModifiers } from "../modifiers.js";
 import { EXPIRATION_TURN_END } from "../modifierConstants.js";
 import { END_TURN_COMMAND } from "./commandTypes.js";
-import { shuffle } from "../../utils/index.js";
+import { shuffleWithRng, type RngState } from "../../utils/index.js";
 
 export { END_TURN_COMMAND };
 
@@ -116,7 +116,10 @@ export function createEndTurnCommand(params: EndTurnCommandParams): Command {
 
       // Handle round end: reshuffle all players' decks
       if (isNewRound) {
-        const reshuffledPlayers = newState.players.map((player) => {
+        let currentRng: RngState = newState.rng;
+        const reshuffledPlayers: Player[] = [];
+
+        for (const player of newState.players) {
           // Gather all cards: hand + discard + deck + play area
           const allCards: CardId[] = [
             ...player.hand,
@@ -124,24 +127,30 @@ export function createEndTurnCommand(params: EndTurnCommandParams): Command {
             ...player.deck,
             ...player.playArea,
           ];
-          const shuffledDeck = shuffle(allCards);
+          const { result: shuffledDeck, rng: newRng } = shuffleWithRng(
+            allCards,
+            currentRng
+          );
+          currentRng = newRng;
+
           const playerHandLimit = player.handLimit;
           const freshHand = shuffledDeck.slice(0, playerHandLimit);
           const remainingDeck = shuffledDeck.slice(playerHandLimit);
 
-          return {
+          reshuffledPlayers.push({
             ...player,
             hand: freshHand,
             deck: remainingDeck,
             discard: [],
             playArea: [],
-          };
-        });
+          });
+        }
 
         newState = {
           ...newState,
           players: reshuffledPlayers,
           round: state.round + 1,
+          rng: currentRng,
         };
       }
 

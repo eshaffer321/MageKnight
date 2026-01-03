@@ -83,3 +83,13 @@ export {
 
 // Utils
 export { shuffle } from "./utils/index.js";
+
+// RNG (seeded random number generator)
+export type { RngState } from "./utils/index.js";
+export {
+  createRng,
+  nextRandom,
+  randomInt,
+  shuffleWithRng,
+  randomElement,
+} from "./utils/index.js";

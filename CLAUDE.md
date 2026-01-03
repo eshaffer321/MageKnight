@@ -74,6 +74,23 @@ The `LocalConnection` class implements this for single-process play; `GameServer
 - Enables undo during a player's turn until an irreversible event (tile revealed, enemy drawn, die rolled)
 - Commands implement `execute()` and `undo()` methods
 
+**Seeded RNG System** (`core/src/utils/rng.ts`):
+- All randomness goes through seeded RNG for reproducible games (testing, replays, debugging)
+- `RngState` is stored in `GameState.rng` and threaded through operations
+- Uses Mulberry32 algorithm for fast, well-distributed random numbers
+- Key functions:
+  - `createRng(seed?)` — create initial RNG state (defaults to `Date.now()`)
+  - `shuffleWithRng(array, rng)` — returns `{ result, rng }` (Fisher-Yates)
+  - `randomInt(rng, min, max)` — returns `{ value, rng }`
+  - `randomElement(array, rng)` — returns `{ value, rng }`
+- Pattern: All RNG functions return updated state, must thread through:
+  ```typescript
+  const { result: shuffled, rng: rng1 } = shuffleWithRng(cards, state.rng);
+  const { value: picked, rng: rng2 } = randomElement(enemies, rng1);
+  return { ...state, rng: rng2 };
+  ```
+- Pass optional `seed` to `createInitialGameState(seed)` for deterministic games
+
 ### Dependency Rules
 
 - **@mage-knight/shared is the foundation** — defines types used by both client and server

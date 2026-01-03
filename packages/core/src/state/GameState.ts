@@ -23,6 +23,7 @@ import {
   type CommandStackState,
   createEmptyCommandStack,
 } from "../engine/commandStack.js";
+import { type RngState, createRng } from "../utils/rng.js";
 
 // Combat state - will be fleshed out when we build combat
 export interface CombatState {
@@ -38,6 +39,7 @@ export type { GameDecks } from "../types/decks.js";
 export type { CityState } from "../types/city.js";
 export type { ActiveModifier } from "../types/modifiers.js";
 export type { CommandStackState } from "../engine/commandStack.js";
+export type { RngState } from "../utils/rng.js";
 
 export interface GameState {
   readonly phase: GamePhase;
@@ -71,6 +73,9 @@ export interface GameState {
   // Command stack for undo support (cleared at end of turn)
   readonly commandStack: CommandStackState;
 
+  // Seeded RNG for reproducible games
+  readonly rng: RngState;
+
   // Wound pile (effectively unlimited)
   readonly woundPileCount: number;
 
@@ -78,7 +83,7 @@ export interface GameState {
   readonly scenarioEndTriggered: boolean; // distinct from endOfRoundAnnouncedBy
 }
 
-export function createInitialGameState(): GameState {
+export function createInitialGameState(seed?: number): GameState {
   return {
     phase: GAME_PHASE_SETUP,
     timeOfDay: TIME_OF_DAY_DAY,
@@ -96,6 +101,7 @@ export function createInitialGameState(): GameState {
     cities: {},
     activeModifiers: [],
     commandStack: createEmptyCommandStack(),
+    rng: createRng(seed),
     woundPileCount: 10, // start with some wounds available
     scenarioEndTriggered: false,
   };
