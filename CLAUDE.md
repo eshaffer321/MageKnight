@@ -82,3 +82,46 @@ The `LocalConnection` class implements this for single-process play; `GameServer
 - **Within core, keep import chains shallow** — one level deep is fine, avoid A → B → C → D chains
 - **Branded ID types live with their domain** — `EnemyTokenId` with enemy types, `TileId` with map types, etc.
 - **When in doubt, check: "if I delete this file, what breaks?"** — minimize blast radius
+
+## No Magic Strings (Policy + Workflow)
+
+This repo aims to avoid hard-coded string literals for anything that behaves like an identifier:
+- Discriminators (`type` fields in discriminated unions)
+- Command kinds / event kinds / action kinds
+- Validation codes
+- “Enum-ish” domains (phases, time-of-day, categories, reasons, sources, etc.)
+
+### Preferred Pattern
+
+- **Define exported constants**:
+  - `export const SOME_KIND = "some_kind" as const;`
+- **Type from constants** (keeps runtime + type-level in sync):
+  - `export type SomeKind = typeof SOME_KIND | typeof OTHER_KIND | ...;`
+- **Use constants everywhere**:
+  - comparisons (`x.type === SOME_KIND`)
+  - object literals (`{ type: SOME_KIND, ... }`)
+  - switches (`case SOME_KIND: ...`)
+  - tests (assert against constants, not string literals)
+
+We intentionally prefer **`as const` + `typeof`** over TypeScript `enum`s to keep values tree-shakeable and ergonomic across packages.
+
+### Red → Green Refactor Workflow (Lint-First)
+
+When cleaning up a “magic string” area:
+- **Red**: add a *blocking* ESLint rule (typically `no-restricted-syntax`) scoped as narrowly as possible (file or field).
+  - The rule should catch the exact pattern (e.g., string-literal unions for a field, or returning a string literal from a mapper).
+- **Green**: introduce constants/types in an appropriate “constants module”, refactor callsites to use them, and keep narrowing via `typeof`.
+- **Expand**: once green, you can broaden the lint scope to cover more files/fields.
+
+The goal is to make the linter act like a “test” that prevents regressions.
+
+### Domain Boundaries Matter
+
+It’s OK for multiple domains to share the same underlying string values, but **do not alias semantic domains** unless they truly mean the same thing.
+Example: two domains can both contain `"blue"`, but should still have separate constant sets if they represent different concepts.
+
+### Monorepo Gotcha: Shared Builds
+
+Core/server consume `@mage-knight/shared` via built outputs. When adding new exports/constants to shared:
+- rebuild shared (`pnpm -C packages/shared build`) before expecting other packages to “see” them
+- then re-run lint/tests (`pnpm -r lint`, `pnpm test`)

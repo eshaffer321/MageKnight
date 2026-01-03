@@ -6,10 +6,16 @@
 import {
   type GameState,
   type Player,
+  type HexState,
+  type TilePlacement,
   createInitialGameState,
   MageKnightEngine,
   createEngine,
   Hero,
+  TileId,
+  SiteType,
+  placeTile,
+  hexKey,
 } from "@mage-knight/core";
 import {
   LocalConnection,
@@ -246,11 +252,37 @@ export class GameServer {
 
   /**
    * Create initial game state with players.
+   * Places starting tile and positions all players on the portal hex.
    */
   private createGameWithPlayers(playerIds: string[]): GameState {
     const baseState = createInitialGameState();
 
-    const players = playerIds.map((id, index) => this.createPlayer(id, index));
+    // Place starting tile at origin
+    const tileOrigin = { q: 0, r: 0 };
+    const placedHexes = placeTile(TileId.StartingTileA, tileOrigin);
+
+    // Build hex map
+    const hexes: Record<string, HexState> = {};
+    for (const hex of placedHexes) {
+      const key = hexKey(hex.coord);
+      hexes[key] = hex;
+    }
+
+    // Find portal hex for player starting position
+    const portalHex = placedHexes.find((h) => h.site?.type === SiteType.Portal);
+    const startPosition = portalHex?.coord ?? { q: 0, r: 0 };
+
+    // Create players on the portal with move points
+    const players = playerIds.map((id, index) =>
+      this.createPlayer(id, index, startPosition)
+    );
+
+    // Create tile placement record
+    const tilePlacement: TilePlacement = {
+      tileId: TileId.StartingTileA,
+      centerCoord: tileOrigin,
+      revealed: true,
+    };
 
     return {
       ...baseState,
@@ -258,13 +290,22 @@ export class GameServer {
       turnOrder: playerIds,
       currentPlayerIndex: 0,
       players,
+      map: {
+        ...baseState.map,
+        hexes,
+        tiles: [tilePlacement],
+      },
     };
   }
 
   /**
    * Create a player with default values.
    */
-  private createPlayer(id: string, index: number): Player {
+  private createPlayer(
+    id: string,
+    index: number,
+    position: { q: number; r: number }
+  ): Player {
     const heroes: readonly Hero[] = [
       Hero.Arythea,
       Hero.Tovak,
@@ -277,7 +318,7 @@ export class GameServer {
     return {
       id,
       hero,
-      position: null, // Not on map yet
+      position, // Start on the portal
       fame: 0,
       level: 1,
       reputation: 0,
@@ -299,7 +340,7 @@ export class GameServer {
       tacticCard: null,
       knockedOut: false,
       roundOrderTokenFaceDown: false,
-      movePoints: 0,
+      movePoints: 4, // TEMPORARY: hardcoded for testing movement
       influencePoints: 0,
       playArea: [],
       pureMana: [],

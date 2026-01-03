@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createGameServer, GameServer } from "../index.js";
 import type { GameEvent, ClientGameState } from "@mage-knight/shared";
+import { SiteType } from "@mage-knight/core";
+import { hexKey } from "@mage-knight/shared";
 import type { HexState } from "@mage-knight/core";
 
 import { PLAYER_MOVED } from "@mage-knight/shared";
@@ -186,6 +188,38 @@ describe("GameServer", () => {
       // All 4 players should have different heroes
       const uniqueHeroes = new Set(heroIds);
       expect(uniqueHeroes.size).toBe(4);
+    });
+
+    it("should place players on starting tile portal", () => {
+      const callback = vi.fn();
+
+      server.initializeGame(["player1", "player2"]);
+      server.connect("player1", callback);
+
+      const [, state] = callback.mock.calls[0] as [GameEvent[], ClientGameState];
+
+      // Players should have positions on the portal (center of starting tile)
+      expect(state.players[0].position).toEqual({ q: 0, r: 0 });
+      expect(state.players[1].position).toEqual({ q: 0, r: 0 });
+
+      // Map should have hexes from the starting tile
+      expect(Object.keys(state.map.hexes).length).toBeGreaterThan(0);
+
+      // Portal hex should exist at origin
+      const originKey = hexKey({ q: 0, r: 0 });
+      expect(state.map.hexes[originKey]).toBeDefined();
+      expect(state.map.hexes[originKey].site?.type).toBe(SiteType.Portal);
+    });
+
+    it("should give players starting move points", () => {
+      const callback = vi.fn();
+
+      server.initializeGame(["player1"]);
+      server.connect("player1", callback);
+
+      const [, state] = callback.mock.calls[0] as [GameEvent[], ClientGameState];
+
+      expect(state.players[0].movePoints).toBe(4);
     });
   });
 

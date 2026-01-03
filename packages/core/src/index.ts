@@ -5,7 +5,7 @@
 
 // Types
 export type * from "./types/index.js";
-export { Hero, HEROES } from "./types/index.js";
+export { Hero, HEROES, TileId, SiteType, RampagingEnemyType } from "./types/index.js";
 
 // State
 export type { GameState, MapState } from "./state/GameState.js";
