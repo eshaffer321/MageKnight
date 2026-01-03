@@ -32,8 +32,18 @@ export interface EndTurnAction {
 }
 
 export const REST_ACTION = "REST" as const;
+
+// Rest type constants
+export const REST_TYPE_STANDARD = "standard" as const;
+export const REST_TYPE_SLOW_RECOVERY = "slow_recovery" as const;
+
+export type RestType = typeof REST_TYPE_STANDARD | typeof REST_TYPE_SLOW_RECOVERY;
+
 export interface RestAction {
   readonly type: typeof REST_ACTION;
+  readonly restType: RestType;
+  readonly discardCardIds: readonly CardId[];
+  readonly announceEndOfRound?: boolean; // Signal to other players
 }
 
 export const INTERACT_ACTION = "INTERACT" as const;

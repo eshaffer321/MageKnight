@@ -61,6 +61,8 @@ export type {
   RoundEndedEvent,
   GameEndedEvent,
   EndOfRoundAnnouncedEvent,
+  PlayerRestedEvent,
+  RestUndoneEvent,
   // Movement
   PlayerMovedEvent,
   TileRevealedEvent,

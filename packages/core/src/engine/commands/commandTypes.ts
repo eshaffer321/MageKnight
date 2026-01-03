@@ -12,6 +12,7 @@ export const EXPLORE_COMMAND = "EXPLORE" as const;
 export const PLAY_CARD_COMMAND = "PLAY_CARD" as const;
 export const PLAY_CARD_SIDEWAYS_COMMAND = "PLAY_CARD_SIDEWAYS" as const;
 export const RESOLVE_CHOICE_COMMAND = "RESOLVE_CHOICE" as const;
+export const REST_COMMAND = "REST" as const;
 
 // Reserved / upcoming command types used by undo checkpointing.
 export const DRAW_ENEMY_COMMAND = "DRAW_ENEMY" as const;

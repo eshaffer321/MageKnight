@@ -13,6 +13,7 @@ import {
   PLAY_CARD_SIDEWAYS_ACTION,
   UNDO_ACTION,
   RESOLVE_CHOICE_ACTION,
+  REST_ACTION,
 } from "@mage-knight/shared";
 import { valid } from "./types.js";
 
@@ -69,6 +70,14 @@ import {
   validateChoiceIndex,
   validateNoChoicePending,
 } from "./choiceValidators.js";
+
+// Rest validators
+import {
+  validateRestHasDiscard,
+  validateRestCardsInHand,
+  validateStandardRest,
+  validateSlowRecovery,
+} from "./restValidators.js";
 
 // TODO: RULES LIMITATION - Immediate Choice Resolution
 // =====================================================
@@ -157,6 +166,16 @@ const validatorRegistry: Record<string, Validator[]> = {
     validateIsPlayersTurn,
     validateHasPendingChoice,
     validateChoiceIndex,
+  ],
+  [REST_ACTION]: [
+    validateIsPlayersTurn,
+    validateRoundPhase,
+    validateNoChoicePending,
+    validateHasNotActed, // Can only rest if you haven't taken an action
+    validateRestHasDiscard,
+    validateRestCardsInHand,
+    validateStandardRest, // Checks standard rest rules (exactly one non-wound)
+    validateSlowRecovery, // Checks slow recovery rules (all wounds in hand)
   ],
   // Add more action types as implemented
 };

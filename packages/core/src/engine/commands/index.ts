@@ -11,6 +11,7 @@ import {
   PLAY_CARD_ACTION,
   PLAY_CARD_SIDEWAYS_ACTION,
   RESOLVE_CHOICE_ACTION,
+  REST_ACTION,
   hexKey,
 } from "@mage-knight/shared";
 import type { Command } from "../commands.js";
@@ -21,6 +22,7 @@ import { createPlayCardCommand } from "./playCardCommand.js";
 import { createPlayCardSidewaysCommand } from "./playCardSidewaysCommand.js";
 import type { SidewaysAs } from "./playCardSidewaysCommand.js";
 import { createResolveChoiceCommand } from "./resolveChoiceCommand.js";
+import { createRestCommand } from "./restCommand.js";
 import { getEffectiveTerrainCost } from "../modifiers.js";
 
 // Command factory function type
@@ -233,6 +235,27 @@ function createResolveChoiceCommandFromAction(
   });
 }
 
+// Rest command factory
+function createRestCommandFromAction(
+  state: GameState,
+  playerId: string,
+  action: PlayerAction
+): Command | null {
+  if (action.type !== REST_ACTION) return null;
+
+  const player = state.players.find((p) => p.id === playerId);
+  if (!player) return null;
+
+  return createRestCommand({
+    playerId,
+    restType: action.restType,
+    discardCardIds: action.discardCardIds,
+    announceEndOfRound: action.announceEndOfRound ?? false,
+    previousHand: [...player.hand],
+    previousDiscard: [...player.discard],
+  });
+}
+
 // Command factory registry
 const commandFactoryRegistry: Record<string, CommandFactory> = {
   [MOVE_ACTION]: createMoveCommandFromAction,
@@ -241,6 +264,7 @@ const commandFactoryRegistry: Record<string, CommandFactory> = {
   [PLAY_CARD_ACTION]: createPlayCardCommandFromAction,
   [PLAY_CARD_SIDEWAYS_ACTION]: createPlayCardSidewaysCommandFromAction,
   [RESOLVE_CHOICE_ACTION]: createResolveChoiceCommandFromAction,
+  [REST_ACTION]: createRestCommandFromAction,
 };
 
 // Get command for an action
@@ -284,3 +308,7 @@ export {
   createResolveChoiceCommand,
   type ResolveChoiceCommandParams,
 } from "./resolveChoiceCommand.js";
+export {
+  createRestCommand,
+  type RestCommandParams,
+} from "./restCommand.js";

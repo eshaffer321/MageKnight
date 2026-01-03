@@ -38,6 +38,15 @@ export const CHOICE_PENDING = "CHOICE_PENDING" as const;
 // Sideways play validation codes
 export const SIDEWAYS_CHOICE_REQUIRED = "SIDEWAYS_CHOICE_REQUIRED" as const;
 
+// Rest validation codes
+export const REST_NO_DISCARD = "REST_NO_DISCARD" as const;
+export const REST_NEEDS_NON_WOUND = "REST_NEEDS_NON_WOUND" as const;
+export const CANNOT_REST = "CANNOT_REST" as const;
+export const STANDARD_REST_ONE_NON_WOUND = "STANDARD_REST_ONE_NON_WOUND" as const;
+export const SLOW_RECOVERY_INVALID = "SLOW_RECOVERY_INVALID" as const;
+export const SLOW_RECOVERY_ONE_WOUND = "SLOW_RECOVERY_ONE_WOUND" as const;
+export const SLOW_RECOVERY_MUST_BE_WOUND = "SLOW_RECOVERY_MUST_BE_WOUND" as const;
+
 // Mana validation codes
 export const DIE_ALREADY_USED = "DIE_ALREADY_USED" as const;
 export const DIE_NOT_FOUND = "DIE_NOT_FOUND" as const;
@@ -76,6 +85,14 @@ export type ValidationErrorCode =
   | typeof INVALID_CHOICE_INDEX
   | typeof CHOICE_PENDING
   | typeof SIDEWAYS_CHOICE_REQUIRED
+  // Rest validation
+  | typeof REST_NO_DISCARD
+  | typeof REST_NEEDS_NON_WOUND
+  | typeof CANNOT_REST
+  | typeof STANDARD_REST_ONE_NON_WOUND
+  | typeof SLOW_RECOVERY_INVALID
+  | typeof SLOW_RECOVERY_ONE_WOUND
+  | typeof SLOW_RECOVERY_MUST_BE_WOUND
   // Mana validation
   | typeof DIE_ALREADY_USED
   | typeof DIE_NOT_FOUND

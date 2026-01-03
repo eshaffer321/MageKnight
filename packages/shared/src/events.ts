@@ -67,6 +67,22 @@ export interface EndOfRoundAnnouncedEvent {
   readonly playerId: string;
 }
 
+export const PLAYER_RESTED = "PLAYER_RESTED" as const;
+export interface PlayerRestedEvent {
+  readonly type: typeof PLAYER_RESTED;
+  readonly playerId: string;
+  readonly restType: import("./actions.js").RestType;
+  readonly cardsDiscarded: number;
+  readonly woundsDiscarded: number; // Wounds go to discard pile (NOT healed)
+  readonly announcedEndOfRound: boolean;
+}
+
+export const REST_UNDONE = "REST_UNDONE" as const;
+export interface RestUndoneEvent {
+  readonly type: typeof REST_UNDONE;
+  readonly playerId: string;
+}
+
 // Movement events
 export const PLAYER_MOVED = "PLAYER_MOVED" as const;
 export interface PlayerMovedEvent {
@@ -520,6 +536,8 @@ export type GameEvent =
   | RoundEndedEvent
   | GameEndedEvent
   | EndOfRoundAnnouncedEvent
+  | PlayerRestedEvent
+  | RestUndoneEvent
   // Movement
   | PlayerMovedEvent
   | TileRevealedEvent
