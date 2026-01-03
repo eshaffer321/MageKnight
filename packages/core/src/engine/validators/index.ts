@@ -5,7 +5,13 @@
 import type { Validator, ValidationResult } from "./types.js";
 import type { GameState } from "../../state/GameState.js";
 import type { PlayerAction } from "@mage-knight/shared";
-import { END_TURN_ACTION, EXPLORE_ACTION, MOVE_ACTION, UNDO_ACTION } from "@mage-knight/shared";
+import {
+  END_TURN_ACTION,
+  EXPLORE_ACTION,
+  MOVE_ACTION,
+  PLAY_CARD_ACTION,
+  UNDO_ACTION,
+} from "@mage-knight/shared";
 import { valid } from "./types.js";
 
 // Turn validators
@@ -33,6 +39,13 @@ import {
   validateExploreMoveCost,
   validateTilesAvailable,
 } from "./exploreValidators.js";
+
+// Play card validators
+import {
+  validateCardInHand,
+  validateCardExists,
+  validateNotWound,
+} from "./playCardValidators.js";
 
 // Re-export types
 export * from "./types.js";
@@ -65,6 +78,14 @@ const validatorRegistry: Record<string, Validator[]> = {
     validateExploreDirection,
     validateExploreMoveCost,
     validateTilesAvailable,
+  ],
+  [PLAY_CARD_ACTION]: [
+    validateIsPlayersTurn,
+    validateRoundPhase,
+    // Note: Playing cards is allowed during combat and doesn't count as the "action"
+    validateCardInHand,
+    validateCardExists,
+    validateNotWound,
   ],
   // Add more action types as implemented
 };

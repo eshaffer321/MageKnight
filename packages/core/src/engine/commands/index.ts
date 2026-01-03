@@ -3,12 +3,19 @@
  */
 
 import type { GameState } from "../../state/GameState.js";
-import type { PlayerAction, HexCoord, HexDirection } from "@mage-knight/shared";
-import { MOVE_ACTION, END_TURN_ACTION, EXPLORE_ACTION, hexKey } from "@mage-knight/shared";
+import type { PlayerAction, HexCoord, HexDirection, CardId } from "@mage-knight/shared";
+import {
+  MOVE_ACTION,
+  END_TURN_ACTION,
+  EXPLORE_ACTION,
+  PLAY_CARD_ACTION,
+  hexKey,
+} from "@mage-knight/shared";
 import type { Command } from "../commands.js";
 import { createMoveCommand } from "./moveCommand.js";
 import { createEndTurnCommand } from "./endTurnCommand.js";
 import { createExploreCommand } from "./exploreCommand.js";
+import { createPlayCardCommand } from "./playCardCommand.js";
 import { getEffectiveTerrainCost } from "../modifiers.js";
 
 // Command factory function type
@@ -93,11 +100,42 @@ function createExploreCommandFromAction(
   });
 }
 
+// Helper to get card id from action
+function getCardIdFromAction(action: PlayerAction): CardId | null {
+  if (action.type === PLAY_CARD_ACTION && "cardId" in action) {
+    return action.cardId;
+  }
+  return null;
+}
+
+// Play card command factory
+function createPlayCardCommandFromAction(
+  state: GameState,
+  playerId: string,
+  action: PlayerAction
+): Command | null {
+  const cardId = getCardIdFromAction(action);
+  if (!cardId) return null;
+
+  const player = state.players.find((p) => p.id === playerId);
+  if (!player) return null;
+
+  const handIndex = player.hand.indexOf(cardId);
+  if (handIndex === -1) return null;
+
+  return createPlayCardCommand({
+    playerId,
+    cardId,
+    handIndex,
+  });
+}
+
 // Command factory registry
 const commandFactoryRegistry: Record<string, CommandFactory> = {
   [MOVE_ACTION]: createMoveCommandFromAction,
   [END_TURN_ACTION]: createEndTurnCommandFromAction,
   [EXPLORE_ACTION]: createExploreCommandFromAction,
+  [PLAY_CARD_ACTION]: createPlayCardCommandFromAction,
 };
 
 // Get command for an action
@@ -128,3 +166,7 @@ export {
   createExploreCommand,
   type ExploreCommandParams,
 } from "./exploreCommand.js";
+export {
+  createPlayCardCommand,
+  type PlayCardCommandParams,
+} from "./playCardCommand.js";

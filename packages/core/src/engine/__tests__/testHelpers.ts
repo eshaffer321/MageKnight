@@ -54,6 +54,10 @@ export function createTestPlayer(overrides: Partial<Player> = {}): Player {
     usedManaFromSource: false,
     hasMovedThisTurn: false,
     hasTakenActionThisTurn: false,
+    combatAccumulator: {
+      attack: { normal: 0, ranged: 0, siege: 0 },
+      block: 0,
+    },
     ...overrides,
   };
 }

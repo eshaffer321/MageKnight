@@ -347,6 +347,10 @@ export class GameServer {
       usedManaFromSource: false,
       hasMovedThisTurn: false,
       hasTakenActionThisTurn: false,
+      combatAccumulator: {
+        attack: { normal: 0, ranged: 0, siege: 0 },
+        block: 0,
+      },
     };
   }
 }

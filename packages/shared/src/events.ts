@@ -338,6 +338,25 @@ export interface OfferCardTakenEvent {
   readonly cardId: CardId;
 }
 
+// Card undo events
+export const CARD_PLAY_UNDONE = "CARD_PLAY_UNDONE" as const;
+export interface CardPlayUndoneEvent {
+  readonly type: typeof CARD_PLAY_UNDONE;
+  readonly playerId: string;
+  readonly cardId: CardId;
+}
+
+export function createCardPlayUndoneEvent(
+  playerId: string,
+  cardId: CardId
+): CardPlayUndoneEvent {
+  return {
+    type: CARD_PLAY_UNDONE,
+    playerId,
+    cardId,
+  };
+}
+
 // Undo events
 export const MOVE_UNDONE = "MOVE_UNDONE" as const;
 export interface MoveUndoneEvent {
@@ -467,6 +486,7 @@ export type GameEvent =
   | OfferRefreshedEvent
   | OfferCardTakenEvent
   // Undo
+  | CardPlayUndoneEvent
   | MoveUndoneEvent
   | UndoFailedEvent
   | UndoCheckpointSetEvent

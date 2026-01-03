@@ -35,6 +35,18 @@ export interface Crystals {
   readonly white: number;
 }
 
+// Combat accumulator - tracks attack/block values from played cards
+export interface AccumulatedAttack {
+  readonly normal: number;
+  readonly ranged: number;
+  readonly siege: number;
+}
+
+export interface CombatAccumulator {
+  readonly attack: AccumulatedAttack;
+  readonly block: number;
+}
+
 export interface PlayerUnit {
   readonly cardId: CardId;
   readonly isSpent: boolean;
@@ -92,4 +104,7 @@ export interface Player {
   readonly usedManaFromSource: boolean;
   readonly hasMovedThisTurn: boolean; // true once any movement occurs, enforces move-before-action
   readonly hasTakenActionThisTurn: boolean;
+
+  // Combat accumulator (resets at end of combat or end of turn if no combat)
+  readonly combatAccumulator: CombatAccumulator;
 }

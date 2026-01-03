@@ -11,7 +11,7 @@ import { getEffectiveTerrainCost } from "../modifiers.js";
 import {
   HEX_NOT_FOUND,
   IMPASSABLE,
-  INVALID_ACTION,
+  INVALID_ACTION_CODE,
   NOT_ADJACENT,
   NOT_ENOUGH_MOVE_POINTS,
   NOT_ON_MAP,
@@ -67,7 +67,7 @@ export function validateTargetAdjacent(
   const target = getMoveTarget(action);
 
   if (!player?.position || !target) {
-    return invalid(INVALID_ACTION, "Invalid move action");
+    return invalid(INVALID_ACTION_CODE, "Invalid move action");
   }
 
   if (!isAdjacent(player.position, target)) {
@@ -84,7 +84,7 @@ export function validateTargetHexExists(
 ): ValidationResult {
   const target = getMoveTarget(action);
   if (!target) {
-    return invalid(INVALID_ACTION, "Invalid move action");
+    return invalid(INVALID_ACTION_CODE, "Invalid move action");
   }
 
   const hexKey = `${target.q},${target.r}`;
@@ -103,7 +103,7 @@ export function validateTerrainPassable(
 ): ValidationResult {
   const target = getMoveTarget(action);
   if (!target) {
-    return invalid(INVALID_ACTION, "Invalid move action");
+    return invalid(INVALID_ACTION_CODE, "Invalid move action");
   }
 
   const hexKey = `${target.q},${target.r}`;
@@ -129,7 +129,7 @@ export function validateEnoughMovePoints(
   const target = getMoveTarget(action);
 
   if (!player || !target) {
-    return invalid(INVALID_ACTION, "Invalid move action");
+    return invalid(INVALID_ACTION_CODE, "Invalid move action");
   }
 
   const hexKey = `${target.q},${target.r}`;
