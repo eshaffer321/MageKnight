@@ -80,3 +80,6 @@ export {
   createMoveCommand,
   createRevealTileCommand,
 } from "./engine/index.js";
+
+// Utils
+export { shuffle } from "./utils/index.js";

@@ -45,6 +45,8 @@ export interface TurnEndedEvent {
   readonly type: typeof TURN_ENDED;
   readonly playerId: string;
   readonly nextPlayerId: string | null; // null if round ended
+  readonly cardsDiscarded: number; // From play area
+  readonly cardsDrawn: number; // Up to hand limit
 }
 
 export const ROUND_ENDED = "ROUND_ENDED" as const;

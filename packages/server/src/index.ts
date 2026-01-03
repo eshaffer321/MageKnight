@@ -12,10 +12,12 @@ import {
   MageKnightEngine,
   createEngine,
   Hero,
+  HEROES,
   TileId,
   SiteType,
   placeTile,
   hexKey,
+  shuffle,
 } from "@mage-knight/core";
 import {
   LocalConnection,
@@ -29,6 +31,7 @@ import {
   type ClientPlayerUnit,
   type ClientManaToken,
   type EventCallback,
+  GAME_PHASE_ROUND,
 } from "@mage-knight/shared";
 
 // ============================================================================
@@ -286,7 +289,7 @@ export class GameServer {
 
     return {
       ...baseState,
-      phase: "round" as const,
+      phase: GAME_PHASE_ROUND,
       turnOrder: playerIds,
       currentPlayerIndex: 0,
       players,
@@ -300,6 +303,7 @@ export class GameServer {
 
   /**
    * Create a player with default values.
+   * Shuffles the hero's starting deck and draws an initial hand.
    */
   private createPlayer(
     id: string,
@@ -314,6 +318,16 @@ export class GameServer {
     ];
     const heroIndex = index % heroes.length;
     const hero = heroes[heroIndex] ?? Hero.Arythea;
+    const heroDefinition = HEROES[hero];
+
+    // Create and shuffle starting deck
+    const allCards = [...heroDefinition.startingCards];
+    const shuffledDeck = shuffle(allCards);
+
+    // Draw starting hand (hand limit at level 1 is 5)
+    const handLimit = 5;
+    const startingHand = shuffledDeck.slice(0, handLimit);
+    const remainingDeck = shuffledDeck.slice(handLimit);
 
     return {
       id,
@@ -323,10 +337,10 @@ export class GameServer {
       level: 1,
       reputation: 0,
       armor: 2,
-      handLimit: 5,
+      handLimit,
       commandTokens: 1,
-      hand: [],
-      deck: [],
+      hand: startingHand,
+      deck: remainingDeck,
       discard: [],
       units: [],
       skills: [],
