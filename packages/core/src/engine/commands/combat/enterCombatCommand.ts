@@ -13,6 +13,7 @@ export const ENTER_COMBAT_COMMAND = "ENTER_COMBAT" as const;
 export interface EnterCombatCommandParams {
   readonly playerId: string;
   readonly enemyIds: readonly EnemyId[];
+  readonly isAtFortifiedSite?: boolean; // Optional: site provides fortification
 }
 
 export function createEnterCombatCommand(
@@ -24,7 +25,10 @@ export function createEnterCombatCommand(
     isReversible: false, // Combat is irreversible once started (enemies revealed)
 
     execute(state: GameState): CommandResult {
-      const combat = createCombatState(params.enemyIds);
+      const combat = createCombatState(
+        params.enemyIds,
+        params.isAtFortifiedSite ?? false
+      );
 
       return {
         state: { ...state, combat },

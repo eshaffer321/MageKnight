@@ -96,6 +96,7 @@ import {
   validateAssignDamageTargetEnemy,
   validateAttackTargets,
   validateDamageAssignedBeforeLeaving,
+  validateFortification,
 } from "./combatValidators.js";
 
 // TODO: RULES LIMITATION - Immediate Choice Resolution
@@ -219,6 +220,7 @@ const validatorRegistry: Record<string, Validator[]> = {
     validateIsInCombat,
     validateAttackPhase,
     validateAttackType,
+    validateFortification,
     validateAttackTargets,
   ],
   [ASSIGN_DAMAGE_ACTION]: [

@@ -4,15 +4,20 @@
 
 import type { Command, CommandResult } from "../../commands.js";
 import type { GameState } from "../../../state/GameState.js";
-import type { CombatType, GameEvent } from "@mage-knight/shared";
+import type { CombatType, GameEvent, AttackSource } from "@mage-knight/shared";
 import { ENEMY_DEFEATED, ATTACK_FAILED } from "@mage-knight/shared";
+import {
+  calculateEffectiveAttack,
+  combineResistances,
+  type Resistances,
+} from "../../combat/elementalCalc.js";
 
 export const DECLARE_ATTACK_COMMAND = "DECLARE_ATTACK" as const;
 
 export interface DeclareAttackCommandParams {
   readonly playerId: string;
   readonly targetEnemyInstanceIds: readonly string[];
-  readonly attackValue: number;
+  readonly attacks: readonly AttackSource[];
   readonly attackType: CombatType;
 }
 
@@ -29,19 +34,33 @@ export function createDeclareAttackCommand(
         throw new Error("Not in combat");
       }
 
-      // Calculate total armor of targets
+      // Get target enemies
       const targets = state.combat.enemies.filter(
         (e) =>
           params.targetEnemyInstanceIds.includes(e.instanceId) && !e.isDefeated
       );
 
+      // Calculate total armor of targets
       const totalArmor = targets.reduce(
         (sum, e) => sum + e.definition.armor,
         0
       );
 
+      // Get combined resistances of all targets
+      const targetResistances = combineResistances(
+        targets.map((e) => ({
+          resistances: e.definition.resistances as Resistances,
+        }))
+      );
+
+      // Calculate effective attack value considering resistances
+      const effectiveAttackValue = calculateEffectiveAttack(
+        params.attacks,
+        targetResistances
+      );
+
       // Check if attack defeats all targets
-      if (params.attackValue < totalArmor) {
+      if (effectiveAttackValue < totalArmor) {
         // Attack failed — not enough damage
         return {
           state,
@@ -49,7 +68,7 @@ export function createDeclareAttackCommand(
             {
               type: ATTACK_FAILED,
               targetEnemyInstanceIds: params.targetEnemyInstanceIds,
-              attackValue: params.attackValue,
+              attackValue: effectiveAttackValue,
               requiredAttack: totalArmor,
             },
           ],

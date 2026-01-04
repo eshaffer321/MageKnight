@@ -141,6 +141,11 @@ export type {
   UndoAction,
   // Choice resolution
   ResolveChoiceAction,
+  // Combat
+  BlockSource,
+  AttackSource,
+  DeclareBlockAction,
+  DeclareAttackAction,
 } from "./actions.js";
 
 // Connection

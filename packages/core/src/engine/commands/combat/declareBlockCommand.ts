@@ -4,14 +4,16 @@
 
 import type { Command, CommandResult } from "../../commands.js";
 import type { GameState } from "../../../state/GameState.js";
+import type { BlockSource } from "@mage-knight/shared";
 import { ENEMY_BLOCKED, BLOCK_FAILED } from "@mage-knight/shared";
+import { calculateTotalBlock } from "../../combat/elementalCalc.js";
 
 export const DECLARE_BLOCK_COMMAND = "DECLARE_BLOCK" as const;
 
 export interface DeclareBlockCommandParams {
   readonly playerId: string;
   readonly targetEnemyInstanceId: string;
-  readonly blockValue: number;
+  readonly blocks: readonly BlockSource[];
 }
 
 export function createDeclareBlockCommand(
@@ -34,8 +36,14 @@ export function createDeclareBlockCommand(
         throw new Error(`Enemy not found: ${params.targetEnemyInstanceId}`);
       }
 
+      // Calculate effective block value considering elemental efficiency
+      const effectiveBlockValue = calculateTotalBlock(
+        params.blocks,
+        enemy.definition.attackElement
+      );
+
       // Check if block is sufficient (Block >= Attack)
-      const isSuccessful = params.blockValue >= enemy.definition.attack;
+      const isSuccessful = effectiveBlockValue >= enemy.definition.attack;
 
       if (!isSuccessful) {
         // Block failed — no effect, but still consumed
@@ -45,7 +53,7 @@ export function createDeclareBlockCommand(
             {
               type: BLOCK_FAILED,
               enemyInstanceId: params.targetEnemyInstanceId,
-              blockValue: params.blockValue,
+              blockValue: effectiveBlockValue,
               requiredBlock: enemy.definition.attack,
             },
           ],
@@ -70,7 +78,7 @@ export function createDeclareBlockCommand(
           {
             type: ENEMY_BLOCKED,
             enemyInstanceId: params.targetEnemyInstanceId,
-            blockValue: params.blockValue,
+            blockValue: effectiveBlockValue,
           },
         ],
       };

@@ -71,6 +71,7 @@ export const ENEMY_ALREADY_BLOCKED = "ENEMY_ALREADY_BLOCKED" as const;
 export const ENEMY_ALREADY_DEFEATED = "ENEMY_ALREADY_DEFEATED" as const;
 export const INVALID_ATTACK_TYPE = "INVALID_ATTACK_TYPE" as const;
 export const DAMAGE_NOT_ASSIGNED = "DAMAGE_NOT_ASSIGNED" as const;
+export const FORTIFIED_NEEDS_SIEGE = "FORTIFIED_NEEDS_SIEGE" as const;
 
 export type ValidationErrorCode =
   | typeof NOT_YOUR_TURN
@@ -125,6 +126,7 @@ export type ValidationErrorCode =
   | typeof ENEMY_ALREADY_BLOCKED
   | typeof ENEMY_ALREADY_DEFEATED
   | typeof INVALID_ATTACK_TYPE
-  | typeof DAMAGE_NOT_ASSIGNED;
+  | typeof DAMAGE_NOT_ASSIGNED
+  | typeof FORTIFIED_NEEDS_SIEGE;
 
 

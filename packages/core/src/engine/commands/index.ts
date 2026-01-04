@@ -278,6 +278,7 @@ function createEnterCombatCommandFromAction(
   return createEnterCombatCommand({
     playerId,
     enemyIds: action.enemyIds,
+    isAtFortifiedSite: action.isAtFortifiedSite,
   });
 }
 
@@ -301,7 +302,7 @@ function createDeclareBlockCommandFromAction(
   return createDeclareBlockCommand({
     playerId,
     targetEnemyInstanceId: action.targetEnemyInstanceId,
-    blockValue: action.blockValue,
+    blocks: action.blocks,
   });
 }
 
@@ -315,7 +316,7 @@ function createDeclareAttackCommandFromAction(
   return createDeclareAttackCommand({
     playerId,
     targetEnemyInstanceIds: action.targetEnemyInstanceIds,
-    attackValue: action.attackValue,
+    attacks: action.attacks,
     attackType: action.attackType,
   });
 }

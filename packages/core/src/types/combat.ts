@@ -40,10 +40,14 @@ export interface CombatState {
   readonly woundsThisCombat: number; // Track for knockout
   readonly attacksThisPhase: number; // Track attacks made
   readonly fameGained: number; // Accumulated fame from defeated enemies
+  readonly isAtFortifiedSite: boolean; // Site fortification (Keeps, Mage Towers, Cities)
 }
 
 // Create initial combat state
-export function createCombatState(enemyIds: readonly EnemyId[]): CombatState {
+export function createCombatState(
+  enemyIds: readonly EnemyId[],
+  isAtFortifiedSite: boolean = false
+): CombatState {
   const enemies: CombatEnemy[] = enemyIds.map((enemyId, index) => ({
     instanceId: `enemy_${index}`,
     enemyId,
@@ -59,5 +63,6 @@ export function createCombatState(enemyIds: readonly EnemyId[]): CombatState {
     woundsThisCombat: 0,
     attacksThisPhase: 0,
     fameGained: 0,
+    isAtFortifiedSite,
   };
 }

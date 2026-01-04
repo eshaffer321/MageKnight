@@ -7,6 +7,7 @@ import type { CardId, SkillId, BasicManaColor, ManaColor } from "./ids.js";
 import type { ManaSourceType } from "./valueConstants.js";
 import type { EnemyId } from "./enemies.js";
 import type { CombatType } from "./combatTypes.js";
+import type { Element } from "./elements.js";
 import {
   PLAY_SIDEWAYS_AS_ATTACK,
   PLAY_SIDEWAYS_AS_BLOCK,
@@ -166,6 +167,7 @@ export const ASSIGN_DAMAGE_ACTION = "ASSIGN_DAMAGE" as const;
 export interface EnterCombatAction {
   readonly type: typeof ENTER_COMBAT_ACTION;
   readonly enemyIds: readonly EnemyId[];
+  readonly isAtFortifiedSite?: boolean; // Optional: site provides fortification (Keeps, Mage Towers, Cities)
 }
 
 // Advance to next combat phase (or skip current)
@@ -173,21 +175,31 @@ export interface EndCombatPhaseAction {
   readonly type: typeof END_COMBAT_PHASE_ACTION;
 }
 
+// Block source with elemental type
+export interface BlockSource {
+  readonly element: Element;
+  readonly value: number;
+}
+
 // Declare a block against one enemy
 export interface DeclareBlockAction {
   readonly type: typeof DECLARE_BLOCK_ACTION;
   readonly targetEnemyInstanceId: string;
-  readonly blockValue: number; // Total block from cards played this turn
-  // Future: cardIds, sidewaysCardIds for tracking sources
+  readonly blocks: readonly BlockSource[]; // Elemental breakdown of blocks
+}
+
+// Attack source with elemental type
+export interface AttackSource {
+  readonly element: Element;
+  readonly value: number;
 }
 
 // Declare an attack against enemies
 export interface DeclareAttackAction {
   readonly type: typeof DECLARE_ATTACK_ACTION;
   readonly targetEnemyInstanceIds: readonly string[];
-  readonly attackValue: number; // Total attack from cards played
+  readonly attacks: readonly AttackSource[]; // Elemental breakdown of attacks
   readonly attackType: CombatType; // melee, ranged, siege
-  // Future: cardIds, manaSpent for tracking sources
 }
 
 // Assign damage from unblocked enemy to hero
