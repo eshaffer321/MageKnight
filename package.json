@@ -23,7 +23,7 @@
   "devDependencies": {
     "bun-plugin-isolated-decl": "^0.2.9",
     "bunup": "^0.16.32",
-    "oxlint": "^1.68.0",
+    "oxlint": "^1.71.0",
     "typescript": "^6.0.3"
   },
   "dependencies": {
