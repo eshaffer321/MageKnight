@@ -1,16 +1,28 @@
 /**
- * Pre-game setup screen.
- * Allows players to configure player count and select heroes before starting.
+ * Pre-game setup — "The Muster".
+ *
+ * A single coherent lobby told as three beats, tied together by a persistent
+ * progress spine:
+ *   I.  Adventure  — choose the scenario AND how many players sit at the table
+ *   II. Party      — take your seats: each seat fills with a hero, one by one
+ *   III. March      — review the assembled party, then launch
+ *
+ * IMPORTANT (do not change without updating tests):
+ *   The exported pure helpers `createGameConfigForSetup` and
+ *   `getSetupScenarioLaunchConfig`, the `SetupScenarioKey` union, and every
+ *   entry in `SETUP_SCENARIOS` (keys, categories, min/max players,
+ *   launchConfig / launchVariants → engine scenario ids) are load-bearing.
+ *   `__tests__/hotseatSetup.test.tsx` imports them. The redesign is presentational:
+ *   only the rendered JSX, copy, and CSS changed.
  */
 
-import { useState, useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { GameConfig, HeroId } from "@mage-knight/shared";
 import {
   ALL_HEROES,
   GAME_LAUNCH_MODE_HOTSEAT,
   GAME_LAUNCH_MODE_SOLO,
   GAME_SEAT_CONTROLLER_LOCAL,
-  HERO_NAMES,
   SCENARIO_BLITZ_CONQUEST_2P,
   SCENARIO_BLITZ_CONQUEST_3P,
   SCENARIO_BLITZ_CONQUEST_4P,
@@ -20,12 +32,12 @@ import {
   SCENARIO_FULL_CONQUEST_3P,
   SCENARIO_FULL_CONQUEST_4P,
 } from "@mage-knight/shared";
-import { HeroSelectionGrid } from "./HeroSelectionGrid";
+import { SetupSpine, type SetupStepKey } from "./SetupSpine";
+import { AdventureStep } from "./AdventureStep";
+import { MusterStep } from "./MusterStep";
+import { MarchReview } from "./MarchReview";
 import "./SetupScreen.css";
 
-const SETUP_BEGIN_ARIA_READY = "Begin scenario" as const;
-const SETUP_BEGIN_ARIA_PENDING =
-  "Begin scenario, locked until every player seat has a hero" as const;
 const SETUP_MAX_PLAYERS = 4;
 const SETUP_PLAYER_ID_PREFIX = "player_" as const;
 const SETUP_SCENARIO_STANDARD = "standard" as const;
@@ -34,11 +46,10 @@ const SETUP_SCENARIO_BLITZ_CONQUEST = "blitz_conquest" as const;
 const SETUP_SCENARIO_RECON_EXPLORE = "recon_explore" as const;
 const SETUP_SCENARIO_EXPLORATION = "exploration" as const;
 const SETUP_SCENARIO_EXPLORATION_TINY = "exploration_tiny" as const;
-const SETUP_CATEGORY_ALL = "all" as const;
 const SETUP_CATEGORY_LEARNING = "learning" as const;
 const SETUP_CATEGORY_CONQUEST = "conquest" as const;
 const SETUP_CATEGORY_DRILLS = "drills" as const;
-type SetupStep = "table" | "heroes";
+
 export type SetupScenarioKey =
   | typeof SETUP_SCENARIO_STANDARD
   | typeof SETUP_SCENARIO_FULL_CONQUEST
@@ -46,13 +57,12 @@ export type SetupScenarioKey =
   | typeof SETUP_SCENARIO_RECON_EXPLORE
   | typeof SETUP_SCENARIO_EXPLORATION
   | typeof SETUP_SCENARIO_EXPLORATION_TINY;
+
 type SetupScenarioCategory =
   | typeof SETUP_CATEGORY_LEARNING
   | typeof SETUP_CATEGORY_CONQUEST
   | typeof SETUP_CATEGORY_DRILLS;
-type SetupScenarioFilter =
-  | typeof SETUP_CATEGORY_ALL
-  | SetupScenarioCategory;
+
 type SetupPlayerCount = 1 | 2 | 3 | 4;
 
 export interface SetupScenarioLaunchConfig {
@@ -60,54 +70,56 @@ export interface SetupScenarioLaunchConfig {
   readonly serverScenario?: string;
 }
 
-interface SetupScenarioOption {
+/** Player-facing grouping label for each category, shown in the adventure rail. */
+export const SETUP_CATEGORY_LABELS: Record<SetupScenarioCategory, string> = {
+  [SETUP_CATEGORY_LEARNING]: "Learning the Land",
+  [SETUP_CATEGORY_CONQUEST]: "Conquest",
+  [SETUP_CATEGORY_DRILLS]: "Training Grounds",
+};
+
+export interface SetupScenarioOption {
   readonly key: SetupScenarioKey;
   readonly category: SetupScenarioCategory;
   readonly title: string;
-  readonly statusLabel: string;
-  readonly summary: string;
-  readonly detail: string;
+  /** One-line objective + length, shown in the rail list. */
+  readonly tagline: string;
+  /** Player-facing premise paragraph, shown in the featured panel. */
+  readonly premise: string;
   readonly launchConfig?: SetupScenarioLaunchConfig;
   readonly launchVariants?: Partial<Record<SetupPlayerCount, SetupScenarioLaunchConfig>>;
   readonly minPlayers: number;
   readonly maxPlayers: number;
   readonly rounds: string;
+  readonly tableLength: string;
   readonly objective: string;
 }
 
-const SETUP_SCENARIO_CATEGORIES: readonly {
-  readonly key: SetupScenarioFilter;
-  readonly label: string;
-}[] = [
-  { key: SETUP_CATEGORY_ALL, label: "All" },
-  { key: SETUP_CATEGORY_LEARNING, label: "Learning" },
-  { key: SETUP_CATEGORY_CONQUEST, label: "Conquest" },
-  { key: SETUP_CATEGORY_DRILLS, label: "Drills" },
-] as const;
-
-const SETUP_SCENARIOS: readonly SetupScenarioOption[] = [
+/**
+ * Scenario catalog. Keys, categories, player bounds, and launch mappings are
+ * the engine contract — copy (title/tagline/premise/length) is free to edit.
+ */
+export const SETUP_SCENARIOS: readonly SetupScenarioOption[] = [
   {
     key: SETUP_SCENARIO_STANDARD,
     category: SETUP_CATEGORY_LEARNING,
     title: SCENARIO_DISPLAY_NAMES[SCENARIO_FIRST_RECONNAISSANCE],
-    statusLabel: "Launchable",
-    summary: "Standard solo start with the Rust rules engine in charge.",
-    detail: "City reveal objective, four rounds, dummy tactic timing.",
-    launchConfig: {
-      scenarioId: SCENARIO_FIRST_RECONNAISSANCE,
-    },
+    tagline: "Reveal a city · 4 rounds",
+    premise:
+      "A lone scout slips into the wild fringe of the realm. Learn the rhythm of day and night, master your deck, and uncover the first great city before the rounds run out.",
+    launchConfig: { scenarioId: SCENARIO_FIRST_RECONNAISSANCE },
     minPlayers: 1,
     maxPlayers: 1,
     rounds: "4 rounds",
+    tableLength: "~45 min",
     objective: "Reveal a city",
   },
   {
     key: SETUP_SCENARIO_FULL_CONQUEST,
     category: SETUP_CATEGORY_CONQUEST,
     title: "Full Conquest",
-    statusLabel: "Launchable",
-    summary: "Full table conquest for 2-4 local hotseat players.",
-    detail: "Choose a local seat for each hero. The pass screen covers private hands between turns.",
+    tagline: "Conquer every city · 6 rounds",
+    premise:
+      "The Council's full campaign. Two to four Mage Knights race across a sprawling map, building strength to storm and hold every city on the board before their rivals do.",
     launchVariants: {
       2: { scenarioId: SCENARIO_FULL_CONQUEST_2P },
       3: { scenarioId: SCENARIO_FULL_CONQUEST_3P },
@@ -116,15 +128,16 @@ const SETUP_SCENARIOS: readonly SetupScenarioOption[] = [
     minPlayers: 2,
     maxPlayers: 4,
     rounds: "6 rounds",
-    objective: "Conquer all cities",
+    tableLength: "2–3 hrs",
+    objective: "Conquer every city",
   },
   {
     key: SETUP_SCENARIO_BLITZ_CONQUEST,
     category: SETUP_CATEGORY_CONQUEST,
     title: "Blitz Conquest",
-    statusLabel: "Launchable",
-    summary: "Shorter conquest arc with hotter fame and source pacing.",
-    detail: "A faster 2-4 player hotseat conquest with the same local handoff privacy.",
+    tagline: "First to conquer · 4 rounds",
+    premise:
+      "A shorter, hotter war. Fame and the source of mana run faster here — strike early, strike hard, and seize the cities before anyone else can muster their strength.",
     launchVariants: {
       2: { scenarioId: SCENARIO_BLITZ_CONQUEST_2P },
       3: { scenarioId: SCENARIO_BLITZ_CONQUEST_3P },
@@ -133,31 +146,33 @@ const SETUP_SCENARIOS: readonly SetupScenarioOption[] = [
     minPlayers: 2,
     maxPlayers: 4,
     rounds: "4 rounds",
-    objective: "Conquer all cities",
+    tableLength: "60–90 min",
+    objective: "First to conquer",
   },
   {
     key: SETUP_SCENARIO_RECON_EXPLORE,
     category: SETUP_CATEGORY_DRILLS,
-    title: "Recon Explore",
-    statusLabel: "Launchable",
-    summary: "First Recon map shape with a movement-heavy exploration deck.",
-    detail: "Use this when you want to validate tile flow without combat pressure.",
+    title: "Wedge of Exploration",
+    tagline: "Chart the wilds · no enemies",
+    premise:
+      "No enemies, no clock pressure — just you, the map, and your movement deck. A calm trial for learning how tiles reveal and how to read the terrain.",
     launchConfig: {
       scenarioId: SCENARIO_FIRST_RECONNAISSANCE,
       serverScenario: SETUP_SCENARIO_RECON_EXPLORE,
     },
     minPlayers: 1,
     maxPlayers: 1,
-    rounds: "Explore drill",
+    rounds: "Open drill",
+    tableLength: "~20 min",
     objective: "Reach the city",
   },
   {
     key: SETUP_SCENARIO_EXPLORATION,
     category: SETUP_CATEGORY_DRILLS,
-    title: "Exploration",
-    statusLabel: "Launchable",
-    summary: "Compact countryside route for fast map and movement checks.",
-    detail: "A shorter no-enemy drill that still exercises reveal decisions.",
+    title: "Countryside Drill",
+    tagline: "Reveal a city · compact route",
+    premise:
+      "A compact countryside route for fast map and movement checks — a short, enemy-free drill that still exercises every reveal decision.",
     launchConfig: {
       scenarioId: SCENARIO_FIRST_RECONNAISSANCE,
       serverScenario: SETUP_SCENARIO_EXPLORATION,
@@ -165,15 +180,16 @@ const SETUP_SCENARIOS: readonly SetupScenarioOption[] = [
     minPlayers: 1,
     maxPlayers: 1,
     rounds: "Short drill",
+    tableLength: "~12 min",
     objective: "Reveal a city",
   },
   {
     key: SETUP_SCENARIO_EXPLORATION_TINY,
     category: SETUP_CATEGORY_DRILLS,
     title: "Tiny Exploration",
-    statusLabel: "Launchable",
-    summary: "Smallest supported exploration setup for quick smoke tests.",
-    detail: "Useful when you want to get from setup to board interaction fast.",
+    tagline: "Smoke test · smallest map",
+    premise:
+      "The smallest supported setup — the fastest way from the muster to live board interaction. Handy for a quick smoke test.",
     launchConfig: {
       scenarioId: SCENARIO_FIRST_RECONNAISSANCE,
       serverScenario: SETUP_SCENARIO_EXPLORATION_TINY,
@@ -181,15 +197,13 @@ const SETUP_SCENARIOS: readonly SetupScenarioOption[] = [
     minPlayers: 1,
     maxPlayers: 1,
     rounds: "Tiny drill",
+    tableLength: "~5 min",
     objective: "Reveal a city",
   },
 ] as const;
 
 function getSetupScenario(key: SetupScenarioKey): SetupScenarioOption {
-  return (
-    SETUP_SCENARIOS.find((scenario) => scenario.key === key) ??
-    SETUP_SCENARIOS[0]!
-  );
+  return SETUP_SCENARIOS.find((scenario) => scenario.key === key) ?? SETUP_SCENARIOS[0]!;
 }
 
 function clampPlayerCount(count: number, scenario: SetupScenarioOption): number {
@@ -211,10 +225,7 @@ function getLaunchConfig(
   scenario: SetupScenarioOption,
   playerCount: number
 ): SetupScenarioLaunchConfig | undefined {
-  return (
-    scenario.launchVariants?.[toSetupPlayerCount(playerCount)] ??
-    scenario.launchConfig
-  );
+  return scenario.launchVariants?.[toSetupPlayerCount(playerCount)] ?? scenario.launchConfig;
 }
 
 export function createGameConfigForSetup(
@@ -238,8 +249,7 @@ export function createGameConfigForSetup(
   }));
 
   const config: GameConfig = {
-    launchMode:
-      playerCount > 1 ? GAME_LAUNCH_MODE_HOTSEAT : GAME_LAUNCH_MODE_SOLO,
+    launchMode: playerCount > 1 ? GAME_LAUNCH_MODE_HOTSEAT : GAME_LAUNCH_MODE_SOLO,
     playerIds,
     heroIds: heroIds as HeroId[],
     seats,
@@ -247,351 +257,167 @@ export function createGameConfigForSetup(
   };
 
   if (!launchConfig.serverScenario) return config;
-
-  return {
-    ...config,
-    serverScenario: launchConfig.serverScenario,
-  };
+  return { ...config, serverScenario: launchConfig.serverScenario };
 }
 
 interface SetupScreenProps {
-  /** Callback when setup is complete and game should start */
+  /** Callback when setup is complete and game should start. */
   onComplete: (config: GameConfig) => void;
 }
 
+const STEP_ORDER: readonly SetupStepKey[] = ["adventure", "party", "march"];
+
 export function SetupScreen({ onComplete }: SetupScreenProps) {
-  const [setupStep, setSetupStep] = useState<SetupStep>("table");
+  const [step, setStep] = useState<SetupStepKey>("adventure");
+  /** Highest step the player has unlocked — gates spine navigation. */
+  const [maxStep, setMaxStep] = useState(0);
   const [selectedScenarioKey, setSelectedScenarioKey] =
     useState<SetupScenarioKey>(SETUP_SCENARIO_STANDARD);
-  const [selectedFilter, setSelectedFilter] =
-    useState<SetupScenarioFilter>(SETUP_CATEGORY_ALL);
-
-  // Player count (1-4)
   const [playerCount, setPlayerCount] = useState(1);
+  const [selectedHeroes, setSelectedHeroes] = useState<(HeroId | null)[]>([null]);
+  /** Which seat the roster is currently filling (-1 = none / all full). */
+  const [activeSeatIndex, setActiveSeatIndex] = useState(0);
 
-  // Selected heroes for each player slot (null = unselected)
-  const [selectedHeroes, setSelectedHeroes] = useState<(HeroId | null)[]>([
-    null,
-  ]);
+  const scenario = getSetupScenario(selectedScenarioKey);
+  const stepIndex = STEP_ORDER.indexOf(step);
+  const allSelected = useMemo(
+    () => selectedHeroes.length === playerCount && selectedHeroes.every((h) => h !== null),
+    [selectedHeroes, playerCount]
+  );
+  const filledCount = selectedHeroes.filter((h) => h !== null).length;
+  const launchConfig = getLaunchConfig(scenario, playerCount);
+  const isLaunchable = Boolean(launchConfig);
 
-  /**
-   * Handle player count change.
-   * Preserves selections for seats that remain active.
-   */
-  const handlePlayerCountChange = useCallback((count: number) => {
-    const selectedScenario = getSetupScenario(selectedScenarioKey);
-    const nextCount = clampPlayerCount(count, selectedScenario);
-    setPlayerCount(nextCount);
+  const resizeSeats = useCallback((count: number) => {
     setSelectedHeroes((prev) =>
-      Array.from({ length: nextCount }, (_, index) => prev[index] ?? null)
+      Array.from({ length: count }, (_, index) => prev[index] ?? null)
     );
-  }, [selectedScenarioKey]);
-
-  const handleScenarioChange = useCallback((scenarioKey: SetupScenarioKey) => {
-    const scenario = getSetupScenario(scenarioKey);
-    setSelectedScenarioKey(scenarioKey);
-    setPlayerCount((currentCount) => {
-      const nextCount = clampPlayerCount(currentCount, scenario);
-      setSelectedHeroes((prev) =>
-        Array.from({ length: nextCount }, (_, index) => prev[index] ?? null)
-      );
-      return nextCount;
-    });
   }, []);
 
-  const handleFilterChange = useCallback((filter: SetupScenarioFilter) => {
-    setSelectedFilter(filter);
-    if (
-      filter === SETUP_CATEGORY_ALL ||
-      getSetupScenario(selectedScenarioKey).category === filter
-    ) {
-      return;
-    }
-
-    const nextScenario =
-      SETUP_SCENARIOS.find((scenario) => scenario.category === filter) ??
-      SETUP_SCENARIOS[0]!;
-    setSelectedScenarioKey(nextScenario.key);
-    setPlayerCount((currentCount) => {
-      const nextCount = clampPlayerCount(currentCount, nextScenario);
-      setSelectedHeroes((prev) =>
-        Array.from({ length: nextCount }, (_, index) => prev[index] ?? null)
-      );
-      return nextCount;
-    });
-  }, [selectedScenarioKey]);
-
-  /**
-   * Handle hero selection for a specific player slot.
-   */
-  const handleSelectHero = useCallback(
-    (playerIndex: number, hero: HeroId) => {
-      setSelectedHeroes((prev) => {
-        const newSelection = [...prev];
-        newSelection[playerIndex] = hero;
-        return newSelection;
+  const handleScenarioChange = useCallback(
+    (key: SetupScenarioKey) => {
+      const next = getSetupScenario(key);
+      setSelectedScenarioKey(key);
+      setPlayerCount((current) => {
+        const nextCount = clampPlayerCount(current, next);
+        resizeSeats(nextCount);
+        return nextCount;
       });
     },
-    []
+    [resizeSeats]
   );
 
-  /**
-   * Find the first player slot without a hero selected.
-   * Returns -1 if all slots are filled.
-   */
-  const currentPlayerIndex = selectedHeroes.findIndex((h) => h === null);
-
-  /**
-   * Check if all players have selected heroes.
-   */
-  const allSelected = selectedHeroes.every((h) => h !== null);
-  const selectedScenario = getSetupScenario(selectedScenarioKey);
-  const scenarioTitle = selectedScenario.title;
-  const launchConfig = getLaunchConfig(selectedScenario, playerCount);
-  const isScenarioLaunchable = Boolean(launchConfig);
-  const visibleScenarios = SETUP_SCENARIOS.filter(
-    (scenario) =>
-      selectedFilter === SETUP_CATEGORY_ALL ||
-      scenario.category === selectedFilter
+  const handlePlayerCountChange = useCallback(
+    (count: number) => {
+      const nextCount = clampPlayerCount(count, scenario);
+      setPlayerCount(nextCount);
+      resizeSeats(nextCount);
+    },
+    [scenario, resizeSeats]
   );
 
-  /**
-   * Handle start game button click.
-   */
-  const handleStartGame = useCallback(() => {
+  /** Advance from Adventure → Party, focusing the first open seat. */
+  const enterParty = useCallback(() => {
+    resizeSeats(playerCount);
+    setSelectedHeroes((seats) => {
+      const firstFree = seats.findIndex((s) => s == null);
+      setActiveSeatIndex(firstFree >= 0 ? firstFree : 0);
+      return seats;
+    });
+    setStep("party");
+    setMaxStep((m) => Math.max(m, 1));
+  }, [playerCount, resizeSeats]);
+
+  const assignHero = useCallback(
+    (hero: HeroId) => {
+      setSelectedHeroes((prev) => {
+        if (activeSeatIndex < 0) return prev;
+        const next = [...prev];
+        next[activeSeatIndex] = hero;
+        const firstFree = next.findIndex((s) => s == null);
+        setActiveSeatIndex(firstFree);
+        return next;
+      });
+    },
+    [activeSeatIndex]
+  );
+
+  const clearSeat = useCallback((index: number) => {
+    setSelectedHeroes((prev) => {
+      const next = [...prev];
+      next[index] = null;
+      return next;
+    });
+    setActiveSeatIndex(index);
+  }, []);
+
+  const enterMarch = useCallback(() => {
+    setStep("march");
+    setMaxStep((m) => Math.max(m, 2));
+  }, []);
+
+  const goToStep = useCallback(
+    (index: number) => {
+      if (index <= maxStep) setStep(STEP_ORDER[index]!);
+    },
+    [maxStep]
+  );
+
+  const handleLaunch = useCallback(() => {
     if (!allSelected || !launchConfig) return;
-
-    const config = createGameConfigForSetup(
-      playerCount,
-      selectedHeroes,
-      launchConfig
-    );
+    const config = createGameConfigForSetup(playerCount, selectedHeroes, launchConfig);
     if (config) onComplete(config);
-  }, [allSelected, playerCount, selectedHeroes, launchConfig, onComplete]);
-
-  const activeSeatIndex =
-    currentPlayerIndex >= 0 ? currentPlayerIndex : playerCount - 1;
-
-  const renderSeatSockets = () => (
-    <div className="setup-screen__seats" aria-label="Player seats">
-      {Array.from({ length: SETUP_MAX_PLAYERS }, (_, index) => {
-        const hero = selectedHeroes[index] ?? null;
-        const isEnabled = index < playerCount;
-        const isActive =
-          isEnabled && !allSelected && index === activeSeatIndex;
-        const heroName = hero ? HERO_NAMES[hero] : "Open";
-        const seatLabel = isEnabled
-          ? `Player ${index + 1}: ${heroName}`
-          : `Player ${index + 1}: inactive`;
-
-        return (
-          <div
-            key={`seat-${index + 1}`}
-            className={`setup-seat-chip ${
-              isEnabled ? "setup-seat-chip--enabled" : ""
-            } ${isActive ? "setup-seat-chip--active" : ""} ${
-              hero ? "setup-seat-chip--filled" : ""
-            }`}
-            aria-current={isActive ? "step" : undefined}
-            aria-label={seatLabel}
-          >
-            <span className="setup-seat-chip__mark" aria-hidden="true" />
-          </div>
-        );
-      })}
-    </div>
-  );
+  }, [allSelected, launchConfig, playerCount, selectedHeroes, onComplete]);
 
   return (
     <div className="setup-screen">
-      {setupStep === "table" ? (
-        <main className="setup-table" aria-label="Table setup">
-          <div className="setup-table__header">
-            <p className="setup-table__eyebrow">Scenario setup</p>
-            <h1 className="setup-table__title">Prepare the table</h1>
-          </div>
+      <SetupSpine
+        stepIndex={stepIndex}
+        maxStep={maxStep}
+        scenarioTitle={scenario.title}
+        playerCount={playerCount}
+        filledCount={filledCount}
+        activeSeatIndex={activeSeatIndex}
+        onGoToStep={goToStep}
+      />
 
-          <section className="setup-scenario-browser" aria-label="Scenario library">
-            <div className="setup-scenario-browser__header">
-              <span className="setup-table-setting__label">
-                Scenario library
-              </span>
-              <strong>{SETUP_SCENARIOS.length} entries</strong>
-            </div>
+      {step === "adventure" && (
+        <AdventureStep
+          scenarios={SETUP_SCENARIOS}
+          categoryLabels={SETUP_CATEGORY_LABELS}
+          selectedScenarioKey={selectedScenarioKey}
+          scenario={scenario}
+          playerCount={playerCount}
+          maxPlayers={SETUP_MAX_PLAYERS}
+          isLaunchable={isLaunchable}
+          onSelectScenario={handleScenarioChange}
+          onPlayerCountChange={handlePlayerCountChange}
+          onNext={enterParty}
+        />
+      )}
 
-            <div className="setup-scenario-tabs" role="tablist" aria-label="Scenario filters">
-              {SETUP_SCENARIO_CATEGORIES.map((category) => (
-                <button
-                  key={category.key}
-                  type="button"
-                  className={`setup-scenario-tab ${
-                    selectedFilter === category.key
-                      ? "setup-scenario-tab--selected"
-                      : ""
-                  }`}
-                  onClick={() => handleFilterChange(category.key)}
-                  aria-selected={selectedFilter === category.key}
-                  role="tab"
-                >
-                  {category.label}
-                </button>
-              ))}
-            </div>
+      {step === "party" && (
+        <MusterStep
+          availableHeroes={ALL_HEROES}
+          seats={selectedHeroes}
+          playerCount={playerCount}
+          activeSeatIndex={activeSeatIndex}
+          allSelected={allSelected}
+          onSelectSeat={setActiveSeatIndex}
+          onAssignHero={assignHero}
+          onClearSeat={clearSeat}
+          onNext={enterMarch}
+        />
+      )}
 
-            <div className="setup-scenario-list setup-scenario-list--catalog">
-              {visibleScenarios.map((scenario) => {
-                const isSelected = scenario.key === selectedScenarioKey;
-
-                return (
-                  <button
-                    key={scenario.key}
-                    type="button"
-                    className={`setup-scenario-option ${
-                      isSelected ? "setup-scenario-option--selected" : ""
-                    }`}
-                    onClick={() => handleScenarioChange(scenario.key)}
-                    aria-pressed={isSelected}
-                  >
-                    <span className="setup-scenario-option__topline">
-                      <span className="setup-scenario-option__eyebrow">
-                        {scenario.statusLabel}
-                      </span>
-                      <span className="setup-scenario-option__players">
-                        {scenario.minPlayers === scenario.maxPlayers
-                          ? `${scenario.maxPlayers}P`
-                          : `${scenario.minPlayers}-${scenario.maxPlayers}P`}
-                      </span>
-                    </span>
-                    <span className="setup-scenario-option__title">
-                      {scenario.title}
-                    </span>
-                    <span className="setup-scenario-option__summary">
-                      {scenario.summary}
-                    </span>
-                    <span className="setup-scenario-option__facts">
-                      <span>{scenario.rounds}</span>
-                      <span>{scenario.objective}</span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <section
-            className="setup-table__settings"
-            aria-label="Scenario selection"
-          >
-            <div className="setup-table__scenario-heading">
-              <span className="setup-table-setting__label">Scenario</span>
-              <strong className="setup-table-setting__value">
-                {scenarioTitle}
-              </strong>
-              <span className="setup-table__scenario-note">
-                {selectedScenario.detail}
-              </span>
-            </div>
-
-            <div
-              className="setup-table__table-facts"
-              aria-label="Selected table facts"
-            >
-              <div className="setup-table-fact">
-                <span className="setup-table-setting__label">Seats</span>
-                <strong className="setup-table-setting__value">
-                  {playerCount}
-                </strong>
-              </div>
-              <div className="setup-table-fact">
-                <span className="setup-table-setting__label">Status</span>
-                <strong className="setup-table-setting__value">
-                  {selectedScenario.statusLabel}
-                </strong>
-              </div>
-            </div>
-
-            <div className="setup-seat-selector" aria-label="Player count">
-              <span className="setup-table-setting__label">Players</span>
-              <div className="setup-seat-selector__buttons">
-                {Array.from({ length: SETUP_MAX_PLAYERS }, (_, index) => {
-                  const count = index + 1;
-                  const isSelectedCount = playerCount === count;
-                  const isAvailable =
-                    count >= selectedScenario.minPlayers &&
-                    count <= selectedScenario.maxPlayers;
-
-                  return (
-                    <button
-                      key={`table-seat-count-${count}`}
-                      type="button"
-                      className={`setup-seat-selector__button ${
-                        isSelectedCount
-                          ? "setup-seat-selector__button--open"
-                          : ""
-                      }`}
-                      onClick={() => handlePlayerCountChange(count)}
-                      disabled={!isAvailable}
-                      aria-pressed={isSelectedCount}
-                      aria-label={`${count} player${count === 1 ? "" : "s"}`}
-                    >
-                      {count}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          <footer className="setup-table__footer">
-            <button
-              type="button"
-              className="setup-screen__begin setup-screen__begin--ready"
-              disabled={!isScenarioLaunchable}
-              onClick={() => setSetupStep("heroes")}
-            >
-              {isScenarioLaunchable ? "Choose heroes" : "Launch path pending"}
-            </button>
-          </footer>
-        </main>
-      ) : (
-        <>
-          <header className="setup-screen__hud">
-            <div className="setup-screen__brand">
-              <button
-                type="button"
-                className="setup-screen__back"
-                onClick={() => setSetupStep("table")}
-              >
-                Table
-              </button>
-            </div>
-
-            <div className="setup-screen__party">{renderSeatSockets()}</div>
-          </header>
-
-          <main className="setup-screen__roster">
-            <HeroSelectionGrid
-              availableHeroes={ALL_HEROES}
-              selectedHeroes={selectedHeroes}
-              onSelectHero={handleSelectHero}
-              currentPlayerIndex={activeSeatIndex}
-            />
-          </main>
-
-          <footer className="setup-screen__footer">
-            <button
-              type="button"
-              className="setup-screen__begin"
-              disabled={!allSelected}
-              onClick={handleStartGame}
-              aria-label={
-                allSelected ? SETUP_BEGIN_ARIA_READY : SETUP_BEGIN_ARIA_PENDING
-              }
-            >
-              Begin scenario
-            </button>
-          </footer>
-        </>
+      {step === "march" && (
+        <MarchReview
+          scenario={scenario}
+          seats={selectedHeroes}
+          isLaunchable={isLaunchable}
+          onBack={() => setStep("party")}
+          onLaunch={handleLaunch}
+        />
       )}
     </div>
   );
