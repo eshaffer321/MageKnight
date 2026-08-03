@@ -114,6 +114,82 @@ class TestPyVecEnv(unittest.TestCase):
         self.assertEqual(batch["action_scalars"].shape[1], 34)
 
 
+class TestSearchStateApi(unittest.TestCase):
+    """Hypothetical states must remain isolated from the live PyVecEnv batch."""
+
+    def setUp(self) -> None:
+        from mk_python import PyVecEnv, SEARCH_COMBAT_MODE_CHEAP
+        self.env = PyVecEnv(num_envs=2, base_seed=42, max_steps=500)
+        self.cheap_combat_mode = SEARCH_COMBAT_MODE_CHEAP
+
+    @staticmethod
+    def _copy_batch(batch: dict) -> dict:
+        return {
+            key: value.copy() if isinstance(value, np.ndarray) else value
+            for key, value in batch.items()
+        }
+
+    @staticmethod
+    def _assert_batches_equal(left: dict, right: dict) -> None:
+        assert left.keys() == right.keys()
+        for key in left:
+            if isinstance(left[key], np.ndarray):
+                np.testing.assert_array_equal(left[key], right[key], err_msg=key)
+            else:
+                assert left[key] == right[key], key
+
+    def test_fork_step_encode_and_drop_are_isolated(self) -> None:
+        real_before = self._copy_batch(self.env.encode_batch())
+        roots = self.env.fork_roots([0, 1, 0])
+        self.assertEqual(len(roots), 3)
+        self.assertEqual(len(set(roots)), 3)
+        self.assertEqual(self.env.search_state_count(), 3)
+        self._assert_batches_equal(
+            real_before,
+            self.env.encode_search_batch(roots[:2]),
+        )
+
+        root_batch = self.env.encode_search_batch(roots)
+        self.assertEqual(root_batch["state_scalars"].shape[0], 3)
+        np.testing.assert_array_equal(
+            root_batch["state_scalars"][0], root_batch["state_scalars"][2],
+        )
+        self.assertEqual(root_batch["action_counts"][0], root_batch["action_counts"][2])
+
+        parent_before = self._copy_batch(self.env.encode_search_batch([roots[0]]))
+        parent_action_count = int(parent_before["action_counts"][0])
+        children = self.env.step_search_batch(
+            [roots[0], roots[0]],
+            [0, parent_action_count - 1],
+            self.cheap_combat_mode,
+        )
+        self.assertEqual(len(children), 2)
+        self.assertEqual(self.env.search_state_count(), 5)
+        self._assert_batches_equal(
+            parent_before,
+            self.env.encode_search_batch([roots[0]]),
+        )
+
+        # Neither search branching nor search encoding may alter the real environments.
+        self._assert_batches_equal(real_before, self.env.encode_batch())
+
+        self.assertEqual(self.env.drop_search_states(roots + children), 5)
+        self.assertEqual(self.env.drop_search_states(roots), 0)
+        self.assertEqual(self.env.search_state_count(), 0)
+
+    def test_search_api_rejects_invalid_inputs(self) -> None:
+        root = self.env.fork_roots([0])[0]
+        with self.assertRaises(ValueError):
+            self.env.step_search_batch([root], [], self.cheap_combat_mode)
+        with self.assertRaises(ValueError):
+            self.env.step_search_batch([root], [0], "unknown")
+        with self.assertRaises(ValueError):
+            self.env.encode_search_batch([])
+        self.env.drop_search_states([root])
+        with self.assertRaises(ValueError):
+            self.env.encode_search_batch([root])
+
+
 class TestBatchedForward(unittest.TestCase):
     """Tests for the batched forward pass on _EmbeddingActionScoringNetwork."""
 

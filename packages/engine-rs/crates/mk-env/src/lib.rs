@@ -6,8 +6,11 @@
 pub mod batch_output;
 pub mod training_scenario;
 
+use std::collections::BTreeMap;
+use std::fmt;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use rayon::prelude::*;
 
@@ -52,6 +55,135 @@ fn achievement_score_no_wounds(state: &GameState) -> i32 {
 }
 
 use batch_output::BatchOutput;
+
+// =============================================================================
+// Search states — isolated hypothetical futures for planning clients
+// =============================================================================
+
+/// Language-binding name for production-Oracle search stepping.
+pub const SEARCH_COMBAT_MODE_FULL_ORACLE: &str = "full_oracle";
+/// Language-binding name for placeholder cheap-combat search stepping.
+pub const SEARCH_COMBAT_MODE_CHEAP: &str = "cheap";
+
+/// Controls how a hypothetical search step handles combat entered by that step.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SearchCombatMode {
+    /// Resolve combat with the same bounded DFS configuration as the real environment.
+    FullOracle,
+    /// Placeholder for a future cheap/greedy resolver. This currently leaves combat
+    /// unresolved so the resulting combat state remains available for further search.
+    Cheap,
+}
+
+impl std::str::FromStr for SearchCombatMode {
+    type Err = SearchStateError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            SEARCH_COMBAT_MODE_FULL_ORACLE => Ok(Self::FullOracle),
+            SEARCH_COMBAT_MODE_CHEAP => Ok(Self::Cheap),
+            _ => Err(SearchStateError::InvalidCombatMode(value.to_owned())),
+        }
+    }
+}
+
+/// Process-unique opaque identifier for a standalone hypothetical state.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct SearchHandle(u64);
+
+impl SearchHandle {
+    /// Convert this opaque handle to its language-binding transport representation.
+    pub fn as_u64(self) -> u64 {
+        self.0
+    }
+
+    /// Reconstruct a handle received through a language binding.
+    pub fn from_u64(raw: u64) -> Self {
+        Self(raw)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SearchStateError {
+    InvalidEnvironmentIndex { index: usize, num_envs: usize },
+    EmptyBatch,
+    UnknownHandle(SearchHandle),
+    LengthMismatch { handles: usize, actions: usize },
+    InvalidActionIndex {
+        handle: SearchHandle,
+        index: usize,
+        action_count: usize,
+    },
+    ApplyFailed {
+        handle: SearchHandle,
+        message: String,
+    },
+    EnginePanicked {
+        handle: SearchHandle,
+        message: String,
+    },
+    InvalidCombatMode(String),
+}
+
+impl fmt::Display for SearchStateError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidEnvironmentIndex { index, num_envs } => write!(
+                f, "environment index {index} is out of range for {num_envs} environments"
+            ),
+            Self::EmptyBatch => write!(f, "search handle batch must not be empty"),
+            Self::UnknownHandle(handle) => write!(
+                f, "unknown or dropped search handle {}", handle.as_u64()
+            ),
+            Self::LengthMismatch { handles, actions } => write!(
+                f, "handles length {handles} does not match actions length {actions}"
+            ),
+            Self::InvalidActionIndex { handle, index, action_count } => write!(
+                f,
+                "action index {index} is out of range for search handle {} with {action_count} actions",
+                handle.as_u64(),
+            ),
+            Self::ApplyFailed { handle, message } => write!(
+                f, "search step failed for handle {}: {message}", handle.as_u64()
+            ),
+            Self::EnginePanicked { handle, message } => write!(
+                f, "search step panicked for handle {}: {message}", handle.as_u64()
+            ),
+            Self::InvalidCombatMode(mode) => write!(
+                f,
+                "invalid search combat mode {mode:?}; expected {SEARCH_COMBAT_MODE_FULL_ORACLE:?} or {SEARCH_COMBAT_MODE_CHEAP:?}",
+            ),
+        }
+    }
+}
+
+impl std::error::Error for SearchStateError {}
+
+#[derive(Debug)]
+struct SearchState {
+    state: GameState,
+    action_set: LegalActionSet,
+}
+
+static NEXT_SEARCH_HANDLE: AtomicU64 = AtomicU64::new(1);
+
+fn next_search_handle() -> SearchHandle {
+    SearchHandle(NEXT_SEARCH_HANDLE.fetch_add(1, Ordering::Relaxed))
+}
+
+/// Clone a true engine state into an independently owned search state.
+///
+/// # Hidden-information warning
+///
+/// This clones the complete `GameState`, including true RNG state, deck order, token
+/// piles, and other information hidden from the policy observation. A planner using
+/// these roots can therefore exploit hidden future information.
+///
+/// TODO(search-determinization): add a caller-selected determinization/masking transform
+/// here before the clone enters the search registry. Until then, search is omniscient.
+fn clone_true_state_for_search(state: &GameState) -> GameState {
+    state.clone()
+}
 
 /// Dump a game state + action history to `training/crashes/` for reproduction.
 ///
@@ -461,6 +593,99 @@ impl SingleEnv {
     }
 }
 
+/// Resolve hypothetical combat with the real environment's production Oracle budget.
+fn resolve_search_combat_full(state: &mut GameState, undo_stack: &mut UndoStack) {
+    let config = CombatSearchConfig {
+        node_limit: 1_000_000,
+        seed_rollouts: 500,
+        ..CombatSearchConfig::default()
+    };
+    let result = search_combat(state, &config);
+
+    for action in &result.actions {
+        if state.combat.is_none() || state.game_ended {
+            break;
+        }
+        let epoch = state.action_epoch;
+        let _ = apply_legal_action(state, undo_stack, 0, action, epoch);
+    }
+
+    while state.combat.is_some() && !state.game_ended {
+        let actions = enumerate_legal_actions_with_undo(state, 0, undo_stack);
+        if actions.actions.is_empty() {
+            break;
+        }
+        let epoch = actions.epoch;
+        let fallback_idx = actions.actions.iter()
+            .position(|a| matches!(a, LegalAction::EndCombatPhase))
+            .or_else(|| actions.actions.iter().position(|a| matches!(a, LegalAction::EndTurn)))
+            .unwrap_or(0);
+        let action = actions.actions[fallback_idx].clone();
+        let _ = apply_legal_action(state, undo_stack, 0, &action, epoch);
+    }
+}
+
+fn resolve_search_combat_cheap(_state: &mut GameState, _undo_stack: &mut UndoStack) {
+    // TODO(search-cheap-combat): replace this no-op with a bounded greedy resolver.
+    // Keeping combat unresolved is cheaper than silently invoking the production Oracle
+    // and preserves a valid state for further hypothetical branching.
+}
+
+fn step_search_state(
+    handle: SearchHandle,
+    parent: &SearchState,
+    action_index: usize,
+    combat_mode: SearchCombatMode,
+) -> Result<SearchState, SearchStateError> {
+    let action_count = parent.action_set.actions.len();
+    let action = parent.action_set.actions.get(action_index)
+        .ok_or(SearchStateError::InvalidActionIndex {
+            handle, index: action_index, action_count,
+        })?
+        .clone();
+    let mut child_state = clone_true_state_for_search(&parent.state);
+    let epoch = parent.action_set.epoch;
+
+    let result = catch_unwind(AssertUnwindSafe(|| {
+        // Match combat_search.rs branching: clone state, then use a clean undo history.
+        let mut undo_stack = UndoStack::new();
+        apply_legal_action(&mut child_state, &mut undo_stack, 0, &action, epoch)
+            .map_err(|error| SearchStateError::ApplyFailed {
+                handle, message: format!("{error:?}"),
+            })?;
+
+        if child_state.combat.is_some() {
+            match combat_mode {
+                SearchCombatMode::FullOracle => {
+                    resolve_search_combat_full(&mut child_state, &mut undo_stack);
+                }
+                SearchCombatMode::Cheap => {
+                    resolve_search_combat_cheap(&mut child_state, &mut undo_stack);
+                }
+            }
+        }
+
+        let action_set = filter_undo(enumerate_legal_actions_with_undo(
+            &child_state, 0, &undo_stack,
+        ));
+        Ok(SearchState { state: child_state, action_set })
+    }));
+
+    match result {
+        Ok(result) => result,
+        Err(panic_info) => {
+            let message = if let Some(value) = panic_info.downcast_ref::<&str>() {
+                (*value).to_owned()
+            } else if let Some(value) = panic_info.downcast_ref::<String>() {
+                value.clone()
+            } else {
+                "unknown engine panic".to_owned()
+            };
+            Err(SearchStateError::EnginePanicked { handle, message })
+        }
+    }
+}
+
 // =============================================================================
 // StepResult — per-env results from step_batch
 // =============================================================================
@@ -542,6 +767,8 @@ pub struct VecEnvConfig {
 pub struct VecEnv {
     envs: Vec<SingleEnv>,
     next_seed: u32,
+    /// Standalone hypothetical states. These never alias or mutate `envs`.
+    search_states: BTreeMap<SearchHandle, SearchState>,
 }
 
 impl VecEnv {
@@ -565,6 +792,7 @@ impl VecEnv {
         Self {
             envs,
             next_seed: config.base_seed + config.num_envs as u32,
+            search_states: BTreeMap::new(),
         }
     }
 
@@ -575,6 +803,113 @@ impl VecEnv {
     /// Get the current seed for each environment.
     pub fn seeds(&self) -> Vec<u32> {
         self.envs.iter().map(|e| e.seed).collect()
+    }
+
+    /// Fork independently owned hypothetical roots from current real environments.
+    ///
+    /// Repeated indices produce distinct roots. Cloning is parallelized with Rayon.
+    ///
+    /// # Hidden-information warning
+    ///
+    /// Roots clone the true `GameState`, including real RNG and deck/token order. Search
+    /// is omniscient until the TODO hook in `clone_true_state_for_search` is implemented.
+    pub fn fork_roots(
+        &mut self,
+        env_indices: &[usize],
+    ) -> Result<Vec<SearchHandle>, SearchStateError> {
+        let num_envs = self.envs.len();
+        let roots: Vec<Result<SearchState, SearchStateError>> = env_indices.par_iter()
+            .map(|&index| {
+                let env = self.envs.get(index).ok_or(
+                    SearchStateError::InvalidEnvironmentIndex { index, num_envs },
+                )?;
+                Ok(SearchState {
+                    state: clone_true_state_for_search(&env.state),
+                    action_set: env.action_set.clone(),
+                })
+            })
+            .collect();
+        let roots: Vec<SearchState> = roots.into_iter().collect::<Result<_, _>>()?;
+
+        let mut handles = Vec::with_capacity(roots.len());
+        for root in roots {
+            let handle = next_search_handle();
+            self.search_states.insert(handle, root);
+            handles.push(handle);
+        }
+        Ok(handles)
+    }
+
+    /// Step hypothetical parents in parallel and register independently owned children.
+    ///
+    /// Parents remain valid and unchanged, so repeated handles can create sibling branches.
+    /// Every child gets a cloned `GameState` and a fresh `UndoStack`.
+    pub fn step_search_batch(
+        &mut self,
+        handles: &[SearchHandle],
+        action_indices: &[usize],
+        combat_mode: SearchCombatMode,
+    ) -> Result<Vec<SearchHandle>, SearchStateError> {
+        if handles.len() != action_indices.len() {
+            return Err(SearchStateError::LengthMismatch {
+                handles: handles.len(), actions: action_indices.len(),
+            });
+        }
+
+        let search_states = &self.search_states;
+        let children: Vec<Result<SearchState, SearchStateError>> = handles.par_iter()
+            .zip(action_indices.par_iter())
+            .map(|(&handle, &action_index)| {
+                let parent = search_states.get(&handle)
+                    .ok_or(SearchStateError::UnknownHandle(handle))?;
+                step_search_state(handle, parent, action_index, combat_mode)
+            })
+            .collect();
+        let children: Vec<SearchState> = children.into_iter().collect::<Result<_, _>>()?;
+
+        let mut child_handles = Vec::with_capacity(children.len());
+        for child in children {
+            let handle = next_search_handle();
+            self.search_states.insert(handle, child);
+            child_handles.push(handle);
+        }
+        Ok(child_handles)
+    }
+
+    /// Encode hypothetical states in handle order with normal feature/padding semantics.
+    pub fn encode_search_batch(
+        &self,
+        handles: &[SearchHandle],
+    ) -> Result<BatchOutput, SearchStateError> {
+        if handles.is_empty() {
+            return Err(SearchStateError::EmptyBatch);
+        }
+        let encoded: Vec<Result<(EncodedStep, i32), SearchStateError>> = handles.par_iter()
+            .map(|&handle| {
+                let search_state = self.search_states.get(&handle)
+                    .ok_or(SearchStateError::UnknownHandle(handle))?;
+                let step = mk_features::encode_step(
+                    &search_state.state, 0, &search_state.action_set,
+                );
+                Ok((step, search_state.state.players[0].fame as i32))
+            })
+            .collect();
+        let encoded: Vec<(EncodedStep, i32)> = encoded.into_iter().collect::<Result<_, _>>()?;
+        let steps: Vec<EncodedStep> = encoded.iter().map(|(step, _)| step.clone()).collect();
+        let fames: Vec<i32> = encoded.iter().map(|(_, fame)| *fame).collect();
+        Ok(BatchOutput::pack(&steps, &fames))
+    }
+
+    /// Release hypothetical states. Unknown/already-dropped handles are ignored.
+    pub fn drop_search_states(&mut self, handles: &[SearchHandle]) -> usize {
+        handles.iter()
+            .filter(|handle| self.search_states.remove(handle).is_some())
+            .count()
+    }
+
+    /// Number of hypothetical states currently retained by this environment.
+    pub fn search_state_count(&self) -> usize {
+        self.search_states.len()
     }
 
     /// Encode all environments in parallel, returning padded batch output.
@@ -795,6 +1130,7 @@ impl VecEnv {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::Instant;
 
     fn test_config(num_envs: usize, base_seed: u32, max_steps: u64) -> VecEnvConfig {
         VecEnvConfig {
@@ -807,6 +1143,179 @@ mod tests {
             commerce_oracle: false,
             early_term_fame_step: 0,
         }
+    }
+
+    fn assert_encoded_batches_equal(left: &BatchOutput, right: &BatchOutput) {
+        assert_eq!(left.num_envs, right.num_envs);
+        assert_eq!(left.state_scalars, right.state_scalars);
+        assert_eq!(left.state_ids, right.state_ids);
+        assert_eq!(left.hand_card_ids, right.hand_card_ids);
+        assert_eq!(left.hand_counts, right.hand_counts);
+        assert_eq!(left.deck_card_ids, right.deck_card_ids);
+        assert_eq!(left.deck_counts, right.deck_counts);
+        assert_eq!(left.discard_card_ids, right.discard_card_ids);
+        assert_eq!(left.discard_counts, right.discard_counts);
+        assert_eq!(left.unit_ids, right.unit_ids);
+        assert_eq!(left.unit_counts, right.unit_counts);
+        assert_eq!(left.unit_scalars, right.unit_scalars);
+        assert_eq!(left.combat_enemy_ids, right.combat_enemy_ids);
+        assert_eq!(left.combat_enemy_counts, right.combat_enemy_counts);
+        assert_eq!(left.combat_enemy_scalars, right.combat_enemy_scalars);
+        assert_eq!(left.skill_ids, right.skill_ids);
+        assert_eq!(left.skill_counts, right.skill_counts);
+        assert_eq!(left.visible_site_ids, right.visible_site_ids);
+        assert_eq!(left.visible_site_counts, right.visible_site_counts);
+        assert_eq!(left.visible_site_scalars, right.visible_site_scalars);
+        assert_eq!(left.map_enemy_ids, right.map_enemy_ids);
+        assert_eq!(left.map_enemy_counts, right.map_enemy_counts);
+        assert_eq!(left.map_enemy_scalars, right.map_enemy_scalars);
+        assert_eq!(left.revealed_hex_terrain_ids, right.revealed_hex_terrain_ids);
+        assert_eq!(left.revealed_hex_counts, right.revealed_hex_counts);
+        assert_eq!(left.revealed_hex_scalars, right.revealed_hex_scalars);
+        assert_eq!(left.action_ids, right.action_ids);
+        assert_eq!(left.action_scalars, right.action_scalars);
+        assert_eq!(left.action_counts, right.action_counts);
+        assert_eq!(left.action_target_offsets, right.action_target_offsets);
+        assert_eq!(left.action_target_ids, right.action_target_ids);
+        assert_eq!(left.fames, right.fames);
+    }
+
+    #[test]
+    fn search_steps_are_isolated_from_real_environment() {
+        let config = test_config(1, 9_001, 500);
+        let mut env = VecEnv::new(config.clone());
+        let mut control = VecEnv::new(config);
+        let state_before = serde_json::to_vec(&env.envs[0].state).unwrap();
+        let encoding_before = env.encode_batch();
+        let mut handles = env.fork_roots(&[0]).unwrap();
+        assert_encoded_batches_equal(
+            &encoding_before,
+            &env.encode_search_batch(&handles).unwrap(),
+        );
+
+        for step in 0..8usize {
+            let batch = env.encode_search_batch(&handles).unwrap();
+            let count = batch.action_counts[0] as usize;
+            assert!(count > 0, "search state has no actions at step {step}");
+            let children = env.step_search_batch(
+                &handles, &[(step * 3 + 1) % count], SearchCombatMode::Cheap,
+            ).unwrap();
+            assert_eq!(env.drop_search_states(&handles), 1);
+            handles = children;
+        }
+
+        assert_eq!(state_before, serde_json::to_vec(&env.envs[0].state).unwrap());
+        let encoding_after = env.encode_batch();
+        assert_encoded_batches_equal(&encoding_before, &encoding_after);
+
+        // Normal stepping must still match an untouched control after search branching.
+        let real_action = encoding_after.action_counts[0] - 1;
+        let stepped = env.step_batch(&[real_action]);
+        let control_stepped = control.step_batch(&[real_action]);
+        assert_eq!(stepped.dones, control_stepped.dones);
+        assert_eq!(stepped.fames, control_stepped.fames);
+        assert_eq!(stepped.applied_actions, control_stepped.applied_actions);
+        assert_encoded_batches_equal(&env.encode_batch(), &control.encode_batch());
+
+        assert_eq!(env.drop_search_states(&handles), 1);
+        assert_eq!(env.search_state_count(), 0);
+    }
+
+    #[test]
+    fn search_parent_is_immutable_and_can_create_siblings() {
+        let mut env = VecEnv::new(test_config(1, 42, 500));
+        let parent = env.fork_roots(&[0]).unwrap()[0];
+        let parent_before = env.encode_search_batch(&[parent]).unwrap();
+        let count = parent_before.action_counts[0] as usize;
+        assert!(count >= 2);
+
+        let children = env.step_search_batch(
+            &[parent, parent], &[0, count - 1], SearchCombatMode::Cheap,
+        ).unwrap();
+        assert_ne!(children[0], children[1]);
+        assert_eq!(env.search_state_count(), 3);
+        assert_encoded_batches_equal(
+            &parent_before, &env.encode_search_batch(&[parent]).unwrap(),
+        );
+
+        assert_eq!(env.drop_search_states(&[parent, children[0], children[1]]), 3);
+        assert_eq!(env.drop_search_states(&[parent]), 0);
+    }
+
+    #[test]
+    fn search_combat_modes_preserve_full_vs_cheap_contract() {
+        let scenario = TrainingScenario::CombatDrill {
+            enemy_tokens: vec!["diggers_1".to_string()],
+            is_fortified: false,
+            hand_override: None,
+            extra_cards: None,
+            units: None,
+            skills: None,
+            crystals: None,
+        };
+        let mut env = VecEnv::new(VecEnvConfig {
+            scenario,
+            ..test_config(1, 42, 500)
+        });
+        let parent = env.fork_roots(&[0]).unwrap()[0];
+        let action_index = env.search_states.get(&parent).unwrap().action_set.actions.iter()
+            .position(|action| !matches!(action, LegalAction::EndCombatPhase))
+            .unwrap();
+
+        let cheap = env.step_search_batch(
+            &[parent], &[action_index], SearchCombatMode::Cheap,
+        ).unwrap()[0];
+        assert!(env.search_states.get(&cheap).unwrap().state.combat.is_some());
+
+        let full = env.step_search_batch(
+            &[parent], &[action_index], SearchCombatMode::FullOracle,
+        ).unwrap()[0];
+        assert!(env.search_states.get(&full).unwrap().state.combat.is_none());
+    }
+
+    /// Run manually with:
+    /// `cargo test -p mk-env search_state_clone_step_perf_sanity -- --ignored --nocapture`
+    #[test]
+    #[ignore = "manual performance sanity check"]
+    fn search_state_clone_step_perf_sanity() {
+        const ROOTS: usize = 64;
+        const STEPS: usize = 50;
+        let mut env = VecEnv::new(test_config(ROOTS, 70_000, 500));
+        let started = Instant::now();
+        let mut handles = env.fork_roots(&(0..ROOTS).collect::<Vec<_>>()).unwrap();
+        let mut all_handles = handles.clone();
+
+        for step in 0..STEPS {
+            let batch = env.encode_search_batch(&handles).unwrap();
+            let actions: Vec<usize> = batch.action_counts.iter().enumerate()
+                .map(|(index, &count)| {
+                    assert!(count > 0, "root {index} has no actions at search step {step}");
+                    (step + index) % count as usize
+                })
+                .collect();
+            let children = env.step_search_batch(
+                &handles, &actions, SearchCombatMode::Cheap,
+            ).unwrap();
+            all_handles.extend_from_slice(&children);
+            handles = children;
+        }
+        let step_elapsed = started.elapsed();
+
+        // Serialized size is a stable rough proxy, not allocator/RSS measurement.
+        let serialized_bytes: usize = all_handles.iter().map(|handle| {
+            let node = env.search_states.get(handle).unwrap();
+            serde_json::to_vec(&node.state).unwrap().len()
+                + serde_json::to_vec(&node.action_set).unwrap().len()
+        }).sum();
+        eprintln!(
+            "search-state baseline: roots={ROOTS}, steps_per_root={STEPS}, total_steps={}, retained_states={}, step_elapsed={step_elapsed:?}, serialized_memory_proxy={} bytes ({:.2} MiB)",
+            ROOTS * STEPS, all_handles.len(), serialized_bytes,
+            serialized_bytes as f64 / (1024.0 * 1024.0),
+        );
+        assert!(serialized_bytes > 0);
+        assert_eq!(env.search_state_count(), ROOTS * (STEPS + 1));
+        assert_eq!(env.drop_search_states(&all_handles), ROOTS * (STEPS + 1));
+        assert_eq!(env.search_state_count(), 0);
     }
 
     /// Reproduce: seed=15604 with 156 action indices yields 0 legal actions.
