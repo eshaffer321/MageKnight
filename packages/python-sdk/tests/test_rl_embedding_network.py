@@ -381,6 +381,22 @@ class ReinforcePolicyTest(unittest.TestCase):
 
 
 class CheckpointRoundTripTest(unittest.TestCase):
+    def test_reward_normalizer_checkpoint_round_trip(self) -> None:
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            embedding_dim=8, hidden_size=64, device="cpu", d_model=32,
+        ))
+        reward_state = {"mean": 1.25, "var": 3.5, "count": 99}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "test.pt"
+            policy.save_checkpoint(
+                path,
+                metadata={"episode": 5},
+                reward_normalizer_state=reward_state,
+            )
+            _, meta = ReinforcePolicy.load_checkpoint(path, device_override="cpu")
+
+        self.assertEqual(meta["reward_normalizer"], reward_state)
+
     def test_checkpoint_save_load(self) -> None:
         config = PolicyGradientConfig(
             embedding_dim=8, hidden_size=64, device="cpu", d_model=32,

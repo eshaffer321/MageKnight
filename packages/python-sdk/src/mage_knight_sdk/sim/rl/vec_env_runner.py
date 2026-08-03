@@ -17,6 +17,32 @@ from .features import EncodedStep, StateFeatures, ActionFeatures
 
 logger = logging.getLogger(__name__)
 
+TERMINATION_CAUSE_ONGOING = 0
+TERMINATION_CAUSE_NATURAL_END = 1
+TERMINATION_CAUSE_EARLY_ZERO_FAME = 2
+TERMINATION_CAUSE_HARD_LIMIT = 3
+TERMINATION_CAUSE_ENGINE_FAILURE = 4
+
+TERMINATION_NATURAL_END = "natural_end"
+TERMINATION_EARLY_ZERO_FAME = "early_zero_fame"
+TERMINATION_HARD_LIMIT = "hard_limit"
+TERMINATION_ENGINE_FAILURE = "engine_failure"
+
+_TERMINATION_CAUSE_NAMES = {
+    TERMINATION_CAUSE_NATURAL_END: TERMINATION_NATURAL_END,
+    TERMINATION_CAUSE_EARLY_ZERO_FAME: TERMINATION_EARLY_ZERO_FAME,
+    TERMINATION_CAUSE_HARD_LIMIT: TERMINATION_HARD_LIMIT,
+    TERMINATION_CAUSE_ENGINE_FAILURE: TERMINATION_ENGINE_FAILURE,
+}
+
+
+def termination_cause_name(code: int) -> str:
+    """Map the stable Rust termination code to its logged name."""
+    try:
+        return _TERMINATION_CAUSE_NAMES[code]
+    except KeyError as error:
+        raise ValueError(f"unknown termination cause code: {code}") from error
+
 
 @dataclass(frozen=True)
 class VecTransition:
@@ -52,6 +78,7 @@ class VecTransition:
     log_prob: float
     value: float
     reward: float
+    bootstrap_value: float | None = None
 
 
 def _extract_vec_transition(
@@ -126,6 +153,7 @@ def _extract_vec_transition(
         log_prob=log_prob,
         value=value,
         reward=reward,
+        bootstrap_value=None,
     )
 
 
@@ -172,6 +200,7 @@ def vec_transition_to_transition(vt: VecTransition) -> Transition:
         log_prob=vt.log_prob,
         value=vt.value,
         reward=vt.reward,
+        bootstrap_value=vt.bootstrap_value,
     )
 
 
@@ -184,6 +213,7 @@ class RewardBreakdown:
     new_hex_bonus: float = 0.0
     step_penalty: float = 0.0
     terminal_bonus: float = 0.0
+    terminal_fame: float = 0.0
     scenario_trigger_bonus: float = 0.0
     wasted_move_penalty: float = 0.0
     backtrack_penalty: float = 0.0
@@ -197,7 +227,8 @@ class CompletedEpisodeMeta:
     """Metadata for a completed episode: seed and action indices for replay."""
     seed: int
     action_indices: list[int]
-    truncated: bool = False  # True if episode hit max_steps (not natural game end)
+    truncated: bool = False  # True for any artificial cutoff (early or hard limit)
+    termination_cause: str = TERMINATION_NATURAL_END
     scenario_end_triggered: bool = False  # True if scenario end condition was met (e.g. city revealed)
     total_fame_delta: int = 0  # Cumulative fame gained during the episode
     tiles_explored: int = 0  # Number of new tiles revealed during the episode
@@ -225,6 +256,7 @@ class EpisodeBuffers:
     reward_new_hex: list[float] = field(default_factory=list)
     reward_step_penalty: list[float] = field(default_factory=list)
     reward_terminal: list[float] = field(default_factory=list)
+    reward_terminal_fame: list[float] = field(default_factory=list)
     reward_scenario_trigger: list[float] = field(default_factory=list)
     reward_wasted_move: list[float] = field(default_factory=list)
     reward_backtrack: list[float] = field(default_factory=list)
@@ -253,6 +285,7 @@ class EpisodeBuffers:
         for lst in (self.reward_fame, self.reward_wound_penalty,
                     self.reward_cards_remaining, self.reward_new_hex,
                     self.reward_step_penalty, self.reward_terminal,
+                    self.reward_terminal_fame,
                     self.reward_scenario_trigger, self.reward_wasted_move,
                     self.reward_backtrack, self.reward_wound_shaping,
                     self.reward_achievement, self.reward_tile_explore):
@@ -282,6 +315,7 @@ class CollectionResult:
     total_episodes: int
     panicked_episodes: int
     episode_metas: list[CompletedEpisodeMeta] = field(default_factory=list)
+    failed_episode_metas: list[CompletedEpisodeMeta] = field(default_factory=list)
 
 
 def collect_vecenv_rollout(
@@ -317,6 +351,7 @@ def collect_vecenv_rollout(
 
     completed_episodes: list[list[VecTransition]] = []
     completed_metas: list[CompletedEpisodeMeta] = []
+    failed_metas: list[CompletedEpisodeMeta] = []
     panicked_count = 0
     steps_collected = 0
 
@@ -352,10 +387,22 @@ def collect_vecenv_rollout(
 
         # 3. Step all envs
         step_result = vec_env.step_batch(actions)
+        bootstrap_values_by_env: dict[int, float] = {}
+        bootstrap_batch = step_result["bootstrap_batch"]
+        if bootstrap_batch is not None:
+            bootstrap_values = policy.evaluate_values_batch(bootstrap_batch)
+            bootstrap_values_by_env = {
+                int(env_index): float(value)
+                for env_index, value in zip(
+                    step_result["bootstrap_indices"], bootstrap_values,
+                )
+            }
         fame_deltas = step_result["fame_deltas"]
+        final_fames = step_result["fames"]
         dones = step_result["dones"]
         panicked = step_result["panicked"]
         truncated_flags = step_result["truncated"]
+        termination_causes = step_result["termination_causes"]
         scenario_flags = step_result["scenario_end_triggered"]
         new_hexes = step_result["new_hexes"]
         wound_deltas = step_result["wound_deltas"]
@@ -477,9 +524,16 @@ def collect_vecenv_rollout(
             steps_collected += 1
 
             if dones[i]:
+                termination_cause = termination_cause_name(int(termination_causes[i]))
                 if panicked[i]:
                     # Engine crashed — discard this episode entirely
                     panicked_count += 1
+                    failed_metas.append(CompletedEpisodeMeta(
+                        seed=episode_buffers.seeds[i],
+                        action_indices=list(episode_buffers.action_indices[i]),
+                        truncated=False,
+                        termination_cause=termination_cause,
+                    ))
                     bufs[i] = []
                     episode_buffers.buffers[i] = bufs[i]
                     episode_buffers.action_indices[i] = []
@@ -492,6 +546,7 @@ def collect_vecenv_rollout(
                     episode_buffers.reward_new_hex[i] = 0.0
                     episode_buffers.reward_step_penalty[i] = 0.0
                     episode_buffers.reward_terminal[i] = 0.0
+                    episode_buffers.reward_terminal_fame[i] = 0.0
                     episode_buffers.reward_scenario_trigger[i] = 0.0
                     episode_buffers.reward_wasted_move[i] = 0.0
                     episode_buffers.reward_backtrack[i] = 0.0
@@ -511,12 +566,23 @@ def collect_vecenv_rollout(
 
                 # Normal completion — add terminal reward
                 episode = bufs[i]
-                terminal = reward_config.terminal_end_bonus
+                is_truncated = bool(truncated_flags[i])
+                is_hard_limit = int(termination_causes[i]) == TERMINATION_CAUSE_HARD_LIMIT
+                if is_hard_limit:
+                    terminal_base = reward_config.terminal_max_steps_penalty
+                elif is_truncated:
+                    terminal_base = 0.0
+                else:
+                    terminal_base = reward_config.terminal_end_bonus
+                terminal_fame = 0.0
+                if not is_truncated:
+                    terminal_fame = reward_config.terminal_fame_scale * float(final_fames[i])
                 cards_bonus = 0.0
                 if reward_config.cards_remaining_bonus != 0.0:
                     cards_bonus = reward_config.cards_remaining_bonus * float(non_wound_hand_sizes[i])
-                    terminal += cards_bonus
-                episode_buffers.reward_terminal[i] += reward_config.terminal_end_bonus
+                terminal = terminal_base + terminal_fame + cards_bonus
+                episode_buffers.reward_terminal[i] += terminal_base
+                episode_buffers.reward_terminal_fame[i] += terminal_fame
                 episode_buffers.reward_cards_remaining[i] += cards_bonus
                 last = episode[-1]
                 episode[-1] = VecTransition(
@@ -542,6 +608,9 @@ def collect_vecenv_rollout(
                     log_prob=last.log_prob,
                     value=last.value,
                     reward=last.reward + terminal,
+                    bootstrap_value=(
+                        bootstrap_values_by_env.get(i) if is_truncated else None
+                    ),
                 )
                 breakdown = RewardBreakdown(
                     fame=episode_buffers.reward_fame[i],
@@ -550,6 +619,7 @@ def collect_vecenv_rollout(
                     new_hex_bonus=episode_buffers.reward_new_hex[i],
                     step_penalty=episode_buffers.reward_step_penalty[i],
                     terminal_bonus=episode_buffers.reward_terminal[i],
+                    terminal_fame=episode_buffers.reward_terminal_fame[i],
                     scenario_trigger_bonus=episode_buffers.reward_scenario_trigger[i],
                     wasted_move_penalty=episode_buffers.reward_wasted_move[i],
                     backtrack_penalty=episode_buffers.reward_backtrack[i],
@@ -562,6 +632,7 @@ def collect_vecenv_rollout(
                     seed=episode_buffers.seeds[i],
                     action_indices=list(episode_buffers.action_indices[i]),
                     truncated=bool(truncated_flags[i]),
+                    termination_cause=termination_cause,
                     scenario_end_triggered=episode_buffers.scenario_end_triggered[i],
                     total_fame_delta=episode_buffers.fame_deltas[i],
                     tiles_explored=episode_buffers.tiles_explored[i],
@@ -592,6 +663,7 @@ def collect_vecenv_rollout(
                 episode_buffers.reward_new_hex[i] = 0.0
                 episode_buffers.reward_step_penalty[i] = 0.0
                 episode_buffers.reward_terminal[i] = 0.0
+                episode_buffers.reward_terminal_fame[i] = 0.0
                 episode_buffers.reward_scenario_trigger[i] = 0.0
                 episode_buffers.reward_wasted_move[i] = 0.0
                 episode_buffers.reward_backtrack[i] = 0.0
@@ -614,4 +686,5 @@ def collect_vecenv_rollout(
         total_episodes=len(completed_episodes),
         panicked_episodes=panicked_count,
         episode_metas=completed_metas,
+        failed_episode_metas=failed_metas,
     )

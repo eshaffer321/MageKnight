@@ -119,6 +119,13 @@ class CurriculumPhase:
     reward_config: RewardConfig
     episodes: int
     max_steps: int = 2000
+    early_term_fame_step: int | None = None
+
+    def resolve_early_term_fame_step(self, global_default: int) -> int:
+        """Return the phase cutoff, falling back to the legacy CLI default."""
+        if self.early_term_fame_step is None:
+            return global_default
+        return self.early_term_fame_step
 
 
 @dataclass(frozen=True)

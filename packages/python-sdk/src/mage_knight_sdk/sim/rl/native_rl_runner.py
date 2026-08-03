@@ -184,7 +184,10 @@ def run_native_rl_game(
 
         # Terminal reward
         if outcome == "ended":
-            terminal = reward_config.terminal_end_bonus
+            terminal = (
+                reward_config.terminal_end_bonus
+                + reward_config.terminal_fame_scale * float(engine.fame())
+            )
         else:
             terminal = reward_config.terminal_max_steps_penalty
         # Scenario trigger bonus (e.g. city revealed)
@@ -308,7 +311,10 @@ def run_native_rl_game_ppo(
 
         # Terminal reward added to last transition
         if outcome == "ended":
-            terminal = reward_config.terminal_end_bonus
+            terminal = (
+                reward_config.terminal_end_bonus
+                + reward_config.terminal_fame_scale * float(engine.fame())
+            )
         else:
             terminal = reward_config.terminal_max_steps_penalty
         # Scenario trigger bonus
@@ -316,12 +322,17 @@ def run_native_rl_game_ppo(
             terminal += reward_config.scenario_trigger_bonus
         if transitions:
             last = transitions[-1]
+            bootstrap_value = None
+            if outcome != "ended":
+                final_encoded = py_encoded_to_encoded_step(engine.encode_step())
+                bootstrap_value = policy.evaluate_encoded_value(final_encoded)
             transitions[-1] = Transition(
                 encoded_step=last.encoded_step,
                 action_index=last.action_index,
                 log_prob=last.log_prob,
                 value=last.value,
                 reward=last.reward + terminal,
+                bootstrap_value=bootstrap_value,
             )
 
     except Exception as e:

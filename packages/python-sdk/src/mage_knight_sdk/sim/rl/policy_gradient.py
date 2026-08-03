@@ -115,6 +115,7 @@ class Transition:
     log_prob: float
     value: float
     reward: float
+    bootstrap_value: float | None = None
 
 
 @dataclass(frozen=True)
@@ -154,6 +155,7 @@ class TensorizedTransition:
     log_prob: float
     value: float
     reward: float
+    bootstrap_value: float | None = None
 
 
 def tensorize_transition(t: Transition) -> TensorizedTransition:
@@ -192,6 +194,7 @@ def tensorize_transition(t: Transition) -> TensorizedTransition:
         log_prob=t.log_prob,
         value=t.value,
         reward=t.reward,
+        bootstrap_value=t.bootstrap_value,
     )
 
 
@@ -239,6 +242,7 @@ def detensorize_transition(tt: TensorizedTransition) -> Transition:
         log_prob=tt.log_prob,
         value=tt.value,
         reward=tt.reward,
+        bootstrap_value=tt.bootstrap_value,
     )
 
 
@@ -1232,6 +1236,28 @@ class ReinforcePolicy:
             values.detach().cpu().numpy().astype(np.float32),
         )
 
+    def evaluate_values_batch(self, batch_dict: dict[str, Any]) -> np.ndarray:
+        """Evaluate state values without sampling actions or recording PPO data."""
+        was_training = self._network.training
+        self._network.eval()
+        try:
+            with torch.inference_mode():
+                _, values = self._network.forward_batch(batch_dict, self._device)
+        finally:
+            self._network.train(was_training)
+        return values.cpu().numpy().astype(np.float32)
+
+    def evaluate_encoded_value(self, encoded_step: EncodedStep) -> float:
+        """Evaluate one post-step state for time-limit bootstrapping."""
+        was_training = self._network.training
+        self._network.eval()
+        try:
+            with torch.inference_mode():
+                _, value = self._network(encoded_step, self._device)
+        finally:
+            self._network.train(was_training)
+        return float(value.detach().cpu().item())
+
     def record_step_reward(self, reward: float) -> None:
         if self._next_reward_index >= len(self._episode_rewards):
             return
@@ -1582,7 +1608,12 @@ class ReinforcePolicy:
         for pg in self._optimizer.param_groups:
             pg["lr"] = new_lr
 
-    def save_checkpoint(self, path: str | Path, metadata: dict[str, Any] | None = None) -> None:
+    def save_checkpoint(
+        self,
+        path: str | Path,
+        metadata: dict[str, Any] | None = None,
+        reward_normalizer_state: dict[str, float | int] | None = None,
+    ) -> None:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         payload: dict[str, Any] = {
@@ -1593,6 +1624,8 @@ class ReinforcePolicy:
         }
         if metadata is not None:
             payload["metadata"] = metadata
+        if reward_normalizer_state is not None:
+            payload["reward_normalizer"] = reward_normalizer_state
         torch.save(payload, target)
 
     @classmethod
@@ -1618,6 +1651,9 @@ class ReinforcePolicy:
         metadata = payload.get("metadata")
         if not isinstance(metadata, dict):
             metadata = {}
+        reward_normalizer = payload.get("reward_normalizer")
+        if isinstance(reward_normalizer, dict):
+            metadata["reward_normalizer"] = reward_normalizer
         return policy, metadata
 
     def _reset_episode_buffers(self) -> None:
@@ -1674,7 +1710,15 @@ def compute_gae(
         gae = 0.0
         for t in reversed(range(n)):
             if t == n - 1:
-                next_value = 0.0 if ep_terminated else values[t]
+                if ep_terminated:
+                    next_value = 0.0
+                else:
+                    bootstrap_value = episode[-1].bootstrap_value
+                    if bootstrap_value is None:
+                        raise ValueError(
+                            "truncated episode is missing its post-step bootstrap value"
+                        )
+                    next_value = bootstrap_value
             else:
                 next_value = values[t + 1]
             delta = rewards[t] + gamma * next_value - values[t]
