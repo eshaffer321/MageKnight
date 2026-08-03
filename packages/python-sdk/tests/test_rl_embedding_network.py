@@ -4,6 +4,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import torch
 
@@ -361,6 +362,29 @@ class EmbeddingNetworkForwardTest(unittest.TestCase):
 
 
 class ReinforcePolicyTest(unittest.TestCase):
+    def test_choose_actions_batch_disables_autograd(self) -> None:
+        from mk_python import PyVecEnv
+
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            embedding_dim=8, hidden_size=64, device="cpu", d_model=32,
+        ))
+        batch = PyVecEnv(num_envs=2, base_seed=42).encode_batch()
+        grad_enabled_during_forward: list[bool] = []
+        original_forward = policy._network.forward_batch
+
+        def recording_forward(batch_dict: dict, device: torch.device):
+            grad_enabled_during_forward.append(torch.is_grad_enabled())
+            return original_forward(batch_dict, device)
+
+        with patch.object(
+            policy._network,
+            "forward_batch",
+            side_effect=recording_forward,
+        ):
+            policy.choose_actions_batch(batch)
+
+        self.assertEqual(grad_enabled_during_forward, [False])
+
     def test_choose_action_from_encoded(self) -> None:
         config = PolicyGradientConfig(
             embedding_dim=8, hidden_size=64, device="cpu", d_model=32,

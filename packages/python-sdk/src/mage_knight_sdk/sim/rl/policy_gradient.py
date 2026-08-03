@@ -1187,6 +1187,7 @@ class ReinforcePolicy:
 
         return selected_index
 
+    @torch.inference_mode()
     def choose_actions_batch(
         self, batch_dict: dict,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
