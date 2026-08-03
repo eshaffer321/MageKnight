@@ -21,7 +21,7 @@ use mk_engine::legal_actions::enumerate_legal_actions_with_undo;
 use mk_engine::scoring::calculate_final_scores;
 use mk_engine::setup::{create_solo_game, place_initial_tiles};
 use mk_engine::undo::UndoStack;
-use mk_env::{TrainingScenario, VecEnv};
+use mk_env::{SearchCombatMode, SearchHandle, TrainingScenario, VecEnv};
 use mk_features::EncodedStep;
 use mk_types::enums::Hero;
 use mk_types::events::GameEvent;
@@ -923,6 +923,51 @@ fn vec_bool_to_numpy<'py>(
     Ok(arr.unbind())
 }
 
+/// Convert a hypothetical-state batch to the exact dictionary schema used by
+/// `PyVecEnv.encode_batch()`. The real-environment method remains unchanged.
+fn search_batch_to_python(
+    py: Python<'_>,
+    batch: &mk_env::batch_output::BatchOutput,
+) -> PyResult<Py<PyAny>> {
+    let np = py.import("numpy")?;
+    let dict = pyo3::types::PyDict::new(py);
+    let n = batch.num_envs;
+
+    dict.set_item("state_scalars", vec_f32_to_numpy(py, &np, &batch.state_scalars, &[n, batch.state_scalars.len() / n])?)?;
+    dict.set_item("state_ids", vec_i32_to_numpy(py, &np, &batch.state_ids, &[n, 3])?)?;
+    dict.set_item("hand_card_ids", vec_i32_to_numpy(py, &np, &batch.hand_card_ids, &[n, batch.max_hand])?)?;
+    dict.set_item("hand_counts", vec_i32_to_numpy(py, &np, &batch.hand_counts, &[n])?)?;
+    dict.set_item("deck_card_ids", vec_i32_to_numpy(py, &np, &batch.deck_card_ids, &[n, batch.max_deck])?)?;
+    dict.set_item("deck_counts", vec_i32_to_numpy(py, &np, &batch.deck_counts, &[n])?)?;
+    dict.set_item("discard_card_ids", vec_i32_to_numpy(py, &np, &batch.discard_card_ids, &[n, batch.max_discard])?)?;
+    dict.set_item("discard_counts", vec_i32_to_numpy(py, &np, &batch.discard_counts, &[n])?)?;
+    dict.set_item("unit_ids", vec_i32_to_numpy(py, &np, &batch.unit_ids, &[n, batch.max_units])?)?;
+    dict.set_item("unit_counts", vec_i32_to_numpy(py, &np, &batch.unit_counts, &[n])?)?;
+    dict.set_item("unit_scalars", vec_f32_to_numpy(py, &np, &batch.unit_scalars, &[n * batch.max_units, mk_features::UNIT_SCALAR_DIM])?)?;
+    dict.set_item("combat_enemy_ids", vec_i32_to_numpy(py, &np, &batch.combat_enemy_ids, &[n, batch.max_combat_enemies])?)?;
+    dict.set_item("combat_enemy_counts", vec_i32_to_numpy(py, &np, &batch.combat_enemy_counts, &[n])?)?;
+    dict.set_item("combat_enemy_scalars", vec_f32_to_numpy(py, &np, &batch.combat_enemy_scalars, &[n * batch.max_combat_enemies, mk_features::COMBAT_ENEMY_SCALAR_DIM])?)?;
+    dict.set_item("skill_ids", vec_i32_to_numpy(py, &np, &batch.skill_ids, &[n, batch.max_skills])?)?;
+    dict.set_item("skill_counts", vec_i32_to_numpy(py, &np, &batch.skill_counts, &[n])?)?;
+    dict.set_item("visible_site_ids", vec_i32_to_numpy(py, &np, &batch.visible_site_ids, &[n, batch.max_visible_sites])?)?;
+    dict.set_item("visible_site_counts", vec_i32_to_numpy(py, &np, &batch.visible_site_counts, &[n])?)?;
+    dict.set_item("visible_site_scalars", vec_f32_to_numpy(py, &np, &batch.visible_site_scalars, &[n * batch.max_visible_sites, mk_features::SITE_SCALAR_DIM])?)?;
+    dict.set_item("map_enemy_ids", vec_i32_to_numpy(py, &np, &batch.map_enemy_ids, &[n, batch.max_map_enemies])?)?;
+    dict.set_item("map_enemy_counts", vec_i32_to_numpy(py, &np, &batch.map_enemy_counts, &[n])?)?;
+    dict.set_item("map_enemy_scalars", vec_f32_to_numpy(py, &np, &batch.map_enemy_scalars, &[n * batch.max_map_enemies, mk_features::MAP_ENEMY_SCALAR_DIM])?)?;
+    dict.set_item("revealed_hex_terrain_ids", vec_i32_to_numpy(py, &np, &batch.revealed_hex_terrain_ids, &[n, batch.max_revealed_hexes])?)?;
+    dict.set_item("revealed_hex_counts", vec_i32_to_numpy(py, &np, &batch.revealed_hex_counts, &[n])?)?;
+    dict.set_item("revealed_hex_scalars", vec_f32_to_numpy(py, &np, &batch.revealed_hex_scalars, &[n * batch.max_revealed_hexes, mk_features::HEX_SCALAR_DIM])?)?;
+    dict.set_item("action_ids", vec_i32_to_numpy(py, &np, &batch.action_ids, &[n * batch.max_actions, 6])?)?;
+    dict.set_item("action_scalars", vec_f32_to_numpy(py, &np, &batch.action_scalars, &[n * batch.max_actions, mk_features::ACTION_SCALAR_DIM])?)?;
+    dict.set_item("action_counts", vec_i32_to_numpy(py, &np, &batch.action_counts, &[n])?)?;
+    dict.set_item("action_target_offsets", vec_i32_to_numpy(py, &np, &batch.action_target_offsets, &[n * (batch.max_actions + 1)])?)?;
+    dict.set_item("action_target_ids", vec_i32_to_numpy(py, &np, &batch.action_target_ids, &[batch.action_target_ids.len()])?)?;
+    dict.set_item("fames", vec_i32_to_numpy(py, &np, &batch.fames, &[n])?)?;
+    dict.set_item("max_actions", batch.max_actions)?;
+    Ok(dict.into_any().unbind())
+}
+
 #[pymethods]
 impl PyVecEnv {
     /// Create a vectorized environment.
@@ -970,6 +1015,60 @@ impl PyVecEnv {
 
     fn seeds(&self) -> Vec<u32> {
         self.inner.seeds()
+    }
+
+    /// Clone real environments into independently owned hypothetical roots.
+    ///
+    /// Warning: roots contain the true RNG, deck order, and token piles. Search is
+    /// omniscient until a future determinization/masking hook is implemented.
+    fn fork_roots(&mut self, env_indices: Vec<usize>) -> PyResult<Vec<u64>> {
+        self.inner.fork_roots(&env_indices)
+            .map(|handles| handles.into_iter().map(SearchHandle::as_u64).collect())
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Step hypothetical parents and return new child handles. Parents remain unchanged.
+    /// `combat_mode` is "full_oracle" or "cheap"; cheap currently leaves combat unresolved.
+    fn step_search_batch(
+        &mut self,
+        handles: Vec<u64>,
+        action_indices: Vec<usize>,
+        combat_mode: &str,
+    ) -> PyResult<Vec<u64>> {
+        let combat_mode = combat_mode.parse::<SearchCombatMode>()
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        let handles: Vec<SearchHandle> = handles.into_iter()
+            .map(SearchHandle::from_u64)
+            .collect();
+        self.inner.step_search_batch(&handles, &action_indices, combat_mode)
+            .map(|children| children.into_iter().map(SearchHandle::as_u64).collect())
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
+    /// Encode hypothetical states with the same schema as `encode_batch()`.
+    fn encode_search_batch(
+        &self,
+        py: Python<'_>,
+        handles: Vec<u64>,
+    ) -> PyResult<Py<PyAny>> {
+        let handles: Vec<SearchHandle> = handles.into_iter()
+            .map(SearchHandle::from_u64)
+            .collect();
+        let batch = self.inner.encode_search_batch(&handles)
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        search_batch_to_python(py, &batch)
+    }
+
+    /// Explicitly release hypothetical states. Cleanup is idempotent.
+    fn drop_search_states(&mut self, handles: Vec<u64>) -> usize {
+        let handles: Vec<SearchHandle> = handles.into_iter()
+            .map(SearchHandle::from_u64)
+            .collect();
+        self.inner.drop_search_states(&handles)
+    }
+
+    fn search_state_count(&self) -> usize {
+        self.inner.search_state_count()
     }
 
     /// Encode all envs into a dict of numpy arrays.
@@ -1107,6 +1206,8 @@ fn get_vocab_sizes() -> std::collections::HashMap<String, usize> {
 #[pymodule]
 fn mk_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", "0.1.0")?;
+    m.add("SEARCH_COMBAT_MODE_FULL_ORACLE", mk_env::SEARCH_COMBAT_MODE_FULL_ORACLE)?;
+    m.add("SEARCH_COMBAT_MODE_CHEAP", mk_env::SEARCH_COMBAT_MODE_CHEAP)?;
     m.add_class::<GameEngine>()?;
     m.add_class::<PyEncodedStep>()?;
     m.add_class::<PyVecEnv>()?;
