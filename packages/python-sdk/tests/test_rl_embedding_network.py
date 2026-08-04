@@ -4,6 +4,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import torch
 
@@ -361,6 +362,29 @@ class EmbeddingNetworkForwardTest(unittest.TestCase):
 
 
 class ReinforcePolicyTest(unittest.TestCase):
+    def test_choose_actions_batch_disables_autograd(self) -> None:
+        from mk_python import PyVecEnv
+
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            embedding_dim=8, hidden_size=64, device="cpu", d_model=32,
+        ))
+        batch = PyVecEnv(num_envs=2, base_seed=42).encode_batch()
+        grad_enabled_during_forward: list[bool] = []
+        original_forward = policy._network.forward_batch
+
+        def recording_forward(batch_dict: dict, device: torch.device):
+            grad_enabled_during_forward.append(torch.is_grad_enabled())
+            return original_forward(batch_dict, device)
+
+        with patch.object(
+            policy._network,
+            "forward_batch",
+            side_effect=recording_forward,
+        ):
+            policy.choose_actions_batch(batch)
+
+        self.assertEqual(grad_enabled_during_forward, [False])
+
     def test_choose_action_from_encoded(self) -> None:
         config = PolicyGradientConfig(
             embedding_dim=8, hidden_size=64, device="cpu", d_model=32,
@@ -381,6 +405,22 @@ class ReinforcePolicyTest(unittest.TestCase):
 
 
 class CheckpointRoundTripTest(unittest.TestCase):
+    def test_reward_normalizer_checkpoint_round_trip(self) -> None:
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            embedding_dim=8, hidden_size=64, device="cpu", d_model=32,
+        ))
+        reward_state = {"mean": 1.25, "var": 3.5, "count": 99}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "test.pt"
+            policy.save_checkpoint(
+                path,
+                metadata={"episode": 5},
+                reward_normalizer_state=reward_state,
+            )
+            _, meta = ReinforcePolicy.load_checkpoint(path, device_override="cpu")
+
+        self.assertEqual(meta["reward_normalizer"], reward_state)
+
     def test_checkpoint_save_load(self) -> None:
         config = PolicyGradientConfig(
             embedding_dim=8, hidden_size=64, device="cpu", d_model=32,

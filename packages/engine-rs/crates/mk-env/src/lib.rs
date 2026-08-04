@@ -56,6 +56,17 @@ fn achievement_score_no_wounds(state: &GameState) -> i32 {
 
 use batch_output::BatchOutput;
 
+/// Episode is still active after the step.
+pub const TERMINATION_CAUSE_ONGOING: i32 = 0;
+/// Episode reached a real game ending.
+pub const TERMINATION_CAUSE_NATURAL_END: i32 = 1;
+/// Episode was cut because it still had zero fame at the configured early threshold.
+pub const TERMINATION_CAUSE_EARLY_ZERO_FAME: i32 = 2;
+/// Episode reached the environment's hard maximum step count.
+pub const TERMINATION_CAUSE_HARD_LIMIT: i32 = 3;
+/// The engine returned an error or panicked while applying the action.
+pub const TERMINATION_CAUSE_ENGINE_FAILURE: i32 = 4;
+
 // =============================================================================
 // Search states — isolated hypothetical futures for planning clients
 // =============================================================================
@@ -386,6 +397,23 @@ impl SingleEnv {
         false
     }
 
+    fn termination_cause(&self, panicked: bool) -> i32 {
+        if panicked {
+            TERMINATION_CAUSE_ENGINE_FAILURE
+        } else if self.state.game_ended {
+            TERMINATION_CAUSE_NATURAL_END
+        } else if self.step_count >= self.max_steps {
+            TERMINATION_CAUSE_HARD_LIMIT
+        } else if self.early_term_fame_step > 0
+            && self.step_count >= self.early_term_fame_step
+            && self.state.players[0].fame == 0
+        {
+            TERMINATION_CAUSE_EARLY_ZERO_FAME
+        } else {
+            TERMINATION_CAUSE_ONGOING
+        }
+    }
+
     /// Auto-resolve combat using the exhaustive search oracle.
     /// Replays the optimal action sequence, falling back to action[0] if needed.
     fn resolve_combat_oracle(&mut self) {
@@ -700,8 +728,14 @@ pub struct StepResult {
     pub fames: Vec<i32>,
     /// (N,) — whether each env panicked (subset of dones)
     pub panicked: Vec<bool>,
-    /// (N,) — whether done due to max_steps (not natural game end)
+    /// (N,) — whether an episode ended through any artificial cutoff.
     pub truncated: Vec<bool>,
+    /// (N,) — stable termination-cause code; zero while the episode remains active.
+    pub termination_causes: Vec<i32>,
+    /// Pre-reset observations for artificially truncated environments only.
+    pub bootstrap_batch: Option<BatchOutput>,
+    /// Original environment index for each row in `bootstrap_batch`.
+    pub bootstrap_indices: Vec<i32>,
     /// (N,) — whether scenario end condition was triggered
     pub scenario_end_triggered: Vec<bool>,
     /// (N,) — number of new hexes visited this step (0 or 1)
@@ -990,6 +1024,7 @@ impl VecEnv {
         let mut fames_after = Vec::with_capacity(n);
         let mut panicked = Vec::with_capacity(n);
         let mut truncated = Vec::with_capacity(n);
+        let mut termination_causes = Vec::with_capacity(n);
         let mut scenario_end_triggered = Vec::with_capacity(n);
         let mut new_hexes = Vec::with_capacity(n);
         let mut wound_deltas = Vec::with_capacity(n);
@@ -1018,8 +1053,13 @@ impl VecEnv {
             dones.push(done);
             fames_after.push(fame_now);
             panicked.push(*did_panic);
-            // Truncated = done due to max_steps, not natural game end
+            // Truncated means any artificial cutoff (early-zero-fame or hard limit).
             truncated.push(done && !env.state.game_ended);
+            termination_causes.push(if done {
+                env.termination_cause(*did_panic)
+            } else {
+                TERMINATION_CAUSE_ONGOING
+            });
             scenario_end_triggered.push(env.state.scenario_end_triggered);
             new_hexes.push(if new_hex_flags[i] { 1 } else { 0 });
             wound_deltas.push(env.wound_count() - wounds_before[i]);
@@ -1079,6 +1119,37 @@ impl VecEnv {
             }
         }
 
+        // Preserve the real post-step state for time-limit value bootstrapping before reset.
+        let bootstrap_indices: Vec<usize> = termination_causes
+            .iter()
+            .enumerate()
+            .filter_map(|(index, cause)| {
+                matches!(
+                    *cause,
+                    TERMINATION_CAUSE_EARLY_ZERO_FAME | TERMINATION_CAUSE_HARD_LIMIT
+                )
+                .then_some(index)
+            })
+            .collect();
+        let bootstrap_batch = if bootstrap_indices.is_empty() {
+            None
+        } else {
+            let encoded: Vec<(EncodedStep, i32)> = bootstrap_indices
+                .par_iter()
+                .map(|&index| {
+                    let env = &self.envs[index];
+                    (env.encode(), env.fame() as i32)
+                })
+                .collect();
+            let steps: Vec<EncodedStep> = encoded.iter().map(|(step, _)| step.clone()).collect();
+            let fames: Vec<i32> = encoded.iter().map(|(_, fame)| *fame).collect();
+            Some(BatchOutput::pack(&steps, &fames))
+        };
+        let bootstrap_indices = bootstrap_indices
+            .into_iter()
+            .map(|index| index as i32)
+            .collect();
+
         // Auto-reset finished environments
         for (i, &done) in dones.iter().enumerate() {
             if done {
@@ -1094,6 +1165,9 @@ impl VecEnv {
             fames: fames_after,
             panicked,
             truncated,
+            termination_causes,
+            bootstrap_batch,
+            bootstrap_indices,
             scenario_end_triggered,
             new_hexes,
             wound_deltas,

@@ -7,7 +7,7 @@ together over a VecEnv, collecting separate transition buffers for each.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 
@@ -19,7 +19,13 @@ from .hrl_policy import CEOPolicy, CEOTransition
 from .policy_gradient import ReinforcePolicy
 from .rewards import RewardConfig
 from .vec_env_runner import (
-    VecTransition, _extract_vec_transition, CompletedEpisodeMeta, RewardBreakdown, EpisodeBuffers,
+    EpisodeBuffers,
+    CompletedEpisodeMeta,
+    RewardBreakdown,
+    TERMINATION_CAUSE_HARD_LIMIT,
+    VecTransition,
+    _extract_vec_transition,
+    termination_cause_name,
 )
 
 logger = logging.getLogger(__name__)
@@ -204,10 +210,33 @@ def collect_hrl_rollout(
 
         # 5. Step all envs
         step_result = vec_env.step_batch(actions)
+        bootstrap_values_by_env: dict[int, float] = {}
+        bootstrap_batch = step_result["bootstrap_batch"]
+        if bootstrap_batch is not None:
+            bootstrap_indices = np.asarray(
+                step_result["bootstrap_indices"], dtype=np.int64,
+            )
+            augmented_bootstrap_batch = dict(bootstrap_batch)
+            augmented_bootstrap_batch["state_scalars"] = np.concatenate(
+                [
+                    goal_encodings[bootstrap_indices],
+                    bootstrap_batch["state_scalars"],
+                ],
+                axis=1,
+            )
+            bootstrap_values = worker_policy.evaluate_values_batch(
+                augmented_bootstrap_batch,
+            )
+            bootstrap_values_by_env = {
+                int(env_index): float(value)
+                for env_index, value in zip(bootstrap_indices, bootstrap_values)
+            }
         fame_deltas = step_result["fame_deltas"]
+        final_fames = step_result["fames"]
         dones = step_result["dones"]
         panicked = step_result["panicked"]
         truncated_flags = step_result["truncated"]
+        termination_causes = step_result["termination_causes"]
         scenario_flags = step_result["scenario_end_triggered"]
         new_hexes = step_result["new_hexes"]
         wound_deltas = step_result["wound_deltas"]
@@ -360,39 +389,38 @@ def collect_hrl_rollout(
 
                 # Normal completion — finalize Worker episode
                 episode = bufs[i]
-                terminal = reward_config.terminal_end_bonus
+                is_truncated = bool(truncated_flags[i])
+                is_hard_limit = (
+                    int(termination_causes[i]) == TERMINATION_CAUSE_HARD_LIMIT
+                )
+                if is_hard_limit:
+                    terminal_base = reward_config.terminal_max_steps_penalty
+                elif is_truncated:
+                    terminal_base = 0.0
+                else:
+                    terminal_base = reward_config.terminal_end_bonus
+                terminal_fame = 0.0
+                if not is_truncated:
+                    terminal_fame = (
+                        reward_config.terminal_fame_scale * float(final_fames[i])
+                    )
                 cards_bonus = 0.0
                 if reward_config.cards_remaining_bonus != 0.0:
                     cards_bonus = reward_config.cards_remaining_bonus * float(non_wound_hand_sizes[i])
-                    terminal += cards_bonus
-                worker_bufs.reward_terminal[i] += reward_config.terminal_end_bonus
+                terminal = terminal_base + terminal_fame + cards_bonus
+                worker_bufs.reward_terminal[i] += terminal_base
+                worker_bufs.reward_terminal_fame[i] += terminal_fame
                 worker_bufs.reward_cards_remaining[i] += cards_bonus
 
                 if episode:
                     last = episode[-1]
-                    episode[-1] = VecTransition(
-                        state_scalars=last.state_scalars,
-                        state_ids=last.state_ids,
-                        hand_card_ids=last.hand_card_ids,
-                        deck_card_ids=last.deck_card_ids,
-                        discard_card_ids=last.discard_card_ids,
-                        unit_ids=last.unit_ids,
-                        unit_scalars=last.unit_scalars,
-                        combat_enemy_ids=last.combat_enemy_ids,
-                        combat_enemy_scalars=last.combat_enemy_scalars,
-                        skill_ids=last.skill_ids,
-                        visible_site_ids=last.visible_site_ids,
-                        visible_site_scalars=last.visible_site_scalars,
-                        map_enemy_ids=last.map_enemy_ids,
-                        map_enemy_scalars=last.map_enemy_scalars,
-                        revealed_hex_terrain_ids=last.revealed_hex_terrain_ids,
-                        revealed_hex_scalars=last.revealed_hex_scalars,
-                        action_ids=last.action_ids,
-                        action_scalars=last.action_scalars,
-                        action_index=last.action_index,
-                        log_prob=last.log_prob,
-                        value=last.value,
+                    episode[-1] = replace(
+                        last,
                         reward=last.reward + terminal,
+                        bootstrap_value=(
+                            bootstrap_values_by_env.get(i)
+                            if is_truncated else None
+                        ),
                     )
 
                 breakdown = RewardBreakdown(
@@ -402,6 +430,7 @@ def collect_hrl_rollout(
                     new_hex_bonus=worker_bufs.reward_new_hex[i],
                     step_penalty=worker_bufs.reward_step_penalty[i],
                     terminal_bonus=worker_bufs.reward_terminal[i],
+                    terminal_fame=worker_bufs.reward_terminal_fame[i],
                     scenario_trigger_bonus=worker_bufs.reward_scenario_trigger[i],
                     wasted_move_penalty=worker_bufs.reward_wasted_move[i],
                     backtrack_penalty=worker_bufs.reward_backtrack[i],
@@ -413,7 +442,10 @@ def collect_hrl_rollout(
                 completed_metas.append(CompletedEpisodeMeta(
                     seed=worker_bufs.seeds[i],
                     action_indices=list(worker_bufs.action_indices[i]),
-                    truncated=bool(truncated_flags[i]),
+                    truncated=is_truncated,
+                    termination_cause=termination_cause_name(
+                        int(termination_causes[i]),
+                    ),
                     scenario_end_triggered=worker_bufs.scenario_end_triggered[i],
                     total_fame_delta=worker_bufs.fame_deltas[i],
                     tiles_explored=worker_bufs.tiles_explored[i],
@@ -470,6 +502,7 @@ def _reset_worker_buffers(bufs: EpisodeBuffers, i: int) -> None:
     bufs.reward_new_hex[i] = 0.0
     bufs.reward_step_penalty[i] = 0.0
     bufs.reward_terminal[i] = 0.0
+    bufs.reward_terminal_fame[i] = 0.0
     bufs.reward_scenario_trigger[i] = 0.0
     bufs.reward_wasted_move[i] = 0.0
     bufs.reward_backtrack[i] = 0.0

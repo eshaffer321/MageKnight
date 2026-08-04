@@ -39,13 +39,26 @@ class RunningMeanStd:
         std = max(self.var ** 0.5, 1e-8)
         return [(v - self.mean) / std for v in values]
 
+    def normalize_component(self, value: float) -> float:
+        """Scale one additive reward component without applying the total-reward mean."""
+        std = max(self.var ** 0.5, 1e-8)
+        return value / std
+
+    def state_dict(self) -> dict[str, float | int]:
+        return {"mean": self.mean, "var": self.var, "count": self.count}
+
+    def load_state_dict(self, state: dict[str, Any]) -> None:
+        self.mean = float(state["mean"])
+        self.var = float(state["var"])
+        self.count = int(state["count"])
+
 
 _METRIC_DESCRIPTIONS: dict[str, str] = {
     "reward/total": "Total shaped reward for the episode. Includes fame, step penalty, end bonus, and victory bonuses.",
-    "reward/fame": "Fame earned this episode (total_reward - 1.0, floored at 0). The core game objective.",
+    "reward/fame": "Actual fame earned this episode, independent of shaped or terminal reward terms.",
     "reward/fame_max": "Running max fame across all episodes. Tracks the best game so far.",
     "episode/steps": "Number of game steps (actions taken) in the episode. Longer = surviving more turns.",
-    "episode/fame_binary": "1.0 if total_reward > 1.5, else 0.0. Tracks what fraction of games earn meaningful fame.",
+    "episode/fame_binary": "1.0 if actual fame is positive, else 0.0.",
     "optimization/loss": "PPO clipped surrogate policy loss. Negative = policy improving. Should hover near zero, not diverge.",
     "optimization/entropy": "Action distribution entropy. High = exploring, low = exploiting. Should gradually decline, not collapse to zero.",
     "optimization/critic_loss": "MSE between value head predictions and actual returns. Lower = better state value estimates.",
@@ -80,17 +93,26 @@ class _TBWriter:
         md = f"| Metric | Description |\n|--------|-------------|\n{rows}"
         self._writer.add_text("metric_guide", md, 0)
 
-    def log_episode(self, episode: int, stats: Any, reward_breakdown: Any = None) -> None:
+    def log_episode(
+        self,
+        episode: int,
+        stats: Any,
+        fame: float,
+        game_score: int | None = None,
+        reward_breakdown: Any = None,
+        normalized_terminal_fame: float = 0.0,
+    ) -> None:
         if self._writer is None:
             return
         self._write_metric_guide()
-        fame = max(0, stats.total_reward - 1.0)
         self._max_fame = max(self._max_fame, fame)
         self._writer.add_scalar("reward/total", stats.total_reward, episode)
         self._writer.add_scalar("reward/fame", fame, episode)
         self._writer.add_scalar("reward/fame_max", self._max_fame, episode)
         self._writer.add_scalar("episode/steps", stats.steps, episode)
-        self._writer.add_scalar("episode/fame_binary", 1.0 if stats.total_reward > 1.5 else 0.0, episode)
+        self._writer.add_scalar("episode/fame_binary", 1.0 if fame > 0 else 0.0, episode)
+        if game_score is not None:
+            self._writer.add_scalar("episode/game_score", game_score, episode)
         self._writer.add_scalar("episode/scenario_ended", 1.0 if getattr(stats, "scenario_triggered", False) else 0.0, episode)
         self._writer.add_scalar("optimization/loss", stats.optimization.loss, episode)
         self._writer.add_scalar("optimization/entropy", stats.optimization.entropy, episode)
@@ -105,6 +127,8 @@ class _TBWriter:
             self._writer.add_scalar("reward_breakdown/new_hex", reward_breakdown.new_hex_bonus, episode)
             self._writer.add_scalar("reward_breakdown/step_penalty", reward_breakdown.step_penalty, episode)
             self._writer.add_scalar("reward_breakdown/terminal", reward_breakdown.terminal_bonus, episode)
+            self._writer.add_scalar("reward_breakdown/terminal_fame_raw", reward_breakdown.terminal_fame, episode)
+            self._writer.add_scalar("reward_breakdown/terminal_fame_normalized", normalized_terminal_fame, episode)
             self._writer.add_scalar("reward_breakdown/scenario_trigger", reward_breakdown.scenario_trigger_bonus, episode)
             self._writer.add_scalar("reward_breakdown/wasted_move", reward_breakdown.wasted_move_penalty, episode)
             self._writer.add_scalar("reward_breakdown/backtrack", reward_breakdown.backtrack_penalty, episode)
@@ -174,6 +198,7 @@ def main() -> int:
     parser.add_argument("--fame-delta-scale", type=float, default=1.0, help="Reward multiplier for fame deltas (1.0 = match game scoring)")
     parser.add_argument("--step-penalty", type=float, default=0.0, help="Per-step reward penalty")
     parser.add_argument("--terminal-end-bonus", type=float, default=0.0, help="Bonus when game ends normally")
+    parser.add_argument("--terminal-fame-scale", type=float, default=0.0, help="Final-fame multiplier applied only when a game ends naturally")
     parser.add_argument("--terminal-max-steps-penalty", type=float, default=-0.5, help="Penalty when episode hits max steps")
     parser.add_argument("--terminal-failure-penalty", type=float, default=-1.0, help="Penalty for engine failures")
     parser.add_argument("--new-hex-bonus", type=float, default=0.0, help="One-time bonus for each new hex visited")
@@ -215,7 +240,7 @@ def main() -> int:
     parser.add_argument("--no-commerce-oracle", dest="commerce_oracle", action="store_false", help="Disable commerce oracle")
 
     # Early termination
-    parser.add_argument("--early-term-fame-step", type=int, default=60, help="Terminate episode early if fame == 0 after this many steps (0 to disable)")
+    parser.add_argument("--early-term-fame-step", type=int, default=60, help="Fallback zero-fame cutoff for curriculum phases without their own setting (0 to disable)")
 
     # Hierarchical RL
     parser.add_argument("--hrl", action="store_true", help="Enable Hierarchical RL (CEO + Worker dual-policy training)")
@@ -235,12 +260,16 @@ def main() -> int:
     RewardConfig = components["RewardConfig"]
 
     resume_episode_offset = 0
+    resume_reward_normalizer_state: dict[str, Any] | None = None
     if args.resume:
         policy, resume_meta = ReinforcePolicy.load_checkpoint(
             args.resume,
             device_override=args.device,
         )
         resume_episode_offset = resume_meta.get("episode", 0)
+        saved_reward_normalizer = resume_meta.get("reward_normalizer")
+        if isinstance(saved_reward_normalizer, dict):
+            resume_reward_normalizer_state = saved_reward_normalizer
         print(f"Resumed from {args.resume} (episode {resume_episode_offset})")
     else:
         policy_config = PolicyGradientConfig(
@@ -260,6 +289,7 @@ def main() -> int:
         fame_delta_scale=args.fame_delta_scale,
         step_penalty=args.step_penalty,
         terminal_end_bonus=args.terminal_end_bonus,
+        terminal_fame_scale=args.terminal_fame_scale,
         terminal_max_steps_penalty=args.terminal_max_steps_penalty,
         terminal_failure_penalty=args.terminal_failure_penalty,
         new_hex_bonus=args.new_hex_bonus,
@@ -278,10 +308,6 @@ def main() -> int:
     checkpoint_dir.mkdir(exist_ok=True)
     metrics_path = run_dir / "training_log.ndjson"
 
-    if not args.resume:
-        _write_run_manifest(run_dir, args, policy, reward_config,
-                            curriculum_name=args.curriculum)
-
     algo = "PPO" if args.ppo else "REINFORCE"
     hero_display = args.hero if args.hero.lower() != "random" else "random (seeded rotation)"
     seed_display = f"{args.seed} (FIXED)" if args.fixed_seed else str(args.seed)
@@ -291,6 +317,7 @@ def main() -> int:
         f"fame_delta_scale={args.fame_delta_scale} "
         f"step_penalty={args.step_penalty} "
         f"end_bonus={args.terminal_end_bonus} "
+        f"terminal_fame_scale={args.terminal_fame_scale} "
         f"max_steps_penalty={args.terminal_max_steps_penalty} "
         f"failure_penalty={args.terminal_failure_penalty}"
     )
@@ -298,6 +325,7 @@ def main() -> int:
     if args.ppo:
         print(f"PPO: batch_episodes={args.batch_episodes} ppo_epochs={args.ppo_epochs} clip={args.clip_epsilon} gae_lambda={args.gae_lambda}")
 
+    resolved_schedule: Any | None = None
     if args.curriculum:
         from dataclasses import replace
 
@@ -314,6 +342,7 @@ def main() -> int:
             "fame_delta_scale": "fame_delta_scale",
             "step_penalty": "step_penalty",
             "terminal_end_bonus": "terminal_end_bonus",
+            "terminal_fame_scale": "terminal_fame_scale",
             "terminal_max_steps_penalty": "terminal_max_steps_penalty",
             "terminal_failure_penalty": "terminal_failure_penalty",
             "new_hex_bonus": "new_hex_bonus",
@@ -343,6 +372,17 @@ def main() -> int:
         phase_names = [p.name for p in schedule.phases]
         print(f"Curriculum: {args.curriculum} ({len(schedule.phases)} phases, {total_episodes} total episodes)")
         print(f"  Phases: {' → '.join(phase_names)}")
+        resolved_schedule = schedule
+
+    if not args.resume:
+        _write_run_manifest(
+            run_dir,
+            args,
+            policy,
+            reward_config,
+            curriculum_name=args.curriculum,
+            curriculum_schedule=resolved_schedule,
+        )
 
     # Recover running max fame from existing NDJSON so fame_max doesn't reset on resume.
     initial_max_fame = 0.0
@@ -351,7 +391,7 @@ def main() -> int:
             with open(metrics_path, encoding="utf-8") as mf:
                 for line in mf:
                     rec = json.loads(line)
-                    initial_max_fame = max(initial_max_fame, rec.get("total_reward", 0.0) - 1.0)
+                    initial_max_fame = max(initial_max_fame, rec.get("fame", 0.0))
             initial_max_fame = max(0.0, initial_max_fame)
         except Exception:
             pass  # best-effort
@@ -363,11 +403,22 @@ def main() -> int:
 
     try:
         if args.hrl:
-            return _train_hrl(args, policy, checkpoint_dir, metrics_path, tb, resume_episode_offset)
+            return _train_hrl(
+                args, policy, checkpoint_dir, metrics_path, tb,
+                resume_episode_offset, resume_reward_normalizer_state,
+                resolved_schedule,
+            )
         if args.curriculum:
-            return _train_curriculum(args, policy, checkpoint_dir, metrics_path, tb, resume_episode_offset)
+            return _train_curriculum(
+                args, policy, checkpoint_dir, metrics_path, tb,
+                resume_episode_offset, resume_reward_normalizer_state,
+                resolved_schedule,
+            )
         if args.ppo:
-            return _train_ppo_native(args, policy, reward_config, checkpoint_dir, metrics_path, tb, resume_episode_offset)
+            return _train_ppo_native(
+                args, policy, reward_config, checkpoint_dir, metrics_path, tb,
+                resume_episode_offset, resume_reward_normalizer_state,
+            )
         return _train_native_sequential(args, policy, reward_config, checkpoint_dir, metrics_path, tb, resume_episode_offset)
     finally:
         tb.close()
@@ -422,7 +473,7 @@ def _train_native_sequential(
         )
 
         if tb is not None:
-            tb.log_episode(global_ep, stats)
+            tb.log_episode(global_ep, stats, fame=result.fame)
 
         if args.checkpoint_every > 0 and global_ep % args.checkpoint_every == 0:
             checkpoint_path = checkpoint_dir / f"policy_ep_{global_ep:06d}.pt"
@@ -465,6 +516,7 @@ def _train_ppo_native(
     metrics_path: Path,
     tb: _TBWriter | None = None,
     resume_episode_offset: int = 0,
+    resume_reward_normalizer_state: dict[str, Any] | None = None,
 ) -> int:
     """Native PPO training: collect batch of episodes, compute GAE, optimize, repeat."""
     from mage_knight_sdk.sim.rl.native_rl_runner import EpisodeTrainingStats, run_native_rl_game_ppo
@@ -472,6 +524,8 @@ def _train_ppo_native(
 
     episode_num = 0
     reward_normalizer = RunningMeanStd()
+    if resume_reward_normalizer_state is not None:
+        reward_normalizer.load_state_dict(resume_reward_normalizer_state)
 
     while episode_num < args.episodes:
         batch_size = min(args.batch_episodes, args.episodes - episode_num)
@@ -542,6 +596,7 @@ def _train_ppo_native(
                         log_prob=t.log_prob,
                         value=t.value,
                         reward=nr,
+                        bootstrap_value=t.bootstrap_value,
                     )
                     for t, nr in zip(ep, norm_rewards)
                 ])
@@ -590,7 +645,7 @@ def _train_ppo_native(
             )
 
             if tb is not None:
-                tb.log_episode(global_ep, logged_stats)
+                tb.log_episode(global_ep, logged_stats, fame=batch_fames[i])
 
         # Log explained variance for the batch
         if tb is not None and episodes_data:
@@ -613,6 +668,7 @@ def _train_ppo_native(
                     "seed": args.seed + resume_episode_offset + episode_num - 1,
                     "timestamp": datetime.now(UTC).isoformat(),
                 },
+                reward_normalizer_state=reward_normalizer.state_dict(),
             )
 
     if not args.no_final_checkpoint:
@@ -625,6 +681,7 @@ def _train_ppo_native(
                 "seed": args.seed + resume_episode_offset + args.episodes - 1,
                 "timestamp": datetime.now(UTC).isoformat(),
             },
+            reward_normalizer_state=reward_normalizer.state_dict(),
         )
         print(f"Final checkpoint: {final_path}")
 
@@ -644,6 +701,8 @@ def _train_hrl(
     metrics_path: Path,
     tb: _TBWriter | None = None,
     resume_episode_offset: int = 0,
+    resume_reward_normalizer_state: dict[str, Any] | None = None,
+    resolved_schedule: Any | None = None,
 ) -> int:
     """Train with Hierarchical RL: CEO picks goals, Worker executes."""
     from mk_python import PyVecEnv
@@ -681,7 +740,9 @@ def _train_hrl(
     ceo_policy = CEOPolicy(ceo_config)
 
     # Use curriculum if specified, else default
-    if args.curriculum:
+    if resolved_schedule is not None:
+        schedule = resolved_schedule
+    elif args.curriculum:
         schedule = CURRICULA[args.curriculum]()
     else:
         from mage_knight_sdk.sim.rl.curriculum import CURRICULA
@@ -689,6 +750,8 @@ def _train_hrl(
 
     global_ep = resume_episode_offset
     reward_normalizer = RunningMeanStd()
+    if resume_reward_normalizer_state is not None:
+        reward_normalizer.load_state_dict(resume_reward_normalizer_state)
     hero = args.hero if args.hero.lower() != "random" else "arythea"
     target_selector = RandomTargetSelector()
     rng = np.random.default_rng(args.seed)
@@ -709,7 +772,9 @@ def _train_hrl(
             scenario=scenario_json,
             combat_oracle=args.combat_oracle,
             commerce_oracle=args.commerce_oracle,
-            early_term_fame_step=args.early_term_fame_step,
+            early_term_fame_step=phase.resolve_early_term_fame_step(
+                args.early_term_fame_step,
+            ),
         )
 
         hrl_buffers = HRLEpisodeBuffers()
@@ -753,6 +818,7 @@ def _train_hrl(
                             log_prob=t.log_prob,
                             value=t.value,
                             reward=nr,
+                            bootstrap_value=t.bootstrap_value,
                         )
                         for t, nr in zip(ep, norm_rewards)
                     ])
@@ -812,6 +878,9 @@ def _train_hrl(
                 total_reward = sum(vt.reward for vt in ep_transitions)
                 fame = meta.total_fame_delta
                 steps = len(ep_transitions)
+                normalized_terminal_fame = reward_normalizer.normalize_component(
+                    meta.reward_breakdown.terminal_fame,
+                )
 
                 log_entry = {
                     "episode": global_ep,
@@ -820,6 +889,12 @@ def _train_hrl(
                     "game_score": meta.game_score,
                     "steps": steps,
                     "total_reward": round(total_reward, 2),
+                    "termination_cause": meta.termination_cause,
+                    "reward_breakdown": {
+                        "terminal": meta.reward_breakdown.terminal_bonus,
+                        "terminal_fame": meta.reward_breakdown.terminal_fame,
+                        "terminal_fame_normalized": normalized_terminal_fame,
+                    },
                     "worker_loss": round(worker_stats.loss, 4),
                     "worker_entropy": round(worker_stats.entropy, 4),
                     "ceo_loss": round(ceo_stats["loss"], 4),
@@ -837,9 +912,22 @@ def _train_hrl(
 
                 if tb and tb._writer:
                     tb._writer.add_scalar("reward/total", total_reward, global_ep)
-                    tb._writer.add_scalar("episode/fame", fame, global_ep)
+                    tb._writer.add_scalar("reward/fame", fame, global_ep)
+                    tb._writer.add_scalar(
+                        "episode/fame_binary", 1.0 if fame > 0 else 0.0, global_ep,
+                    )
                     tb._writer.add_scalar("episode/game_score", meta.game_score, global_ep)
                     tb._writer.add_scalar("episode/steps", steps, global_ep)
+                    tb._writer.add_scalar(
+                        "reward_breakdown/terminal_fame_raw",
+                        meta.reward_breakdown.terminal_fame,
+                        global_ep,
+                    )
+                    tb._writer.add_scalar(
+                        "reward_breakdown/terminal_fame_normalized",
+                        normalized_terminal_fame,
+                        global_ep,
+                    )
                     tb._writer.add_scalar("hrl/worker_loss", worker_stats.loss, global_ep)
                     tb._writer.add_scalar("hrl/ceo_loss", ceo_stats["loss"], global_ep)
                     tb._writer.add_scalar("hrl/ceo_entropy", ceo_stats["entropy"], global_ep)
@@ -853,7 +941,11 @@ def _train_hrl(
                 ckpt_dir = checkpoint_dir / "checkpoints"
                 ckpt_dir.mkdir(exist_ok=True)
                 worker_path = ckpt_dir / f"worker_ep_{global_ep:06d}.pt"
-                worker_policy.save_checkpoint(worker_path, {"episode": global_ep})
+                worker_policy.save_checkpoint(
+                    worker_path,
+                    {"episode": global_ep},
+                    reward_normalizer_state=reward_normalizer.state_dict(),
+                )
                 # TODO: save CEO checkpoint too
 
         del vec_env
@@ -862,7 +954,11 @@ def _train_hrl(
         ckpt_dir = checkpoint_dir / "checkpoints"
         ckpt_dir.mkdir(exist_ok=True)
         final_path = ckpt_dir / "worker_final.pt"
-        worker_policy.save_checkpoint(final_path, {"episode": global_ep})
+        worker_policy.save_checkpoint(
+            final_path,
+            {"episode": global_ep},
+            reward_normalizer_state=reward_normalizer.state_dict(),
+        )
         print(f"Final Worker checkpoint: {final_path}")
 
     print(f"Metrics log: {metrics_path}")
@@ -881,6 +977,8 @@ def _train_curriculum(
     metrics_path: Path,
     tb: _TBWriter | None = None,
     resume_episode_offset: int = 0,
+    resume_reward_normalizer_state: dict[str, Any] | None = None,
+    resolved_schedule: Any | None = None,
 ) -> int:
     """Train with curriculum learning: iterate phases, each with its own scenario + rewards."""
     from mk_python import PyVecEnv
@@ -894,16 +992,32 @@ def _train_curriculum(
         vec_transition_to_transition,
     )
 
-    schedule = CURRICULA[args.curriculum]()
+    schedule = (
+        resolved_schedule
+        if resolved_schedule is not None
+        else CURRICULA[args.curriculum]()
+    )
     global_ep = resume_episode_offset
     reward_normalizer = RunningMeanStd()
+    if resume_reward_normalizer_state is not None:
+        reward_normalizer.load_state_dict(resume_reward_normalizer_state)
     hero = args.hero if args.hero.lower() != "random" else "arythea"
 
     for phase_idx, phase in enumerate(schedule.phases):
         print(f"\n{'=' * 88}")
         print(f"Phase {phase_idx + 1}/{len(schedule.phases)}: {phase.name}")
         print(f"  Scenario: {phase.scenario.kind} | Episodes: {phase.episodes} | Max steps: {phase.max_steps}")
-        print(f"  Rewards: fame_scale={phase.reward_config.fame_delta_scale} step_penalty={phase.reward_config.step_penalty} end_bonus={phase.reward_config.terminal_end_bonus}")
+        print(
+            "  Rewards: "
+            f"fame_scale={phase.reward_config.fame_delta_scale} "
+            f"step_penalty={phase.reward_config.step_penalty} "
+            f"end_bonus={phase.reward_config.terminal_end_bonus} "
+            f"terminal_fame_scale={phase.reward_config.terminal_fame_scale}"
+        )
+        print(
+            "  Early zero-fame cutoff: "
+            f"{phase.resolve_early_term_fame_step(args.early_term_fame_step)}"
+        )
         print(f"{'=' * 88}")
 
         scenario_json = phase.scenario.to_rust_json()
@@ -916,7 +1030,9 @@ def _train_curriculum(
             scenario=scenario_json,
             combat_oracle=args.combat_oracle,
             commerce_oracle=args.commerce_oracle,
-            early_term_fame_step=args.early_term_fame_step,
+            early_term_fame_step=phase.resolve_early_term_fame_step(
+                args.early_term_fame_step,
+            ),
         )
 
         episode_buffers = EpisodeBuffers()
@@ -931,6 +1047,31 @@ def _train_curriculum(
                 total_steps=steps_per_collect,
                 episode_buffers=episode_buffers,
             )
+
+            for failed_meta in result.failed_episode_metas:
+                global_ep += 1
+                phase_episodes_done += 1
+                failure_stats = EpisodeTrainingStats(
+                    outcome="engine_error",
+                    steps=len(failed_meta.action_indices),
+                    total_reward=0.0,
+                    optimization=OptimizationStats(
+                        loss=0.0,
+                        total_reward=0.0,
+                        mean_reward=0.0,
+                        entropy=0.0,
+                        action_count=0,
+                    ),
+                )
+                _append_metrics_log(
+                    path=metrics_path,
+                    episode=global_ep - 1,
+                    seed=failed_meta.seed,
+                    stats=failure_stats,
+                    phase_name=phase.name,
+                    phase_index=phase_idx,
+                    termination_cause=failed_meta.termination_cause,
+                )
 
             if not result.episodes:
                 continue
@@ -959,6 +1100,7 @@ def _train_curriculum(
                             log_prob=t.log_prob,
                             value=t.value,
                             reward=nr,
+                            bootstrap_value=t.bootstrap_value,
                         )
                         for t, nr in zip(ep, norm_rewards)
                     ])
@@ -1013,10 +1155,23 @@ def _train_curriculum(
                     reward_breakdown=meta.reward_breakdown,
                     game_score=meta.game_score,
                     achievement_breakdown=meta.achievement_breakdown,
+                    termination_cause=meta.termination_cause,
+                    normalized_terminal_fame=reward_normalizer.normalize_component(
+                        meta.reward_breakdown.terminal_fame,
+                    ),
                 )
 
                 if tb is not None:
-                    tb.log_episode(global_ep, stats, reward_breakdown=meta.reward_breakdown)
+                    tb.log_episode(
+                        global_ep,
+                        stats,
+                        fame=meta.total_fame_delta,
+                        game_score=meta.game_score,
+                        reward_breakdown=meta.reward_breakdown,
+                        normalized_terminal_fame=reward_normalizer.normalize_component(
+                            meta.reward_breakdown.terminal_fame,
+                        ),
+                    )
                     wounds_per_combat = (
                         meta.total_wounds / meta.combats_entered
                         if meta.combats_entered > 0 else 0.0
@@ -1053,29 +1208,41 @@ def _train_curriculum(
             # Checkpoint at interval
             if args.checkpoint_every > 0 and global_ep % args.checkpoint_every < len(result.episodes):
                 cp_path = checkpoint_dir / f"policy_ep_{global_ep:06d}.pt"
-                policy.save_checkpoint(cp_path, metadata={
-                    "episode": global_ep,
-                    "phase": phase.name,
-                    "phase_index": phase_idx,
-                    "timestamp": datetime.now(UTC).isoformat(),
-                })
+                policy.save_checkpoint(
+                    cp_path,
+                    metadata={
+                        "episode": global_ep,
+                        "phase": phase.name,
+                        "phase_index": phase_idx,
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
+                    reward_normalizer_state=reward_normalizer.state_dict(),
+                )
 
         # Phase boundary checkpoint
         cp_path = checkpoint_dir / f"policy_phase_{phase_idx}_{phase.name}.pt"
-        policy.save_checkpoint(cp_path, metadata={
-            "episode": global_ep,
-            "phase": phase.name,
-            "phase_index": phase_idx,
-            "timestamp": datetime.now(UTC).isoformat(),
-        })
+        policy.save_checkpoint(
+            cp_path,
+            metadata={
+                "episode": global_ep,
+                "phase": phase.name,
+                "phase_index": phase_idx,
+                "timestamp": datetime.now(UTC).isoformat(),
+            },
+            reward_normalizer_state=reward_normalizer.state_dict(),
+        )
         print(f"Phase checkpoint: {cp_path}")
 
     if not args.no_final_checkpoint:
         final_path = checkpoint_dir / "policy_final.pt"
-        policy.save_checkpoint(final_path, metadata={
-            "episode": global_ep,
-            "timestamp": datetime.now(UTC).isoformat(),
-        })
+        policy.save_checkpoint(
+            final_path,
+            metadata={
+                "episode": global_ep,
+                "timestamp": datetime.now(UTC).isoformat(),
+            },
+            reward_normalizer_state=reward_normalizer.state_dict(),
+        )
         print(f"Final checkpoint: {final_path}")
 
     print(f"Metrics log: {metrics_path}")
@@ -1150,6 +1317,7 @@ def _write_run_manifest(
     policy: Any,
     reward_config: Any,
     curriculum_name: str | None = None,
+    curriculum_schedule: Any | None = None,
 ) -> None:
     """Write run_config.json with policy/reward config and CLI args for reproducibility."""
     manifest: dict[str, Any] = {
@@ -1160,6 +1328,7 @@ def _write_run_manifest(
             "fame_delta_scale": reward_config.fame_delta_scale,
             "step_penalty": reward_config.step_penalty,
             "terminal_end_bonus": reward_config.terminal_end_bonus,
+            "terminal_fame_scale": reward_config.terminal_fame_scale,
             "terminal_max_steps_penalty": reward_config.terminal_max_steps_penalty,
             "terminal_failure_penalty": reward_config.terminal_failure_penalty,
             "new_hex_bonus": reward_config.new_hex_bonus,
@@ -1175,9 +1344,11 @@ def _write_run_manifest(
     }
     if curriculum_name:
         from mage_knight_sdk.sim.rl.curriculum import CURRICULA
-        schedule_fn = CURRICULA.get(curriculum_name)
-        if schedule_fn:
-            schedule = schedule_fn()
+        schedule = curriculum_schedule
+        if schedule is None:
+            schedule_fn = CURRICULA.get(curriculum_name)
+            schedule = schedule_fn() if schedule_fn is not None else None
+        if schedule is not None:
             manifest["curriculum"] = {
                 "name": curriculum_name,
                 "phases": [
@@ -1186,6 +1357,9 @@ def _write_run_manifest(
                         "scenario": {"kind": p.scenario.kind, **p.scenario.params},
                         "episodes": p.episodes,
                         "max_steps": p.max_steps,
+                        "early_term_fame_step": p.resolve_early_term_fame_step(
+                            args.early_term_fame_step,
+                        ),
                         "reward_config": asdict(p.reward_config),
                     }
                     for p in schedule.phases
@@ -1231,6 +1405,8 @@ def _append_metrics_log(
     reward_breakdown: Any = None,
     game_score: int | None = None,
     achievement_breakdown: dict[str, int] | None = None,
+    termination_cause: str | None = None,
+    normalized_terminal_fame: float = 0.0,
 ) -> None:
     """Write metrics from EpisodeTrainingStats."""
     explore_fame = tiles_explored * 1
@@ -1242,6 +1418,11 @@ def _append_metrics_log(
         "tiles_explored": tiles_explored,
         "combat_fame": combat_fame,
         "outcome": stats.outcome,
+        "termination_cause": termination_cause or (
+            "natural_end" if stats.outcome == "ended" else
+            "engine_failure" if stats.outcome == "engine_error" else
+            "hard_limit"
+        ),
         "steps": stats.steps,
         "reason": None,
         "scenario_triggered": getattr(stats, "scenario_triggered", False),
@@ -1274,6 +1455,8 @@ def _append_metrics_log(
             "new_hex": reward_breakdown.new_hex_bonus,
             "step_penalty": reward_breakdown.step_penalty,
             "terminal": reward_breakdown.terminal_bonus,
+            "terminal_fame": reward_breakdown.terminal_fame,
+            "terminal_fame_normalized": normalized_terminal_fame,
             "scenario_trigger": reward_breakdown.scenario_trigger_bonus,
             "wasted_move": reward_breakdown.wasted_move_penalty,
             "backtrack": reward_breakdown.backtrack_penalty,
