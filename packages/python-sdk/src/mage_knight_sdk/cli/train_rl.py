@@ -1026,6 +1026,18 @@ def _train_hrl(
 # ---------------------------------------------------------------------------
 
 
+def _limit_curriculum_batch(
+    episodes: list[Any],
+    metas: list[Any],
+    remaining: int,
+) -> tuple[list[Any], list[Any]]:
+    """Keep a rollout from overshooting the current phase's episode budget."""
+    if remaining < 0:
+        raise ValueError("remaining curriculum episodes cannot be negative")
+    count = min(len(episodes), len(metas), remaining)
+    return episodes[:count], metas[:count]
+
+
 def _train_curriculum(
     args: argparse.Namespace,
     policy: Any,
@@ -1107,7 +1119,9 @@ def _train_curriculum(
                 episode_buffers=episode_buffers,
             )
 
-            for failed_meta in result.failed_episode_metas:
+            remaining = phase.episodes - phase_episodes_done
+            failed_metas = result.failed_episode_metas[:remaining]
+            for failed_meta in failed_metas:
                 global_ep += 1
                 phase_episodes_done += 1
                 failure_stats = EpisodeTrainingStats(
@@ -1132,13 +1146,19 @@ def _train_curriculum(
                     termination_cause=failed_meta.termination_cause,
                 )
 
-            if not result.episodes:
+            remaining = phase.episodes - phase_episodes_done
+            completed_episodes, completed_metas = _limit_curriculum_batch(
+                result.episodes,
+                result.episode_metas,
+                remaining,
+            )
+            if not completed_episodes:
                 continue
 
             # Convert VecTransitions → standard Transitions for PPO
             episodes_data = []
             terminated_flags = []
-            for ep_transitions, meta in zip(result.episodes, result.episode_metas):
+            for ep_transitions, meta in zip(completed_episodes, completed_metas):
                 standard = [vec_transition_to_transition(vt) for vt in ep_transitions]
                 episodes_data.append(standard)
                 terminated_flags.append(not meta.truncated)
@@ -1192,7 +1212,7 @@ def _train_curriculum(
                 )
 
             # Log each completed episode
-            for ep_transitions, meta in zip(result.episodes, result.episode_metas):
+            for ep_transitions, meta in zip(completed_episodes, completed_metas):
                 global_ep += 1
                 phase_episodes_done += 1
                 total_reward = sum(vt.reward for vt in ep_transitions)
@@ -1265,7 +1285,10 @@ def _train_curriculum(
                 tb.log_explained_variance(global_ep, returns, batch_values)
 
             # Checkpoint at interval
-            if args.checkpoint_every > 0 and global_ep % args.checkpoint_every < len(result.episodes):
+            if (
+                args.checkpoint_every > 0
+                and global_ep % args.checkpoint_every < len(completed_episodes)
+            ):
                 cp_path = checkpoint_dir / f"policy_ep_{global_ep:06d}.pt"
                 policy.save_checkpoint(
                     cp_path,

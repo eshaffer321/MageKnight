@@ -10,6 +10,7 @@ from pathlib import Path
 from mage_knight_sdk.cli.train_rl import (
     _TBWriter,
     _append_metrics_log,
+    _limit_curriculum_batch,
     _write_run_manifest,
 )
 from mage_knight_sdk.sim.rl.rewards import RewardConfig
@@ -94,6 +95,19 @@ class GaeBootstrapTest(unittest.TestCase):
 
 
 class CurriculumPhaseTerminationTest(unittest.TestCase):
+    def test_curriculum_batch_is_capped_to_remaining_phase_episodes(self) -> None:
+        episodes = [[index] for index in range(10)]
+        metas = [f"meta-{index}" for index in range(10)]
+
+        limited_episodes, limited_metas = _limit_curriculum_batch(
+            episodes,
+            metas,
+            remaining=3,
+        )
+
+        self.assertEqual(limited_episodes, [[0], [1], [2]])
+        self.assertEqual(limited_metas, ["meta-0", "meta-1", "meta-2"])
+
     def test_phase_can_override_global_early_termination(self) -> None:
         phase = CurriculumPhase(
             name="terminal_phase",
