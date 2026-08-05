@@ -229,7 +229,9 @@ def main() -> int:
     parser.add_argument("--max-critic-loss", type=float, default=0.0, help="Cap per-sample critic loss to prevent gradient spikes (default: 0 = disabled, recommended: 2.0)")
 
     # Curriculum learning
-    parser.add_argument("--curriculum", default=None, help="Curriculum schedule name (e.g. 'default'). Overrides --episodes, reward args, and --max-steps with per-phase values.")
+    curriculum_source = parser.add_mutually_exclusive_group()
+    curriculum_source.add_argument("--curriculum", default=None, help="Built-in curriculum schedule name (e.g. 'default'). Overrides --episodes, reward args, and --max-steps with per-phase values.")
+    curriculum_source.add_argument("--curriculum-plan", default=None, help="Evaluation-derived adaptive curriculum JSON plan")
 
     # Combat oracle
     parser.add_argument("--combat-oracle", action="store_true", default=True, help="Auto-resolve combat via exhaustive search oracle (agent skips combat actions)")
@@ -326,15 +328,45 @@ def main() -> int:
         print(f"PPO: batch_episodes={args.batch_episodes} ppo_epochs={args.ppo_epochs} clip={args.clip_epsilon} gae_lambda={args.gae_lambda}")
 
     resolved_schedule: Any | None = None
-    if args.curriculum:
+    curriculum_label: str | None = None
+    if args.curriculum or args.curriculum_plan:
         from dataclasses import replace
 
-        from mage_knight_sdk.sim.rl.curriculum import CURRICULA, CurriculumSchedule
-        schedule = CURRICULA.get(args.curriculum)
-        if schedule is None:
-            print(f"Unknown curriculum: {args.curriculum!r}. Available: {', '.join(CURRICULA)}", file=sys.stderr)
-            return 2
-        schedule = schedule()
+        from mage_knight_sdk.sim.rl.curriculum import (
+            CURRICULA,
+            load_adaptive_curriculum_plan,
+        )
+        if args.curriculum_plan:
+            try:
+                schedule = load_adaptive_curriculum_plan(args.curriculum_plan)
+            except (KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+                print(f"Invalid curriculum plan: {error}", file=sys.stderr)
+                return 2
+            if args.hero.lower() != "random" and args.hero.lower() != schedule.hero:
+                print(
+                    f"--hero {args.hero!r} conflicts with adaptive plan hero "
+                    f"{schedule.hero!r}",
+                    file=sys.stderr,
+                )
+                return 2
+            requirements = schedule.source.get("requirements", {})
+            if "combat_oracle" in requirements:
+                args.combat_oracle = bool(requirements["combat_oracle"])
+            if "commerce_oracle" in requirements:
+                args.commerce_oracle = bool(requirements["commerce_oracle"])
+            print(
+                "  Adaptive plan engine requirements: "
+                f"combat_oracle={args.combat_oracle} "
+                f"commerce_oracle={args.commerce_oracle}"
+            )
+            curriculum_label = f"adaptive:{Path(args.curriculum_plan).resolve()}"
+        else:
+            schedule_factory = CURRICULA.get(args.curriculum)
+            if schedule_factory is None:
+                print(f"Unknown curriculum: {args.curriculum!r}. Available: {', '.join(CURRICULA)}", file=sys.stderr)
+                return 2
+            schedule = schedule_factory()
+            curriculum_label = args.curriculum
 
         # CLI reward args override curriculum phase defaults.
         # Map CLI arg names to RewardConfig field names.
@@ -363,14 +395,14 @@ def main() -> int:
                 explicit_overrides[field_name] = actual_val
         if explicit_overrides:
             print(f"  CLI reward overrides: {explicit_overrides}")
-            schedule = CurriculumSchedule(phases=[
+            schedule = replace(schedule, phases=[
                 replace(phase, reward_config=replace(phase.reward_config, **explicit_overrides))
                 for phase in schedule.phases
             ])
 
         total_episodes = sum(p.episodes for p in schedule.phases)
         phase_names = [p.name for p in schedule.phases]
-        print(f"Curriculum: {args.curriculum} ({len(schedule.phases)} phases, {total_episodes} total episodes)")
+        print(f"Curriculum: {curriculum_label} ({len(schedule.phases)} phases, {total_episodes} total episodes)")
         print(f"  Phases: {' → '.join(phase_names)}")
         resolved_schedule = schedule
 
@@ -380,7 +412,7 @@ def main() -> int:
             args,
             policy,
             reward_config,
-            curriculum_name=args.curriculum,
+            curriculum_name=curriculum_label,
             curriculum_schedule=resolved_schedule,
         )
 
@@ -408,7 +440,7 @@ def main() -> int:
                 resume_episode_offset, resume_reward_normalizer_state,
                 resolved_schedule,
             )
-        if args.curriculum:
+        if args.curriculum or args.curriculum_plan:
             return _train_curriculum(
                 args, policy, checkpoint_dir, metrics_path, tb,
                 resume_episode_offset, resume_reward_normalizer_state,
@@ -752,7 +784,10 @@ def _train_hrl(
     reward_normalizer = RunningMeanStd()
     if resume_reward_normalizer_state is not None:
         reward_normalizer.load_state_dict(resume_reward_normalizer_state)
-    hero = args.hero if args.hero.lower() != "random" else "arythea"
+    hero = (
+        schedule.hero
+        or (args.hero if args.hero.lower() != "random" else "arythea")
+    )
     target_selector = RandomTargetSelector()
     rng = np.random.default_rng(args.seed)
 
@@ -1001,7 +1036,10 @@ def _train_curriculum(
     reward_normalizer = RunningMeanStd()
     if resume_reward_normalizer_state is not None:
         reward_normalizer.load_state_dict(resume_reward_normalizer_state)
-    hero = args.hero if args.hero.lower() != "random" else "arythea"
+    hero = (
+        schedule.hero
+        or (args.hero if args.hero.lower() != "random" else "arythea")
+    )
 
     for phase_idx, phase in enumerate(schedule.phases):
         print(f"\n{'=' * 88}")
@@ -1351,6 +1389,8 @@ def _write_run_manifest(
         if schedule is not None:
             manifest["curriculum"] = {
                 "name": curriculum_name,
+                "hero": schedule.hero,
+                "source": schedule.source,
                 "phases": [
                     {
                         "name": p.name,

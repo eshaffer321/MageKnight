@@ -64,6 +64,19 @@ class TestPyVecEnv(unittest.TestCase):
         self.assertEqual(result["dones"].shape, (n,))
         self.assertEqual(result["fames"].shape, (n,))
 
+        # Evaluation terminal/resource snapshot fields are present on every step
+        # so the auto-reset path cannot erase the final game state.
+        self.assertEqual(result["player_levels"].shape, (n,))
+        self.assertEqual(result["reputations"].shape, (n,))
+        self.assertEqual(result["rounds"].shape, (n,))
+        self.assertEqual(result["hand_sizes"].shape, (n,))
+        self.assertEqual(result["deck_sizes"].shape, (n,))
+        self.assertEqual(result["discard_sizes"].shape, (n,))
+        self.assertEqual(result["crystal_counts"].shape, (n, 4))
+        self.assertEqual(result["ready_unit_counts"].shape, (n,))
+        self.assertEqual(result["wounded_unit_counts"].shape, (n,))
+        self.assertEqual(result["skill_counts"].shape, (n,))
+
     def test_multiple_steps(self) -> None:
         """Run several steps and verify no crashes."""
         n = 4

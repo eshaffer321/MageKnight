@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "suite_id": "mk-solo-skill-v1",
+  "description": "Locked solo skill benchmark: held-out First Reconnaissance, hero transfer, combat mechanics, and exploration mechanics.",
+  "locked": true,
+  "score_version": "engine_score_v1",
+  "action_mode": "greedy",
+  "regression_thresholds": {
+    "max_core_completion_drop": 0.05,
+    "max_core_mean_score_drop": 2.0,
+    "max_overall_paired_loss_rate": 0.55
+  },
+  "buckets": [
+    {
+      "bucket_id": "full_arythea_core",
+      "category": "full_game_core",
+      "hero": "arythea",
+      "base_seed": 2147483648,
+      "policy_seed_base": 1048576,
+      "count": 128,
+      "max_steps": 500,
+      "success_metric": "scenario_triggered",
+      "difficulty": "canonical"
+    },
+    {
+      "bucket_id": "full_tovak_transfer",
+      "category": "hero_transfer",
+      "hero": "tovak",
+      "base_seed": 2164260864,
+      "count": 16,
+      "max_steps": 500,
+      "success_metric": "scenario_triggered",
+      "difficulty": "transfer"
+    },
+    {
+      "bucket_id": "full_goldyx_transfer",
+      "category": "hero_transfer",
+      "hero": "goldyx",
+      "base_seed": 2164264960,
+      "count": 16,
+      "max_steps": 500,
+      "success_metric": "scenario_triggered",
+      "difficulty": "transfer"
+    },
+    {
+      "bucket_id": "full_norowas_transfer",
+      "category": "hero_transfer",
+      "hero": "norowas",
+      "base_seed": 2164269056,
+      "count": 16,
+      "max_steps": 500,
+      "success_metric": "scenario_triggered",
+      "difficulty": "transfer"
+    },
+    {
+      "bucket_id": "full_wolfhawk_transfer",
+      "category": "hero_transfer",
+      "hero": "wolfhawk",
+      "base_seed": 2164273152,
+      "count": 16,
+      "max_steps": 500,
+      "success_metric": "scenario_triggered",
+      "difficulty": "transfer"
+    },
+    {
+      "bucket_id": "full_krang_transfer",
+      "category": "hero_transfer",
+      "hero": "krang",
+      "base_seed": 2164277248,
+      "count": 16,
+      "max_steps": 500,
+      "success_metric": "scenario_triggered",
+      "difficulty": "transfer"
+    },
+    {
+      "bucket_id": "full_braevalar_transfer",
+      "category": "hero_transfer",
+      "hero": "braevalar",
+      "base_seed": 2164281344,
+      "count": 16,
+      "max_steps": 500,
+      "success_metric": "scenario_triggered",
+      "difficulty": "transfer"
+    },
+    {
+      "bucket_id": "combat_easy_diggers",
+      "category": "combat_mechanics",
+      "hero": "arythea",
+      "base_seed": 2181038080,
+      "count": 16,
+      "max_steps": 120,
+      "success_metric": "fame_positive",
+      "difficulty": "easy",
+      "adaptive_eligible": true,
+      "scenario": {
+        "type": "CombatDrill",
+        "enemy_tokens": ["diggers_1"],
+        "is_fortified": false,
+        "hand_override": ["rage", "arythea_battle_versatility", "determination", "stamina", "concentration"]
+      },
+      "training_reward": {"fame_delta_scale": 5.0}
+    },
+    {
+      "bucket_id": "combat_medium_prowlers",
+      "category": "combat_mechanics",
+      "hero": "arythea",
+      "base_seed": 2181042176,
+      "count": 16,
+      "max_steps": 160,
+      "success_metric": "fame_positive",
+      "difficulty": "medium",
+      "adaptive_eligible": true,
+      "scenario": {
+        "type": "CombatDrill",
+        "enemy_tokens": ["prowlers_1"],
+        "is_fortified": false
+      },
+      "training_reward": {"fame_delta_scale": 5.0, "cards_remaining_bonus": 0.5}
+    },
+    {
+      "bucket_id": "combat_powered_wolf_riders",
+      "category": "combat_mechanics",
+      "hero": "arythea",
+      "base_seed": 2181046272,
+      "count": 16,
+      "max_steps": 200,
+      "success_metric": "fame_positive",
+      "difficulty": "medium",
+      "adaptive_eligible": true,
+      "scenario": {
+        "type": "CombatDrill",
+        "enemy_tokens": ["wolf_riders_1"],
+        "is_fortified": false,
+        "crystals": {"red": 3, "blue": 0, "green": 0, "white": 0}
+      },
+      "training_reward": {"fame_delta_scale": 5.0, "wound_penalty": -1.0, "cards_remaining_bonus": 0.3}
+    },
+    {
+      "bucket_id": "combat_fortified_guardsmen",
+      "category": "combat_mechanics",
+      "hero": "arythea",
+      "base_seed": 2181050368,
+      "count": 16,
+      "max_steps": 240,
+      "success_metric": "fame_positive",
+      "difficulty": "hard",
+      "adaptive_eligible": true,
+      "scenario": {
+        "type": "CombatDrill",
+        "enemy_tokens": ["guardsmen_1"],
+        "is_fortified": true,
+        "crystals": {"red": 3, "blue": 0, "green": 0, "white": 0}
+      },
+      "training_reward": {"fame_delta_scale": 5.0, "wound_penalty": -2.0, "cards_remaining_bonus": 0.3}
+    },
+    {
+      "bucket_id": "combat_unit_swordsmen",
+      "category": "combat_mechanics",
+      "hero": "arythea",
+      "base_seed": 2181054464,
+      "count": 16,
+      "max_steps": 240,
+      "success_metric": "fame_positive",
+      "difficulty": "hard",
+      "adaptive_eligible": true,
+      "scenario": {
+        "type": "CombatDrill",
+        "enemy_tokens": ["swordsmen_1"],
+        "is_fortified": false,
+        "units": ["peasants"],
+        "crystals": {"red": 3, "blue": 0, "green": 0, "white": 0}
+      },
+      "training_reward": {"fame_delta_scale": 5.0, "wound_penalty": -2.0, "cards_remaining_bonus": 0.3}
+    },
+    {
+      "bucket_id": "combat_multi_prowlers",
+      "category": "combat_mechanics",
+      "hero": "arythea",
+      "base_seed": 2181058560,
+      "count": 16,
+      "max_steps": 300,
+      "success_metric": "fame_positive",
+      "difficulty": "mixed_multi_enemy",
+      "adaptive_eligible": true,
+      "scenario": {
+        "type": "CombatDrill",
+        "enemy_tokens": ["prowlers_1", "prowlers_2"],
+        "is_fortified": false,
+        "units": ["peasants"],
+        "crystals": {"red": 3, "blue": 0, "green": 0, "white": 0}
+      },
+      "training_reward": {"fame_delta_scale": 5.0, "wound_penalty": -2.0, "cards_remaining_bonus": 0.3}
+    },
+    {
+      "bucket_id": "exploration_tiny",
+      "category": "exploration_mechanics",
+      "hero": "arythea",
+      "base_seed": 2197815296,
+      "count": 16,
+      "max_steps": 180,
+      "success_metric": "scenario_triggered",
+      "difficulty": "easy",
+      "adaptive_eligible": true,
+      "scenario": {"type": "ExplorationDrill", "countryside_count": 2},
+      "training_reward": {"fame_delta_scale": 0.0, "new_hex_bonus": 0.5, "tile_explore_bonus": 5.0, "scenario_trigger_bonus": 20.0, "wasted_move_penalty": -0.05}
+    },
+    {
+      "bucket_id": "exploration_standard",
+      "category": "exploration_mechanics",
+      "hero": "arythea",
+      "base_seed": 2197819392,
+      "count": 16,
+      "max_steps": 320,
+      "success_metric": "scenario_triggered",
+      "difficulty": "medium",
+      "adaptive_eligible": true,
+      "scenario": {"type": "ExplorationDrill", "countryside_count": 4, "core_tile_count": 1},
+      "training_reward": {"fame_delta_scale": 0.0, "new_hex_bonus": 0.5, "tile_explore_bonus": 5.0, "scenario_trigger_bonus": 20.0, "wasted_move_penalty": -0.05}
+    }
+  ]
+}

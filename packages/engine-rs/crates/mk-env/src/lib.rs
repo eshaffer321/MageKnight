@@ -26,7 +26,7 @@ use mk_engine::legal_actions::enumerate_legal_actions_with_undo;
 use mk_engine::scoring::{calculate_category_base_points, calculate_final_scores};
 use mk_engine::undo::UndoStack;
 use mk_features::EncodedStep;
-use mk_types::enums::Hero;
+use mk_types::enums::{Hero, UnitState};
 use mk_types::legal_action::{LegalAction, LegalActionSet};
 use mk_types::scoring::AchievementCategory;
 use mk_types::state::{GameState, PlayerFlags};
@@ -889,6 +889,27 @@ pub struct StepResult {
     pub achievement_categories: Vec<[i32; 6]>,
     /// (N,) — actual action indices applied (post-clamping), for faithful replay logging
     pub applied_actions: Vec<i32>,
+    // ── Evaluation terminal/resource snapshot signals ───────────────
+    /// (N,) — player level after stepping, captured before auto-reset.
+    pub player_levels: Vec<i32>,
+    /// (N,) — reputation after stepping, captured before auto-reset.
+    pub reputations: Vec<i32>,
+    /// (N,) — current round after stepping, captured before auto-reset.
+    pub rounds: Vec<i32>,
+    /// (N,) — cards in hand after stepping.
+    pub hand_sizes: Vec<i32>,
+    /// (N,) — cards remaining in draw deck after stepping.
+    pub deck_sizes: Vec<i32>,
+    /// (N,) — cards in discard after stepping.
+    pub discard_sizes: Vec<i32>,
+    /// (N, 4) — red, blue, green, white crystals after stepping.
+    pub crystal_counts: Vec<[i32; 4]>,
+    /// (N,) — ready units after stepping.
+    pub ready_unit_counts: Vec<i32>,
+    /// (N,) — wounded units after stepping.
+    pub wounded_unit_counts: Vec<i32>,
+    /// (N,) — acquired skills after stepping.
+    pub skill_counts: Vec<i32>,
     // ── HRL goal detection signals ─────────────────────────────────
     /// (N, 2) — player hex position (q, r) after stepping
     pub player_positions: Vec<[i32; 2]>,
@@ -1167,6 +1188,16 @@ impl VecEnv {
         let mut rested_turns = Vec::with_capacity(n);
         let mut achievement_deltas = Vec::with_capacity(n);
         let mut applied_actions = Vec::with_capacity(n);
+        let mut player_levels = Vec::with_capacity(n);
+        let mut reputations = Vec::with_capacity(n);
+        let mut rounds = Vec::with_capacity(n);
+        let mut hand_sizes = Vec::with_capacity(n);
+        let mut deck_sizes = Vec::with_capacity(n);
+        let mut discard_sizes = Vec::with_capacity(n);
+        let mut crystal_counts = Vec::with_capacity(n);
+        let mut ready_unit_counts = Vec::with_capacity(n);
+        let mut wounded_unit_counts = Vec::with_capacity(n);
+        let mut skill_counts = Vec::with_capacity(n);
         let mut player_positions = Vec::with_capacity(n);
         let mut is_interacting_vec = Vec::with_capacity(n);
         let mut unit_counts = Vec::with_capacity(n);
@@ -1204,8 +1235,29 @@ impl VecEnv {
             rested_turns.push(if is_end_turn[i] && was_resting[i] { 1 } else { 0 });
             achievement_deltas.push(achievement_score_no_wounds(&env.state) - achievements_before[i]);
 
+            let player = &env.state.players[0];
+            player_levels.push(player.level as i32);
+            reputations.push(player.reputation as i32);
+            rounds.push(env.state.round as i32);
+            hand_sizes.push(player.hand.len() as i32);
+            deck_sizes.push(player.deck.len() as i32);
+            discard_sizes.push(player.discard.len() as i32);
+            crystal_counts.push([
+                player.crystals.red as i32,
+                player.crystals.blue as i32,
+                player.crystals.green as i32,
+                player.crystals.white as i32,
+            ]);
+            ready_unit_counts.push(
+                player.units.iter().filter(|unit| unit.state == UnitState::Ready).count() as i32,
+            );
+            wounded_unit_counts.push(
+                player.units.iter().filter(|unit| unit.wounded).count() as i32,
+            );
+            skill_counts.push(player.skills.len() as i32);
+
             // HRL goal detection signals
-            let pos = env.state.players[0].position;
+            let pos = player.position;
             player_positions.push(pos.map(|p| [p.q, p.r]).unwrap_or([0, 0]));
             is_interacting_vec.push(
                 env.state.players[0]
@@ -1312,6 +1364,16 @@ impl VecEnv {
             game_scores,
             achievement_categories,
             applied_actions,
+            player_levels,
+            reputations,
+            rounds,
+            hand_sizes,
+            deck_sizes,
+            discard_sizes,
+            crystal_counts,
+            ready_unit_counts,
+            wounded_unit_counts,
+            skill_counts,
             player_positions,
             is_interacting: is_interacting_vec,
             unit_counts,

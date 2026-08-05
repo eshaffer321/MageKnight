@@ -9,8 +9,11 @@ Same neural network throughout — EncodedStep dimensions are identical regardle
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
 from .rewards import RewardConfig
 
@@ -34,6 +37,24 @@ class TrainingScenario:
     @staticmethod
     def full_game() -> TrainingScenario:
         return TrainingScenario(kind="full_game")
+
+    @staticmethod
+    def from_rust_dict(payload: dict[str, Any] | None) -> TrainingScenario:
+        """Construct a scenario from the tagged JSON accepted by ``PyVecEnv``."""
+        if payload is None:
+            return TrainingScenario.full_game()
+        scenario_type = payload.get("type")
+        if scenario_type == "CombatDrill":
+            return TrainingScenario(
+                kind="combat_drill",
+                params={key: value for key, value in payload.items() if key != "type"},
+            )
+        if scenario_type == "ExplorationDrill":
+            return TrainingScenario(
+                kind="exploration_drill",
+                params={key: value for key, value in payload.items() if key != "type"},
+            )
+        raise ValueError(f"Unsupported adaptive-plan scenario type: {scenario_type!r}")
 
     @staticmethod
     def combat_drill(
@@ -97,7 +118,10 @@ class TrainingScenario:
             return json.dumps(obj)
         if self.kind == "exploration_drill":
             obj: dict = {"type": "ExplorationDrill"}
-            for key in ("countryside_count", "hand_override", "extra_cards"):
+            for key in (
+                "countryside_count", "core_tile_count", "starting_move_points",
+                "hand_override", "extra_cards",
+            ):
                 value = self.params.get(key)
                 if value is not None:
                     obj[key] = value
@@ -133,6 +157,53 @@ class CurriculumSchedule:
     """Ordered list of phases. Same network throughout."""
 
     phases: list[CurriculumPhase]
+    hero: str | None = None
+    source: dict[str, Any] = field(default_factory=dict)
+
+
+def load_adaptive_curriculum_plan(path: str | Path) -> CurriculumSchedule:
+    """Load an offline evaluation-derived plan into the standard trainer format."""
+    source_path = Path(path).resolve()
+    plan_bytes = source_path.read_bytes()
+    payload = json.loads(plan_bytes)
+    if payload.get("schema_version") != 1:
+        raise ValueError("Unsupported adaptive curriculum schema")
+    if payload.get("plan_type") != "adaptive_curriculum":
+        raise ValueError("Curriculum plan must have plan_type='adaptive_curriculum'")
+    raw_phases = payload.get("phases")
+    if not isinstance(raw_phases, list) or not raw_phases:
+        raise ValueError("Adaptive curriculum must contain at least one phase")
+
+    phases: list[CurriculumPhase] = []
+    heroes: set[str] = set()
+    for raw_phase in raw_phases:
+        episodes = int(raw_phase["episodes"])
+        max_steps = int(raw_phase["max_steps"])
+        if episodes < 1 or max_steps < 1:
+            raise ValueError("Adaptive phase episodes and max_steps must be positive")
+        heroes.add(str(raw_phase["hero"]))
+        phases.append(CurriculumPhase(
+            name=str(raw_phase["name"]),
+            scenario=TrainingScenario.from_rust_dict(raw_phase.get("scenario")),
+            reward_config=RewardConfig(**raw_phase.get("reward_config", {})),
+            episodes=episodes,
+            max_steps=max_steps,
+            early_term_fame_step=int(raw_phase.get("early_term_fame_step", 0)),
+        ))
+    if len(heroes) != 1:
+        raise ValueError("One adaptive curriculum plan cannot mix heroes")
+    return CurriculumSchedule(
+        phases=phases,
+        hero=next(iter(heroes)),
+        source={
+            "path": str(source_path),
+            "sha256": hashlib.sha256(plan_bytes).hexdigest(),
+            "suite_id": payload.get("source_suite_id"),
+            "suite_hash": payload.get("source_suite_hash"),
+            "target_success_band": payload.get("target_success_band"),
+            "requirements": payload.get("requirements", {}),
+        },
+    )
 
 
 # =============================================================================

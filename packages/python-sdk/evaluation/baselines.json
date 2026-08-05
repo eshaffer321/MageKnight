@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "suite_id": "mk-solo-skill-v1",
+  "suite_hash": "7dc9b153870c3d5cf65044a41216653bf966b95f3ab8621e95b40908fee9e629",
+  "action_selection": "greedy_argmax",
+  "combat_oracle": false,
+  "commerce_oracle": false,
+  "baselines": {
+    "random": {
+      "policy_type": "uniform_random",
+      "result": "results/mk-solo-skill-v1/random-20260805T021403Z"
+    },
+    "frozen_v13": {
+      "policy_type": "checkpoint_greedy",
+      "checkpoint": "training/runs/v13-full-game-no-oracles/checkpoints/policy_ep_180862.pt",
+      "checkpoint_sha256": "7942a477ee971f2c4b47c02128f00081e53935f3d2dcb55fe186fe171a519573",
+      "result": "results/mk-solo-skill-v1/v13-20260805T021417Z"
+    },
+    "current_champion": {
+      "policy_id": "terminal-fame-control",
+      "policy_type": "checkpoint_greedy",
+      "checkpoint": "training/runs/terminal-fame-control-50393-seed1/checkpoints/policy_final.pt",
+      "checkpoint_sha256": "8636bf8fbbc8777dba9d1e9551254e5bcf60908167eef277b60279333734bb40",
+      "result": "results/mk-solo-skill-v1/terminal-fame-control-20260805T021514Z",
+      "promoted_at": "2026-08-04"
+    }
+  }
+}

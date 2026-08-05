@@ -1178,6 +1178,19 @@ impl PyVecEnv {
         dict.set_item("achievement_categories", vec_i32_to_numpy(py, &np, &ach_flat, &[n, 6])?)?;
         dict.set_item("applied_actions", vec_i32_to_numpy(py, &np, &result.applied_actions, &[n])?)?;
 
+        // Evaluation terminal/resource snapshot signals, captured before auto-reset.
+        dict.set_item("player_levels", vec_i32_to_numpy(py, &np, &result.player_levels, &[n])?)?;
+        dict.set_item("reputations", vec_i32_to_numpy(py, &np, &result.reputations, &[n])?)?;
+        dict.set_item("rounds", vec_i32_to_numpy(py, &np, &result.rounds, &[n])?)?;
+        dict.set_item("hand_sizes", vec_i32_to_numpy(py, &np, &result.hand_sizes, &[n])?)?;
+        dict.set_item("deck_sizes", vec_i32_to_numpy(py, &np, &result.deck_sizes, &[n])?)?;
+        dict.set_item("discard_sizes", vec_i32_to_numpy(py, &np, &result.discard_sizes, &[n])?)?;
+        let crystals_flat: Vec<i32> = result.crystal_counts.iter().flat_map(|counts| counts.iter().copied()).collect();
+        dict.set_item("crystal_counts", vec_i32_to_numpy(py, &np, &crystals_flat, &[n, 4])?)?;
+        dict.set_item("ready_unit_counts", vec_i32_to_numpy(py, &np, &result.ready_unit_counts, &[n])?)?;
+        dict.set_item("wounded_unit_counts", vec_i32_to_numpy(py, &np, &result.wounded_unit_counts, &[n])?)?;
+        dict.set_item("skill_counts", vec_i32_to_numpy(py, &np, &result.skill_counts, &[n])?)?;
+
         // HRL goal detection signals
         let pos_flat: Vec<i32> = result.player_positions.iter().flat_map(|p| p.iter().copied()).collect();
         dict.set_item("player_positions", vec_i32_to_numpy(py, &np, &pos_flat, &[n, 2])?)?;

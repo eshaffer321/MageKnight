@@ -9,6 +9,7 @@ Python SDK for Mage Knight RL training and game simulation, powered by a native 
 - Rust-side feature encoding for high-throughput training.
 - Random-policy game runner for smoke testing and seed sweeps.
 - Organized training artifact layout with auto-naming and smart resume.
+- Frozen held-out skill evaluation, checkpoint leaderboard, and adaptive curricula.
 
 ## Install
 
@@ -150,6 +151,25 @@ pip install -e ".[viewer]"
 mage-knight-viewer
 # Open http://127.0.0.1:8765
 ```
+
+## Skill evaluation and adaptive curriculum
+
+The versioned `mk-solo-skill-v1` suite evaluates checkpoints on held-out full
+games, hero transfer, combat mechanics, and exploration mechanics. It records
+official game score and terminal efficiency/resources in addition to fame, builds
+an offline paired-case leaderboard against random/v13/champion anchors, and can
+produce a 40-70%-target adaptive curriculum plan for the normal PPO loop.
+
+```bash
+mage-knight-evaluate verify-suite
+mage-knight-evaluate run --checkpoint training/runs/example/checkpoints/policy_final.pt --name example
+mage-knight-evaluate adaptive-plan evaluation/results/mk-solo-skill-v1/example \
+  --episodes 50000 --output evaluation/adaptive/next.json
+mage-knight-train-rl --ppo --curriculum-plan evaluation/adaptive/next.json
+```
+
+See [evaluation/README.md](evaluation/README.md) for the frozen contract,
+promotion gate, baseline registry, and canonical initial results.
 
 ## Tests
 
