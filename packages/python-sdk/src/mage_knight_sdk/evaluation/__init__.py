@@ -12,4 +12,3 @@ __all__ = [
     "load_builtin_suite",
     "summarize_cases",
 ]
-

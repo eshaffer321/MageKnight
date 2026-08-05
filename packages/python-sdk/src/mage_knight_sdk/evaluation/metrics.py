@@ -146,4 +146,3 @@ def compare_case_sets(
         "missing_from_candidate": sorted(baseline.keys() - candidate.keys()),
         "missing_from_baseline": sorted(candidate.keys() - baseline.keys()),
     }
-
