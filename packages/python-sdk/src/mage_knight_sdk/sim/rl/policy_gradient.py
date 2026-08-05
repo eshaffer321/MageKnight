@@ -115,6 +115,7 @@ class Transition:
     log_prob: float
     value: float
     reward: float
+    bootstrap_value: float | None = None
 
 
 @dataclass(frozen=True)
@@ -154,6 +155,7 @@ class TensorizedTransition:
     log_prob: float
     value: float
     reward: float
+    bootstrap_value: float | None = None
 
 
 def tensorize_transition(t: Transition) -> TensorizedTransition:
@@ -192,6 +194,7 @@ def tensorize_transition(t: Transition) -> TensorizedTransition:
         log_prob=t.log_prob,
         value=t.value,
         reward=t.reward,
+        bootstrap_value=t.bootstrap_value,
     )
 
 
@@ -239,6 +242,7 @@ def detensorize_transition(tt: TensorizedTransition) -> Transition:
         log_prob=tt.log_prob,
         value=tt.value,
         reward=tt.reward,
+        bootstrap_value=tt.bootstrap_value,
     )
 
 
@@ -952,7 +956,7 @@ class _EmbeddingActionScoringNetwork(nn.Module):
         """
         n = int(batch_dict["action_counts"].shape[0])
         action_counts = batch_dict["action_counts"]  # (N,)
-        max_m = int(action_counts.max())
+        max_m = int(batch_dict.get("max_actions", action_counts.max()))
 
         # ── State encoding with attention pools ──────────────────────
         scalars_t = torch.tensor(batch_dict["state_scalars"], dtype=torch.float32, device=device)
@@ -1231,6 +1235,63 @@ class ReinforcePolicy:
             selected_log_probs.detach().cpu().numpy().astype(np.float32),
             values.detach().cpu().numpy().astype(np.float32),
         )
+
+    def evaluate_search_batch(
+        self, batch_dict: dict[str, Any],
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Return policy priors and values without recording PPO transitions.
+
+        This is the standalone MCTS inference boundary. It performs exactly one
+        batched network forward pass, restores the network training mode afterward,
+        and safely handles an all-terminal batch whose action counts are all zero.
+        """
+
+        action_counts = np.asarray(batch_dict["action_counts"], dtype=np.int64)
+        if action_counts.ndim != 1 or action_counts.size == 0:
+            raise ValueError("search batch must contain at least one action count")
+
+        was_training = self._network.training
+        self._network.eval()
+        try:
+            with torch.inference_mode():
+                logits, values = self._network.forward_batch(batch_dict, self._device)
+                logits = logits.clamp(min=-50.0, max=50.0)
+                priors = torch.zeros_like(logits)
+                for row, raw_count in enumerate(action_counts):
+                    action_count = int(raw_count)
+                    if action_count > 0:
+                        priors[row, :action_count] = torch.softmax(
+                            logits[row, :action_count], dim=0,
+                        )
+        finally:
+            self._network.train(was_training)
+
+        return (
+            priors.cpu().numpy().astype(np.float32),
+            values.cpu().numpy().astype(np.float32),
+        )
+
+    def evaluate_values_batch(self, batch_dict: dict[str, Any]) -> np.ndarray:
+        """Evaluate state values without sampling actions or recording PPO data."""
+        was_training = self._network.training
+        self._network.eval()
+        try:
+            with torch.inference_mode():
+                _, values = self._network.forward_batch(batch_dict, self._device)
+        finally:
+            self._network.train(was_training)
+        return values.cpu().numpy().astype(np.float32)
+
+    def evaluate_encoded_value(self, encoded_step: EncodedStep) -> float:
+        """Evaluate one post-step state for time-limit bootstrapping."""
+        was_training = self._network.training
+        self._network.eval()
+        try:
+            with torch.inference_mode():
+                _, value = self._network(encoded_step, self._device)
+        finally:
+            self._network.train(was_training)
+        return float(value.detach().cpu().item())
 
     def record_step_reward(self, reward: float) -> None:
         if self._next_reward_index >= len(self._episode_rewards):
@@ -1582,7 +1643,12 @@ class ReinforcePolicy:
         for pg in self._optimizer.param_groups:
             pg["lr"] = new_lr
 
-    def save_checkpoint(self, path: str | Path, metadata: dict[str, Any] | None = None) -> None:
+    def save_checkpoint(
+        self,
+        path: str | Path,
+        metadata: dict[str, Any] | None = None,
+        reward_normalizer_state: dict[str, float | int] | None = None,
+    ) -> None:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         payload: dict[str, Any] = {
@@ -1593,6 +1659,8 @@ class ReinforcePolicy:
         }
         if metadata is not None:
             payload["metadata"] = metadata
+        if reward_normalizer_state is not None:
+            payload["reward_normalizer"] = reward_normalizer_state
         torch.save(payload, target)
 
     @classmethod
@@ -1618,6 +1686,9 @@ class ReinforcePolicy:
         metadata = payload.get("metadata")
         if not isinstance(metadata, dict):
             metadata = {}
+        reward_normalizer = payload.get("reward_normalizer")
+        if isinstance(reward_normalizer, dict):
+            metadata["reward_normalizer"] = reward_normalizer
         return policy, metadata
 
     def _reset_episode_buffers(self) -> None:
@@ -1674,7 +1745,15 @@ def compute_gae(
         gae = 0.0
         for t in reversed(range(n)):
             if t == n - 1:
-                next_value = 0.0 if ep_terminated else values[t]
+                if ep_terminated:
+                    next_value = 0.0
+                else:
+                    bootstrap_value = episode[-1].bootstrap_value
+                    if bootstrap_value is None:
+                        raise ValueError(
+                            "truncated episode is missing its post-step bootstrap value"
+                        )
+                    next_value = bootstrap_value
             else:
                 next_value = values[t + 1]
             delta = rewards[t] + gamma * next_value - values[t]

@@ -6,6 +6,8 @@ import unittest
 
 import numpy as np
 
+from mage_knight_sdk.sim.rl.features import STATE_SCALAR_DIM
+
 
 class TestPyVecEnv(unittest.TestCase):
     """Tests for the PyVecEnv Rust-backed vectorized environment."""
@@ -28,8 +30,8 @@ class TestPyVecEnv(unittest.TestCase):
         env = self.PyVecEnv(num_envs=n, base_seed=1)
         batch = env.encode_batch()
 
-        # State scalars: (N, STATE_SCALAR_DIM=91)
-        self.assertEqual(batch["state_scalars"].shape, (n, 91))
+        # State scalars use the shared Python/Rust encoding contract.
+        self.assertEqual(batch["state_scalars"].shape, (n, STATE_SCALAR_DIM))
         self.assertEqual(batch["state_scalars"].dtype, np.float32)
 
         # State IDs: (N, 3)
@@ -118,9 +120,16 @@ class TestSearchStateApi(unittest.TestCase):
     """Hypothetical states must remain isolated from the live PyVecEnv batch."""
 
     def setUp(self) -> None:
-        from mk_python import PyVecEnv, SEARCH_COMBAT_MODE_CHEAP
+        from mk_python import (
+            PyVecEnv,
+            SEARCH_COMBAT_CHEAP_DEFAULT_NODE_LIMIT,
+            SEARCH_COMBAT_CHEAP_MAX_NODE_LIMIT,
+            SEARCH_COMBAT_MODE_CHEAP,
+        )
         self.env = PyVecEnv(num_envs=2, base_seed=42, max_steps=500)
         self.cheap_combat_mode = SEARCH_COMBAT_MODE_CHEAP
+        self.cheap_default_node_limit = SEARCH_COMBAT_CHEAP_DEFAULT_NODE_LIMIT
+        self.cheap_max_node_limit = SEARCH_COMBAT_CHEAP_MAX_NODE_LIMIT
 
     @staticmethod
     def _copy_batch(batch: dict) -> dict:
@@ -184,10 +193,33 @@ class TestSearchStateApi(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.env.step_search_batch([root], [0], "unknown")
         with self.assertRaises(ValueError):
+            self.env.step_search_batch([root], [0], f"{self.cheap_combat_mode}:0")
+        with self.assertRaises(ValueError):
+            self.env.step_search_batch(
+                [root],
+                [0],
+                f"{self.cheap_combat_mode}:{self.cheap_max_node_limit + 1}",
+            )
+        with self.assertRaises(ValueError):
             self.env.encode_search_batch([])
         self.env.drop_search_states([root])
         with self.assertRaises(ValueError):
             self.env.encode_search_batch([root])
+
+    def test_cheap_mode_exports_tunable_budget(self) -> None:
+        self.assertGreater(self.cheap_default_node_limit, 0)
+        self.assertLessEqual(
+            self.cheap_default_node_limit,
+            self.cheap_max_node_limit,
+        )
+        root = self.env.fork_roots([0])[0]
+        child = self.env.step_search_batch(
+            [root],
+            [0],
+            f"{self.cheap_combat_mode}:{self.cheap_default_node_limit}",
+        )[0]
+        self.assertEqual(self.env.search_state_count(), 2)
+        self.env.drop_search_states([root, child])
 
 
 class TestBatchedForward(unittest.TestCase):
@@ -276,6 +308,173 @@ class TestBatchedForward(unittest.TestCase):
 class TestVecEnvRunner(unittest.TestCase):
     """Tests for the VecEnv collection loop."""
 
+    def test_terminal_end_bonus_is_not_applied_to_hard_limit(self) -> None:
+        """A time-limit truncation must not be rewarded as a natural ending."""
+        from mk_python import PyVecEnv
+        from mage_knight_sdk.sim.rl.policy_gradient import (
+            PolicyGradientConfig,
+            ReinforcePolicy,
+        )
+        from mage_knight_sdk.sim.rl.rewards import RewardConfig
+        from mage_knight_sdk.sim.rl.vec_env_runner import collect_vecenv_rollout
+
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            hidden_size=32, embedding_dim=8, device="cpu",
+        ))
+        env = PyVecEnv(num_envs=2, base_seed=42, max_steps=1)
+        rewards = RewardConfig(
+            fame_delta_scale=0.0,
+            terminal_end_bonus=7.0,
+            terminal_fame_scale=5.0,
+            terminal_max_steps_penalty=0.0,
+        )
+
+        result = collect_vecenv_rollout(env, policy, rewards, total_steps=2)
+
+        self.assertEqual(result.total_episodes, 2)
+        self.assertTrue(all(meta.truncated for meta in result.episode_metas))
+        self.assertTrue(
+            all(meta.termination_cause == "hard_limit" for meta in result.episode_metas)
+        )
+        for episode in result.episodes:
+            self.assertAlmostEqual(sum(t.reward for t in episode), 0.0)
+
+    def test_terminal_fame_reward_is_applied_to_natural_end(self) -> None:
+        """Natural endings receive final fame through the dedicated scale."""
+        from mk_python import PyVecEnv
+        from mage_knight_sdk.sim.rl.curriculum import TrainingScenario
+        from mage_knight_sdk.sim.rl.policy_gradient import (
+            PolicyGradientConfig,
+            ReinforcePolicy,
+        )
+        from mage_knight_sdk.sim.rl.rewards import RewardConfig
+        from mage_knight_sdk.sim.rl.vec_env_runner import collect_vecenv_rollout
+
+        scenario = TrainingScenario.combat_drill(
+            enemy_tokens=["diggers_1"],
+            hand_override=["rage", "determination", "stamina"],
+        ).to_rust_json()
+        env = PyVecEnv(
+            num_envs=2,
+            base_seed=42,
+            max_steps=20,
+            scenario=scenario,
+            combat_oracle=True,
+        )
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            hidden_size=32, embedding_dim=8, device="cpu",
+        ))
+        rewards = RewardConfig(
+            fame_delta_scale=0.0,
+            terminal_fame_scale=0.5,
+            terminal_max_steps_penalty=-3.0,
+        )
+
+        result = collect_vecenv_rollout(env, policy, rewards, total_steps=2)
+
+        self.assertEqual(result.total_episodes, 2)
+        for episode, meta in zip(result.episodes, result.episode_metas):
+            self.assertFalse(meta.truncated)
+            self.assertEqual(meta.termination_cause, "natural_end")
+            expected = 0.5 * meta.total_fame_delta
+            self.assertAlmostEqual(sum(t.reward for t in episode), expected)
+            self.assertAlmostEqual(meta.reward_breakdown.terminal_fame, expected)
+            self.assertAlmostEqual(meta.reward_breakdown.terminal_bonus, 0.0)
+
+    def test_zero_fame_cutoff_has_distinct_termination_cause(self) -> None:
+        from mk_python import PyVecEnv
+        from mage_knight_sdk.sim.rl.policy_gradient import (
+            PolicyGradientConfig,
+            ReinforcePolicy,
+        )
+        from mage_knight_sdk.sim.rl.rewards import RewardConfig
+        from mage_knight_sdk.sim.rl.vec_env_runner import collect_vecenv_rollout
+
+        env = PyVecEnv(
+            num_envs=2,
+            base_seed=42,
+            max_steps=10,
+            early_term_fame_step=1,
+        )
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            hidden_size=32, embedding_dim=8, device="cpu",
+        ))
+
+        result = collect_vecenv_rollout(
+            env,
+            policy,
+            RewardConfig(fame_delta_scale=0.0),
+            total_steps=2,
+        )
+
+        self.assertEqual(result.total_episodes, 2)
+        self.assertTrue(
+            all(
+                meta.termination_cause == "early_zero_fame"
+                for meta in result.episode_metas
+            )
+        )
+
+    def test_terminal_max_steps_penalty_is_applied_to_hard_limit(self) -> None:
+        """A hard environment time limit receives its configured penalty."""
+        from mk_python import PyVecEnv
+        from mage_knight_sdk.sim.rl.policy_gradient import (
+            PolicyGradientConfig,
+            ReinforcePolicy,
+        )
+        from mage_knight_sdk.sim.rl.rewards import RewardConfig
+        from mage_knight_sdk.sim.rl.vec_env_runner import collect_vecenv_rollout
+
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            hidden_size=32, embedding_dim=8, device="cpu",
+        ))
+        env = PyVecEnv(num_envs=2, base_seed=42, max_steps=1)
+        rewards = RewardConfig(
+            fame_delta_scale=0.0,
+            terminal_end_bonus=0.0,
+            terminal_max_steps_penalty=-3.0,
+        )
+
+        result = collect_vecenv_rollout(env, policy, rewards, total_steps=2)
+
+        self.assertEqual(result.total_episodes, 2)
+        for episode in result.episodes:
+            self.assertAlmostEqual(sum(t.reward for t in episode), -3.0)
+
+    def test_hard_limit_captures_post_step_bootstrap_value(self) -> None:
+        """The runner evaluates the pre-reset resulting state at truncation."""
+        from mk_python import PyVecEnv
+        from mage_knight_sdk.sim.rl.policy_gradient import (
+            PolicyGradientConfig,
+            ReinforcePolicy,
+        )
+        from mage_knight_sdk.sim.rl.rewards import RewardConfig
+        from mage_knight_sdk.sim.rl.vec_env_runner import collect_vecenv_rollout
+
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            hidden_size=32, embedding_dim=8, device="cpu",
+        ))
+        evaluated_batches: list[dict] = []
+
+        def fixed_post_step_values(batch: dict) -> np.ndarray:
+            evaluated_batches.append(batch)
+            return np.full(len(batch["action_counts"]), 7.0, dtype=np.float32)
+
+        policy.evaluate_values_batch = fixed_post_step_values  # type: ignore[method-assign]
+        env = PyVecEnv(num_envs=2, base_seed=42, max_steps=1)
+
+        result = collect_vecenv_rollout(
+            env,
+            policy,
+            RewardConfig(fame_delta_scale=0.0, terminal_max_steps_penalty=0.0),
+            total_steps=2,
+        )
+
+        self.assertEqual(len(evaluated_batches), 1)
+        self.assertEqual(len(evaluated_batches[0]["action_counts"]), 2)
+        for episode in result.episodes:
+            self.assertAlmostEqual(episode[-1].bootstrap_value or 0.0, 7.0)
+
     def test_collect_rollout(self) -> None:
         """Collect a small rollout and verify structure."""
         from mk_python import PyVecEnv
@@ -304,7 +503,7 @@ class TestVecEnvRunner(unittest.TestCase):
         self.assertGreater(len(ep), 0)
 
         vt = ep[0]
-        self.assertEqual(vt.state_scalars.shape, (91,))
+        self.assertEqual(vt.state_scalars.shape, (STATE_SCALAR_DIM,))
         self.assertEqual(vt.state_ids.shape, (3,))
         self.assertGreater(vt.action_ids.shape[0], 0)
 
@@ -332,7 +531,7 @@ class TestVecEnvRunner(unittest.TestCase):
         vt = result.episodes[0][0]
         t = vec_transition_to_transition(vt)
 
-        self.assertEqual(len(t.encoded_step.state.scalars), 91)
+        self.assertEqual(len(t.encoded_step.state.scalars), STATE_SCALAR_DIM)
         self.assertGreater(len(t.encoded_step.actions), 0)
         self.assertIsInstance(t.reward, float)
 

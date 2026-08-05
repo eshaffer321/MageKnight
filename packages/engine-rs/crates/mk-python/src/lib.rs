@@ -1028,7 +1028,8 @@ impl PyVecEnv {
     }
 
     /// Step hypothetical parents and return new child handles. Parents remain unchanged.
-    /// `combat_mode` is "full_oracle" or "cheap"; cheap currently leaves combat unresolved.
+    /// `combat_mode` is "full_oracle", "cheap", or "cheap:<node_limit>". Cheap mode
+    /// resolves combat greedily; its node limit must be within the exported hard cap.
     fn step_search_batch(
         &mut self,
         handles: Vec<u64>,
@@ -1131,7 +1132,8 @@ impl PyVecEnv {
     /// Args:
     ///     actions: numpy array or list of i32 action indices, one per env.
     ///
-    /// Returns a dict with fame_deltas, dones, fames, panicked, truncated, scenario_end_triggered.
+    /// Returns outcomes, distinct termination causes, and pre-reset bootstrap
+    /// observations for artificial truncations, plus per-step reward signals.
     fn step_batch(&mut self, py: Python<'_>, actions: Vec<i32>) -> PyResult<Py<PyAny>> {
         let result = self.inner.step_batch(&actions);
         let np = py.import("numpy")?;
@@ -1143,6 +1145,21 @@ impl PyVecEnv {
         dict.set_item("fames", vec_i32_to_numpy(py, &np, &result.fames, &[n])?)?;
         dict.set_item("panicked", vec_bool_to_numpy(py, &np, &result.panicked)?)?;
         dict.set_item("truncated", vec_bool_to_numpy(py, &np, &result.truncated)?)?;
+        dict.set_item("termination_causes", vec_i32_to_numpy(py, &np, &result.termination_causes, &[n])?)?;
+        dict.set_item(
+            "bootstrap_indices",
+            vec_i32_to_numpy(
+                py,
+                &np,
+                &result.bootstrap_indices,
+                &[result.bootstrap_indices.len()],
+            )?,
+        )?;
+        if let Some(batch) = &result.bootstrap_batch {
+            dict.set_item("bootstrap_batch", search_batch_to_python(py, batch)?)?;
+        } else {
+            dict.set_item("bootstrap_batch", py.None())?;
+        }
         dict.set_item("scenario_end_triggered", vec_bool_to_numpy(py, &np, &result.scenario_end_triggered)?)?;
         dict.set_item("new_hexes", vec_i32_to_numpy(py, &np, &result.new_hexes, &[n])?)?;
         dict.set_item("wound_deltas", vec_i32_to_numpy(py, &np, &result.wound_deltas, &[n])?)?;
@@ -1208,6 +1225,19 @@ fn mk_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", "0.1.0")?;
     m.add("SEARCH_COMBAT_MODE_FULL_ORACLE", mk_env::SEARCH_COMBAT_MODE_FULL_ORACLE)?;
     m.add("SEARCH_COMBAT_MODE_CHEAP", mk_env::SEARCH_COMBAT_MODE_CHEAP)?;
+    m.add("TERMINATION_CAUSE_ONGOING", mk_env::TERMINATION_CAUSE_ONGOING)?;
+    m.add("TERMINATION_CAUSE_NATURAL_END", mk_env::TERMINATION_CAUSE_NATURAL_END)?;
+    m.add("TERMINATION_CAUSE_EARLY_ZERO_FAME", mk_env::TERMINATION_CAUSE_EARLY_ZERO_FAME)?;
+    m.add("TERMINATION_CAUSE_HARD_LIMIT", mk_env::TERMINATION_CAUSE_HARD_LIMIT)?;
+    m.add("TERMINATION_CAUSE_ENGINE_FAILURE", mk_env::TERMINATION_CAUSE_ENGINE_FAILURE)?;
+    m.add(
+        "SEARCH_COMBAT_CHEAP_DEFAULT_NODE_LIMIT",
+        mk_env::SEARCH_COMBAT_CHEAP_DEFAULT_NODE_LIMIT,
+    )?;
+    m.add(
+        "SEARCH_COMBAT_CHEAP_MAX_NODE_LIMIT",
+        mk_env::SEARCH_COMBAT_CHEAP_MAX_NODE_LIMIT,
+    )?;
     m.add_class::<GameEngine>()?;
     m.add_class::<PyEncodedStep>()?;
     m.add_class::<PyVecEnv>()?;

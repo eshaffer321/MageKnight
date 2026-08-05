@@ -1,6 +1,7 @@
 """Reinforcement-learning utilities for Mage Knight simulation training."""
 
 from .features import ActionFeatures, EncodedStep, StateFeatures
+from .mcts import BatchedMCTS, MCTSConfig, MCTSNode, MCTSSearchReport, MCTSTree
 from .native_rl_runner import (
     EpisodeTrainingStats,
     NativeRunResult,
@@ -33,11 +34,16 @@ from .vocabularies import (
 __all__ = [
     "ActionFeatures",
     "ACTION_TYPE_VOCAB",
+    "BatchedMCTS",
     "CARD_VOCAB",
     "ENEMY_VOCAB",
     "EncodedStep",
     "EpisodeTrainingStats",
     "MODE_VOCAB",
+    "MCTSConfig",
+    "MCTSNode",
+    "MCTSSearchReport",
+    "MCTSTree",
     "NativeRunResult",
     "OptimizationStats",
     "PolicyGradientConfig",

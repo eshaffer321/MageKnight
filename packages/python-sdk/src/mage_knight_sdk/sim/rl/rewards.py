@@ -14,6 +14,7 @@ class RewardConfig:
     fame_delta_scale: float = 1.0
     step_penalty: float = 0.0
     terminal_end_bonus: float = 0.0
+    terminal_fame_scale: float = 0.0
     terminal_max_steps_penalty: float = -0.5
     terminal_failure_penalty: float = -1.0
     scenario_trigger_bonus: float = 0.0
