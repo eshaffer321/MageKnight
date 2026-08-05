@@ -45,6 +45,11 @@ mage-knight-evaluate adaptive-plan evaluation/results/mk-solo-skill-v1/CHAMPION 
   --episodes 50000 --block-episodes 4096 \
   --output evaluation/adaptive/next-50k.json
 
+# Restrict a remediation run to combat mechanics only.
+mage-knight-evaluate adaptive-plan evaluation/results/mk-solo-skill-v1/CHAMPION \
+  --episodes 50000 --category combat_mechanics \
+  --output evaluation/adaptive/combat-only-50k.json
+
 # The normal PPO curriculum loop consumes that plan without a separate trainer.
 mage-knight-train-rl --ppo --curriculum-plan evaluation/adaptive/next-50k.json \
   --batch-episodes 64

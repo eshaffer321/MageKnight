@@ -77,6 +77,7 @@ class AdaptiveCurriculum:
         total_episodes: int,
         seed: int,
         block_episodes: int = 4096,
+        eligible_categories: set[str] | None = None,
     ) -> dict[str, Any]:
         """Allocate and interleave the next run across weak mechanics buckets."""
         if total_episodes < 1:
@@ -87,9 +88,20 @@ class AdaptiveCurriculum:
             bucket.bucket_id: bucket
             for bucket in suite.buckets
             if bucket.adaptive_eligible
+            and (
+                eligible_categories is None
+                or bucket.category in eligible_categories
+            )
         }
         if not eligible:
-            raise ValueError("Suite has no adaptive-eligible buckets")
+            category_suffix = (
+                ""
+                if eligible_categories is None
+                else f" in categories {sorted(eligible_categories)!r}"
+            )
+            raise ValueError(
+                f"Suite has no adaptive-eligible buckets{category_suffix}",
+            )
         measured = self.success_rates(cases)
         rates = {bucket_id: measured.get(bucket_id, 0.50) for bucket_id in eligible}
         weights = self.weights_from_success_rates(rates)
@@ -150,6 +162,11 @@ class AdaptiveCurriculum:
             "source_suite_id": suite.suite_id,
             "source_suite_hash": suite.content_hash,
             "target_success_band": [self.target_low, self.target_high],
+            "eligible_categories": (
+                sorted(eligible_categories)
+                if eligible_categories is not None
+                else None
+            ),
             "requirements": {
                 "combat_oracle": False,
                 "commerce_oracle": False,

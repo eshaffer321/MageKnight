@@ -1669,20 +1669,39 @@ class ReinforcePolicy:
         cls,
         path: str | Path,
         device_override: str | None = None,
+        *,
+        restore_optimizer: bool = True,
+        restore_value_normalizer: bool = True,
+        config_overrides: dict[str, Any] | None = None,
     ) -> tuple[ReinforcePolicy, dict[str, Any]]:
-        """Load policy and optimizer from checkpoint. Returns (policy, metadata dict)."""
+        """Load a checkpoint, optionally restoring training state.
+
+        Disabling optimizer and value-normalizer restoration provides a
+        weights-only warm start for a new task whose reward units differ from
+        the source run. Network-shape overrides still need to match the saved
+        weights.
+        """
         payload = torch.load(Path(path), map_location="cpu", weights_only=True)
         config_dict = payload.get("config")
         if not isinstance(config_dict, dict):
             raise ValueError("Checkpoint missing or invalid 'config'")
-        config = PolicyGradientConfig(**{k: v for k, v in config_dict.items() if k in PolicyGradientConfig.__dataclass_fields__})
+        known_fields = PolicyGradientConfig.__dataclass_fields__
+        resolved_config = {
+            key: value for key, value in config_dict.items() if key in known_fields
+        }
+        if config_overrides is not None:
+            unknown = sorted(set(config_overrides) - set(known_fields))
+            if unknown:
+                raise ValueError(f"Unknown policy config overrides: {unknown}")
+            resolved_config.update(config_overrides)
+        config = PolicyGradientConfig(**resolved_config)
         device = device_override if device_override is not None else config.device
         policy = cls(config=PolicyGradientConfig(**{**asdict(config), "device": device}))
         # strict=False allows loading pre-Actor-Critic checkpoints that lack value_head weights
         policy._network.load_state_dict(payload["model_state_dict"], strict=False)
-        if "optimizer_state_dict" in payload:
+        if restore_optimizer and "optimizer_state_dict" in payload:
             policy._optimizer.load_state_dict(payload["optimizer_state_dict"])
-        if "value_normalizer" in payload:
+        if restore_value_normalizer and "value_normalizer" in payload:
             policy._value_normalizer.load_state_dict(payload["value_normalizer"])
         metadata = payload.get("metadata")
         if not isinstance(metadata, dict):

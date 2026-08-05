@@ -471,6 +471,45 @@ class CheckpointRoundTripTest(unittest.TestCase):
             self.assertEqual(loaded_policy.config.embedding_dim, 8)
             self.assertEqual(loaded_policy.config.d_model, 32)
 
+    def test_weights_only_warm_start_resets_training_state(self) -> None:
+        config = PolicyGradientConfig(
+            embedding_dim=8,
+            hidden_size=64,
+            device="cpu",
+            d_model=32,
+            learning_rate=0.01,
+        )
+        policy = ReinforcePolicy(config)
+        policy._value_normalizer.load_state_dict({
+            "mean": 4.0,
+            "var": 9.0,
+            "count": 123.0,
+        })
+        expected_weights = policy.get_weights()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "source.pt"
+            policy.save_checkpoint(
+                path,
+                metadata={"episode": 77},
+                reward_normalizer_state={"mean": 8.0, "var": 2.0, "count": 99},
+            )
+            loaded_policy, meta = ReinforcePolicy.load_checkpoint(
+                path,
+                device_override="cpu",
+                restore_optimizer=False,
+                restore_value_normalizer=False,
+                config_overrides={"learning_rate": 0.002, "gamma": 0.999},
+            )
+
+        self.assertEqual(meta["episode"], 77)
+        self.assertEqual(loaded_policy.config.learning_rate, 0.002)
+        self.assertEqual(loaded_policy.config.gamma, 0.999)
+        self.assertEqual(loaded_policy._optimizer.param_groups[0]["lr"], 0.002)
+        self.assertEqual(loaded_policy._value_normalizer.state_dict()["count"], 0.0)
+        for name, expected in expected_weights.items():
+            self.assertTrue(torch.equal(loaded_policy.get_weights()[name], expected))
+
     def test_num_hidden_layers_checkpoint_round_trip(self) -> None:
         config = PolicyGradientConfig(
             embedding_dim=8, hidden_size=64, device="cpu",

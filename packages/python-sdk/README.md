@@ -72,6 +72,10 @@ mage-knight-train-rl --ppo --episodes 1000 --batch-episodes 16
 # Resume from checkpoint
 mage-knight-train-rl --ppo --episodes 500 --resume training/runs/baseline/checkpoints/policy_final.pt
 
+# Start a new task from checkpoint weights with fresh optimizer and normalizers
+mage-knight-train-rl --ppo --warm-start training/runs/baseline/checkpoints/policy_final.pt \
+  --learning-rate 0.0002 --episodes 500
+
 # Named run via session manager (detaches, survives shell exit)
 ./scripts/train start baseline -- --episodes 10000
 ./scripts/train stop

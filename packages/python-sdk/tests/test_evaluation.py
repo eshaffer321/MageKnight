@@ -262,6 +262,32 @@ class TestAdaptiveCurriculum(unittest.TestCase):
             "commerce_oracle": False,
         })
 
+    def test_plan_can_be_restricted_to_combat_category(self) -> None:
+        from mage_knight_sdk.evaluation.adaptive import AdaptiveCurriculum
+        from mage_knight_sdk.evaluation.suite import load_builtin_suite
+
+        suite = load_builtin_suite("mk-solo-skill-v1")
+        cases = [
+            {"bucket_id": case.bucket_id, "success": False}
+            for case in suite.expand_cases()
+            if case.adaptive_eligible
+        ]
+
+        plan = AdaptiveCurriculum().build_plan(
+            suite,
+            cases,
+            total_episodes=600,
+            seed=11,
+            eligible_categories={"combat_mechanics"},
+        )
+
+        self.assertEqual(plan["eligible_categories"], ["combat_mechanics"])
+        self.assertEqual(sum(plan["bucket_allocations"].values()), 600)
+        self.assertEqual(len(plan["bucket_allocations"]), 6)
+        self.assertTrue(
+            all(name.startswith("combat_") for name in plan["bucket_allocations"]),
+        )
+
     def test_weighted_sampling_is_deterministic_for_seed(self) -> None:
         from mage_knight_sdk.evaluation.adaptive import weighted_bucket_sequence
 

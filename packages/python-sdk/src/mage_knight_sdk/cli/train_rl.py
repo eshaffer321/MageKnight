@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 
@@ -213,7 +214,9 @@ def main() -> int:
     parser.add_argument("--checkpoint-dir", default=None, help="Run directory for checkpoints + logs (default: auto-generated under training/runs/)")
     parser.add_argument("--checkpoint-every", type=int, default=25, help="Save checkpoint every N episodes")
     parser.add_argument("--no-final-checkpoint", action="store_true", help="Do not save a final checkpoint at the end")
-    parser.add_argument("--resume", metavar="PATH", help="Resume from checkpoint (load policy + optimizer); run --episodes more from here")
+    checkpoint_source = parser.add_mutually_exclusive_group()
+    checkpoint_source.add_argument("--resume", metavar="PATH", help="Resume from checkpoint (load policy, optimizer, and normalizers); run --episodes more from here")
+    checkpoint_source.add_argument("--warm-start", metavar="PATH", help="Start a new run from checkpoint weights with fresh optimizer and normalizers")
 
     # PPO flags
     parser.add_argument("--ppo", action="store_true", help="Use PPO instead of REINFORCE")
@@ -273,6 +276,24 @@ def main() -> int:
         if isinstance(saved_reward_normalizer, dict):
             resume_reward_normalizer_state = saved_reward_normalizer
         print(f"Resumed from {args.resume} (episode {resume_episode_offset})")
+    elif args.warm_start:
+        policy, warm_start_meta = ReinforcePolicy.load_checkpoint(
+            args.warm_start,
+            device_override=args.device,
+            restore_optimizer=False,
+            restore_value_normalizer=False,
+            config_overrides={
+                "gamma": args.gamma,
+                "learning_rate": args.learning_rate,
+                "entropy_coefficient": args.entropy_coef,
+                "critic_coefficient": args.critic_coef,
+            },
+        )
+        source_episode = warm_start_meta.get("episode", "unknown")
+        print(
+            f"Warm-started weights from {args.warm_start} "
+            f"(source episode {source_episode}; fresh optimizer and normalizers)",
+        )
     else:
         policy_config = PolicyGradientConfig(
             gamma=args.gamma,
@@ -1380,6 +1401,21 @@ def _write_run_manifest(
         },
         "cli": vars(args),
     }
+    warm_start = getattr(args, "warm_start", None)
+    if warm_start:
+        source = Path(warm_start).resolve()
+        digest = hashlib.sha256()
+        with source.open("rb") as checkpoint_file:
+            for chunk in iter(lambda: checkpoint_file.read(1024 * 1024), b""):
+                digest.update(chunk)
+        manifest["initialization"] = {
+            "mode": "weights_only_warm_start",
+            "checkpoint": str(source),
+            "checkpoint_sha256": digest.hexdigest(),
+            "optimizer": "fresh",
+            "reward_normalizer": "fresh",
+            "value_normalizer": "fresh",
+        }
     if curriculum_name:
         from mage_knight_sdk.sim.rl.curriculum import CURRICULA
         schedule = curriculum_schedule

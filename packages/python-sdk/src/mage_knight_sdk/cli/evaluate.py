@@ -72,6 +72,7 @@ def _adaptive(args: argparse.Namespace) -> int:
     plan = curriculum.build_plan(
         suite, cases, total_episodes=args.episodes, seed=args.seed,
         block_episodes=args.block_episodes,
+        eligible_categories=set(args.category) if args.category else None,
     )
     result_path = Path(args.result).resolve()
     summary_path = (
@@ -136,6 +137,11 @@ def main() -> int:
     adaptive.add_argument("--target-low", type=float, default=0.40)
     adaptive.add_argument("--target-high", type=float, default=0.70)
     adaptive.add_argument("--block-episodes", type=int, default=4096)
+    adaptive.add_argument(
+        "--category",
+        action="append",
+        help="Restrict training to adaptive buckets in this category (repeatable)",
+    )
     adaptive.add_argument("--output", default="evaluation/adaptive_curriculum.json")
     adaptive.set_defaults(func=_adaptive)
 
