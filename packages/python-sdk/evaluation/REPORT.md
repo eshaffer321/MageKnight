@@ -37,3 +37,26 @@ Observed full-suite runtime was 2.54 seconds for random and 25.4-29.5 seconds fo
 each checkpoint on CPU, or roughly 1,000-1,108 active neural-policy transitions per
 second. The suite is therefore cheap enough for offline milestone evaluation and
 promotion gating without affecting PPO collection throughput.
+
+## Combat-only adaptive pilot (2026-08-05)
+
+A 50,000-episode CPU pilot warm-started from the control champion's weights and
+trained on the six combat-mechanics buckets only. It used 64 environments,
+`gamma=0.999`, `lambda=0.995`, learning rate `0.0001921392`, fresh optimizer and
+normalizers, and no Oracle. All 50,000 accepted episodes ended naturally, phase
+budgets were exact, and no metric was non-finite. Training success increased from
+22.3% over the first 5,000 episodes to 81.0% over the final 5,000.
+
+The held-out suite confirmed that combat itself is learnable without Oracle
+shaping: aggregate combat success reached 81.25%, including 100% on easy, medium,
+and multi-enemy cases, 87.5% on powered and unit-assisted cases, and 12.5% on the
+fortified bucket. However, this came with catastrophic forgetting. Arythea core
+completion fell from the champion's 95.3% to 0%, core score fell from 15.36 to
+0.90, and exploration and hero-transfer success also fell to 0%. The checkpoint
+failed all three regression gates and must not be promoted.
+
+Conclusion: adaptive combat drills are an effective combat-learning signal, but
+combat-only fine-tuning is not a viable whole-game training strategy. A follow-up
+must interleave full-game rehearsal (or isolate combat parameters) and enforce the
+locked regression suite at milestones. The local final checkpoint SHA-256 is
+`5755ec2cdfea20d15dbf066396c8a3912edcc4966a1e32c101db9534a69f4342`.

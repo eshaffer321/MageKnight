@@ -1025,6 +1025,19 @@ def _train_hrl(
 # Curriculum training loop (VecEnv-based PPO)
 # ---------------------------------------------------------------------------
 
+_CURRICULUM_PHASE_SEED_STRIDE = 1_000_000
+_MAX_ENGINE_SEED = 2**32 - 1
+
+
+def _curriculum_phase_base_seed(base_seed: int, phase_index: int) -> int:
+    """Give each phase a disjoint seed namespace despite capped rollouts."""
+    if base_seed < 0 or phase_index < 0:
+        raise ValueError("curriculum seed and phase index must be non-negative")
+    phase_seed = base_seed + phase_index * _CURRICULUM_PHASE_SEED_STRIDE
+    if phase_seed > _MAX_ENGINE_SEED:
+        raise ValueError("curriculum phase seed exceeds the engine's u32 range")
+    return phase_seed
+
 
 def _limit_curriculum_batch(
     episodes: list[Any],
@@ -1095,7 +1108,7 @@ def _train_curriculum(
         num_envs = args.batch_episodes
         vec_env = PyVecEnv(
             num_envs=num_envs,
-            base_seed=args.seed + global_ep,
+            base_seed=_curriculum_phase_base_seed(args.seed, phase_idx),
             hero=hero,
             max_steps=phase.max_steps,
             scenario=scenario_json,

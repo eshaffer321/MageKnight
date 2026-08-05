@@ -10,6 +10,7 @@ from pathlib import Path
 from mage_knight_sdk.cli.train_rl import (
     _TBWriter,
     _append_metrics_log,
+    _curriculum_phase_base_seed,
     _limit_curriculum_batch,
     _write_run_manifest,
 )
@@ -95,6 +96,12 @@ class GaeBootstrapTest(unittest.TestCase):
 
 
 class CurriculumPhaseTerminationTest(unittest.TestCase):
+    def test_curriculum_phases_use_disjoint_seed_namespaces(self) -> None:
+        first = _curriculum_phase_base_seed(20_260_805, phase_index=0)
+        second = _curriculum_phase_base_seed(20_260_805, phase_index=1)
+
+        self.assertGreater(second - first, 50_000)
+
     def test_curriculum_batch_is_capped_to_remaining_phase_episodes(self) -> None:
         episodes = [[index] for index in range(10)]
         metas = [f"meta-{index}" for index in range(10)]
