@@ -1,0 +1,523 @@
+{
+  "block_episodes": 4096,
+  "bucket_allocations": {
+    "combat_easy_diggers": 4278,
+    "combat_fortified_guardsmen": 4278,
+    "combat_medium_prowlers": 4278,
+    "combat_multi_prowlers": 4278,
+    "combat_powered_wolf_riders": 4278,
+    "combat_unit_swordsmen": 4278,
+    "exploration_standard": 20054,
+    "exploration_tiny": 4278
+  },
+  "phases": [
+    {
+      "bucket_id": "combat_fortified_guardsmen",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 240,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_001_combat_fortified_guardsmen",
+      "reward_config": {
+        "cards_remaining_bonus": 0.3,
+        "fame_delta_scale": 5.0,
+        "wound_penalty": -2.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "crystals": {
+          "blue": 0,
+          "green": 0,
+          "red": 3,
+          "white": 0
+        },
+        "enemy_tokens": [
+          "guardsmen_1"
+        ],
+        "is_fortified": true,
+        "type": "CombatDrill"
+      }
+    },
+    {
+      "bucket_id": "exploration_standard",
+      "episodes": 4010,
+      "hero": "arythea",
+      "max_steps": 320,
+      "measured_success_rate": 0.1875,
+      "name": "adaptive_002_exploration_standard",
+      "reward_config": {
+        "fame_delta_scale": 0.0,
+        "new_hex_bonus": 0.5,
+        "scenario_trigger_bonus": 20.0,
+        "tile_explore_bonus": 5.0,
+        "wasted_move_penalty": -0.05
+      },
+      "sampling_weight": 0.40106951871657753,
+      "scenario": {
+        "core_tile_count": 1,
+        "countryside_count": 4,
+        "type": "ExplorationDrill"
+      }
+    },
+    {
+      "bucket_id": "exploration_standard",
+      "episodes": 4011,
+      "hero": "arythea",
+      "max_steps": 320,
+      "measured_success_rate": 0.1875,
+      "name": "adaptive_003_exploration_standard",
+      "reward_config": {
+        "fame_delta_scale": 0.0,
+        "new_hex_bonus": 0.5,
+        "scenario_trigger_bonus": 20.0,
+        "tile_explore_bonus": 5.0,
+        "wasted_move_penalty": -0.05
+      },
+      "sampling_weight": 0.40106951871657753,
+      "scenario": {
+        "core_tile_count": 1,
+        "countryside_count": 4,
+        "type": "ExplorationDrill"
+      }
+    },
+    {
+      "bucket_id": "combat_medium_prowlers",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 160,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_004_combat_medium_prowlers",
+      "reward_config": {
+        "cards_remaining_bonus": 0.5,
+        "fame_delta_scale": 5.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "enemy_tokens": [
+          "prowlers_1"
+        ],
+        "is_fortified": false,
+        "type": "CombatDrill"
+      }
+    },
+    {
+      "bucket_id": "combat_unit_swordsmen",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 240,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_005_combat_unit_swordsmen",
+      "reward_config": {
+        "cards_remaining_bonus": 0.3,
+        "fame_delta_scale": 5.0,
+        "wound_penalty": -2.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "crystals": {
+          "blue": 0,
+          "green": 0,
+          "red": 3,
+          "white": 0
+        },
+        "enemy_tokens": [
+          "swordsmen_1"
+        ],
+        "is_fortified": false,
+        "type": "CombatDrill",
+        "units": [
+          "peasants"
+        ]
+      }
+    },
+    {
+      "bucket_id": "combat_unit_swordsmen",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 240,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_006_combat_unit_swordsmen",
+      "reward_config": {
+        "cards_remaining_bonus": 0.3,
+        "fame_delta_scale": 5.0,
+        "wound_penalty": -2.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "crystals": {
+          "blue": 0,
+          "green": 0,
+          "red": 3,
+          "white": 0
+        },
+        "enemy_tokens": [
+          "swordsmen_1"
+        ],
+        "is_fortified": false,
+        "type": "CombatDrill",
+        "units": [
+          "peasants"
+        ]
+      }
+    },
+    {
+      "bucket_id": "exploration_standard",
+      "episodes": 4011,
+      "hero": "arythea",
+      "max_steps": 320,
+      "measured_success_rate": 0.1875,
+      "name": "adaptive_007_exploration_standard",
+      "reward_config": {
+        "fame_delta_scale": 0.0,
+        "new_hex_bonus": 0.5,
+        "scenario_trigger_bonus": 20.0,
+        "tile_explore_bonus": 5.0,
+        "wasted_move_penalty": -0.05
+      },
+      "sampling_weight": 0.40106951871657753,
+      "scenario": {
+        "core_tile_count": 1,
+        "countryside_count": 4,
+        "type": "ExplorationDrill"
+      }
+    },
+    {
+      "bucket_id": "exploration_standard",
+      "episodes": 4011,
+      "hero": "arythea",
+      "max_steps": 320,
+      "measured_success_rate": 0.1875,
+      "name": "adaptive_008_exploration_standard",
+      "reward_config": {
+        "fame_delta_scale": 0.0,
+        "new_hex_bonus": 0.5,
+        "scenario_trigger_bonus": 20.0,
+        "tile_explore_bonus": 5.0,
+        "wasted_move_penalty": -0.05
+      },
+      "sampling_weight": 0.40106951871657753,
+      "scenario": {
+        "core_tile_count": 1,
+        "countryside_count": 4,
+        "type": "ExplorationDrill"
+      }
+    },
+    {
+      "bucket_id": "combat_fortified_guardsmen",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 240,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_009_combat_fortified_guardsmen",
+      "reward_config": {
+        "cards_remaining_bonus": 0.3,
+        "fame_delta_scale": 5.0,
+        "wound_penalty": -2.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "crystals": {
+          "blue": 0,
+          "green": 0,
+          "red": 3,
+          "white": 0
+        },
+        "enemy_tokens": [
+          "guardsmen_1"
+        ],
+        "is_fortified": true,
+        "type": "CombatDrill"
+      }
+    },
+    {
+      "bucket_id": "combat_easy_diggers",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 120,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_010_combat_easy_diggers",
+      "reward_config": {
+        "fame_delta_scale": 5.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "enemy_tokens": [
+          "diggers_1"
+        ],
+        "hand_override": [
+          "rage",
+          "arythea_battle_versatility",
+          "determination",
+          "stamina",
+          "concentration"
+        ],
+        "is_fortified": false,
+        "type": "CombatDrill"
+      }
+    },
+    {
+      "bucket_id": "exploration_standard",
+      "episodes": 4011,
+      "hero": "arythea",
+      "max_steps": 320,
+      "measured_success_rate": 0.1875,
+      "name": "adaptive_011_exploration_standard",
+      "reward_config": {
+        "fame_delta_scale": 0.0,
+        "new_hex_bonus": 0.5,
+        "scenario_trigger_bonus": 20.0,
+        "tile_explore_bonus": 5.0,
+        "wasted_move_penalty": -0.05
+      },
+      "sampling_weight": 0.40106951871657753,
+      "scenario": {
+        "core_tile_count": 1,
+        "countryside_count": 4,
+        "type": "ExplorationDrill"
+      }
+    },
+    {
+      "bucket_id": "combat_multi_prowlers",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 300,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_012_combat_multi_prowlers",
+      "reward_config": {
+        "cards_remaining_bonus": 0.3,
+        "fame_delta_scale": 5.0,
+        "wound_penalty": -2.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "crystals": {
+          "blue": 0,
+          "green": 0,
+          "red": 3,
+          "white": 0
+        },
+        "enemy_tokens": [
+          "prowlers_1",
+          "prowlers_2"
+        ],
+        "is_fortified": false,
+        "type": "CombatDrill",
+        "units": [
+          "peasants"
+        ]
+      }
+    },
+    {
+      "bucket_id": "combat_powered_wolf_riders",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 200,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_013_combat_powered_wolf_riders",
+      "reward_config": {
+        "cards_remaining_bonus": 0.3,
+        "fame_delta_scale": 5.0,
+        "wound_penalty": -1.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "crystals": {
+          "blue": 0,
+          "green": 0,
+          "red": 3,
+          "white": 0
+        },
+        "enemy_tokens": [
+          "wolf_riders_1"
+        ],
+        "is_fortified": false,
+        "type": "CombatDrill"
+      }
+    },
+    {
+      "bucket_id": "combat_easy_diggers",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 120,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_014_combat_easy_diggers",
+      "reward_config": {
+        "fame_delta_scale": 5.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "enemy_tokens": [
+          "diggers_1"
+        ],
+        "hand_override": [
+          "rage",
+          "arythea_battle_versatility",
+          "determination",
+          "stamina",
+          "concentration"
+        ],
+        "is_fortified": false,
+        "type": "CombatDrill"
+      }
+    },
+    {
+      "bucket_id": "combat_multi_prowlers",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 300,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_015_combat_multi_prowlers",
+      "reward_config": {
+        "cards_remaining_bonus": 0.3,
+        "fame_delta_scale": 5.0,
+        "wound_penalty": -2.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "crystals": {
+          "blue": 0,
+          "green": 0,
+          "red": 3,
+          "white": 0
+        },
+        "enemy_tokens": [
+          "prowlers_1",
+          "prowlers_2"
+        ],
+        "is_fortified": false,
+        "type": "CombatDrill",
+        "units": [
+          "peasants"
+        ]
+      }
+    },
+    {
+      "bucket_id": "exploration_tiny",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 180,
+      "measured_success_rate": 1.0,
+      "name": "adaptive_016_exploration_tiny",
+      "reward_config": {
+        "fame_delta_scale": 0.0,
+        "new_hex_bonus": 0.5,
+        "scenario_trigger_bonus": 20.0,
+        "tile_explore_bonus": 5.0,
+        "wasted_move_penalty": -0.05
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "countryside_count": 2,
+        "type": "ExplorationDrill"
+      }
+    },
+    {
+      "bucket_id": "combat_medium_prowlers",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 160,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_017_combat_medium_prowlers",
+      "reward_config": {
+        "cards_remaining_bonus": 0.5,
+        "fame_delta_scale": 5.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "enemy_tokens": [
+          "prowlers_1"
+        ],
+        "is_fortified": false,
+        "type": "CombatDrill"
+      }
+    },
+    {
+      "bucket_id": "exploration_tiny",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 180,
+      "measured_success_rate": 1.0,
+      "name": "adaptive_018_exploration_tiny",
+      "reward_config": {
+        "fame_delta_scale": 0.0,
+        "new_hex_bonus": 0.5,
+        "scenario_trigger_bonus": 20.0,
+        "tile_explore_bonus": 5.0,
+        "wasted_move_penalty": -0.05
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "countryside_count": 2,
+        "type": "ExplorationDrill"
+      }
+    },
+    {
+      "bucket_id": "combat_powered_wolf_riders",
+      "episodes": 2139,
+      "hero": "arythea",
+      "max_steps": 200,
+      "measured_success_rate": 0.0,
+      "name": "adaptive_019_combat_powered_wolf_riders",
+      "reward_config": {
+        "cards_remaining_bonus": 0.3,
+        "fame_delta_scale": 5.0,
+        "wound_penalty": -1.0
+      },
+      "sampling_weight": 0.08556149732620322,
+      "scenario": {
+        "crystals": {
+          "blue": 0,
+          "green": 0,
+          "red": 3,
+          "white": 0
+        },
+        "enemy_tokens": [
+          "wolf_riders_1"
+        ],
+        "is_fortified": false,
+        "type": "CombatDrill"
+      }
+    }
+  ],
+  "plan_type": "adaptive_curriculum",
+  "requirements": {
+    "combat_oracle": false,
+    "commerce_oracle": false
+  },
+  "schema_version": 1,
+  "seed": 1,
+  "source_evaluation": {
+    "created_at": "2026-08-05T02:15:39.991279+00:00",
+    "path": "evaluation/results/mk-solo-skill-v1/terminal-fame-control-20260805T021514Z",
+    "policy": {
+      "checkpoint": "/Users/erickshaffer/code/MageKnight-terminal-reward/packages/python-sdk/training/runs/terminal-fame-control-50393-seed1/checkpoints/policy_final.pt",
+      "checkpoint_metadata": {
+        "episode": 51275,
+        "timestamp": "2026-08-04T14:46:21.766509+00:00"
+      },
+      "checkpoint_sha256": "8636bf8fbbc8777dba9d1e9551254e5bcf60908167eef277b60279333734bb40",
+      "policy_config": {
+        "critic_coefficient": 0.5,
+        "d_model": 64,
+        "device": "cpu",
+        "embedding_dim": 16,
+        "entropy_coefficient": 0.03,
+        "gamma": 0.999,
+        "goal_dim": 0,
+        "hidden_size": 512,
+        "learning_rate": 0.0003,
+        "normalize_returns": true,
+        "num_hidden_layers": 2
+      },
+      "policy_id": "terminal-fame-control",
+      "policy_type": "checkpoint_greedy"
+    }
+  },
+  "source_suite_hash": "7dc9b153870c3d5cf65044a41216653bf966b95f3ab8621e95b40908fee9e629",
+  "source_suite_id": "mk-solo-skill-v1",
+  "target_success_band": [
+    0.4,
+    0.7
+  ],
+  "total_episodes": 50000
+}

@@ -1,0 +1,172 @@
+{
+  "baseline_policy_id": "random",
+  "champion_policy_id": "terminal-fame-control",
+  "regression_thresholds": {
+    "max_core_completion_drop": 0.05,
+    "max_core_mean_score_drop": 2.0,
+    "max_overall_paired_loss_rate": 0.55
+  },
+  "rows": [
+    {
+      "core_mean_fame": 10.390625,
+      "core_mean_score": 15.359375,
+      "core_mean_wounds": 0.203125,
+      "core_success_rate": 0.953125,
+      "is_champion": true,
+      "overall_success_rate": 0.6164772727272727,
+      "policy_id": "terminal-fame-control",
+      "policy_type": "checkpoint_greedy",
+      "rank": 1,
+      "regression_gate": {
+        "failed_checks": [],
+        "passed": true,
+        "reference": "champion"
+      },
+      "result_dir": "evaluation/results/mk-solo-skill-v1/terminal-fame-control-20260805T021514Z",
+      "vs_baseline": {
+        "losses": 38,
+        "mean_fame_delta": 6.309659090909091,
+        "mean_score_delta": 16.642045454545453,
+        "mean_wound_delta": -3.5113636363636362,
+        "missing_from_baseline": [],
+        "missing_from_candidate": [],
+        "paired_cases": 352,
+        "ties": 7,
+        "win_rate_excluding_ties": 0.8898550724637682,
+        "wins": 307
+      }
+    },
+    {
+      "core_mean_fame": 10.0390625,
+      "core_mean_score": 12.765625,
+      "core_mean_wounds": 0.9921875,
+      "core_success_rate": 0.9453125,
+      "is_champion": false,
+      "overall_success_rate": 0.5625,
+      "policy_id": "terminal-fame-treatment",
+      "policy_type": "checkpoint_greedy",
+      "rank": 2,
+      "regression_gate": {
+        "core_completion_drop": 0.0078125,
+        "core_mean_score_drop": 2.59375,
+        "failed_checks": [
+          "core_score",
+          "paired_losses"
+        ],
+        "mean_wound_increase": 0.4090909090909091,
+        "paired_loss_rate": 0.625,
+        "passed": false
+      },
+      "result_dir": "evaluation/results/mk-solo-skill-v1/terminal-fame-treatment-20260805T021443Z",
+      "vs_baseline": {
+        "losses": 30,
+        "mean_fame_delta": 6.0625,
+        "mean_score_delta": 15.048295454545455,
+        "mean_wound_delta": -3.102272727272727,
+        "missing_from_baseline": [],
+        "missing_from_candidate": [],
+        "paired_cases": 352,
+        "ties": 2,
+        "win_rate_excluding_ties": 0.9142857142857143,
+        "wins": 320
+      },
+      "vs_champion": {
+        "losses": 220,
+        "mean_fame_delta": -0.2471590909090909,
+        "mean_score_delta": -1.59375,
+        "mean_wound_delta": 0.4090909090909091,
+        "missing_from_baseline": [],
+        "missing_from_candidate": [],
+        "paired_cases": 352,
+        "ties": 1,
+        "win_rate_excluding_ties": 0.3732193732193732,
+        "wins": 131
+      }
+    },
+    {
+      "core_mean_fame": 10.1015625,
+      "core_mean_score": 15.1484375,
+      "core_mean_wounds": 0.28125,
+      "core_success_rate": 0.890625,
+      "is_champion": false,
+      "overall_success_rate": 0.6079545454545454,
+      "policy_id": "v13",
+      "policy_type": "checkpoint_greedy",
+      "rank": 3,
+      "regression_gate": {
+        "core_completion_drop": 0.0625,
+        "core_mean_score_drop": 0.2109375,
+        "failed_checks": [
+          "core_completion"
+        ],
+        "mean_wound_increase": 0.019886363636363636,
+        "paired_loss_rate": 0.3778409090909091,
+        "passed": false
+      },
+      "result_dir": "evaluation/results/mk-solo-skill-v1/v13-20260805T021417Z",
+      "vs_baseline": {
+        "losses": 35,
+        "mean_fame_delta": 6.318181818181818,
+        "mean_score_delta": 16.696022727272727,
+        "mean_wound_delta": -3.491477272727273,
+        "missing_from_baseline": [],
+        "missing_from_candidate": [],
+        "paired_cases": 352,
+        "ties": 5,
+        "win_rate_excluding_ties": 0.899135446685879,
+        "wins": 312
+      },
+      "vs_champion": {
+        "losses": 133,
+        "mean_fame_delta": 0.008522727272727272,
+        "mean_score_delta": 0.05397727272727273,
+        "mean_wound_delta": 0.019886363636363636,
+        "missing_from_baseline": [],
+        "missing_from_candidate": [],
+        "paired_cases": 352,
+        "ties": 61,
+        "win_rate_excluding_ties": 0.5429553264604811,
+        "wins": 158
+      }
+    },
+    {
+      "core_mean_fame": 0.1640625,
+      "core_mean_score": -10.296875,
+      "core_mean_wounds": 5.46875,
+      "core_success_rate": 0.0,
+      "is_champion": false,
+      "overall_success_rate": 0.028409090909090908,
+      "policy_id": "random",
+      "policy_type": "uniform_random",
+      "rank": 4,
+      "regression_gate": {
+        "core_completion_drop": 0.953125,
+        "core_mean_score_drop": 25.65625,
+        "failed_checks": [
+          "core_completion",
+          "core_score",
+          "paired_losses"
+        ],
+        "mean_wound_increase": 3.5113636363636362,
+        "paired_loss_rate": 0.8721590909090909,
+        "passed": false
+      },
+      "result_dir": "evaluation/results/mk-solo-skill-v1/random-20260805T021403Z",
+      "vs_champion": {
+        "losses": 307,
+        "mean_fame_delta": -6.309659090909091,
+        "mean_score_delta": -16.642045454545453,
+        "mean_wound_delta": 3.5113636363636362,
+        "missing_from_baseline": [],
+        "missing_from_candidate": [],
+        "paired_cases": 352,
+        "ties": 7,
+        "win_rate_excluding_ties": 0.11014492753623188,
+        "wins": 38
+      }
+    }
+  ],
+  "schema_version": 1,
+  "suite_hash": "7dc9b153870c3d5cf65044a41216653bf966b95f3ab8621e95b40908fee9e629",
+  "suite_id": "mk-solo-skill-v1"
+}

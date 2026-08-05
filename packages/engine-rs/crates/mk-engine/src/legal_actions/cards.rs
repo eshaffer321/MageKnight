@@ -1115,7 +1115,11 @@ fn has_attack_useful_leaf(effect: &CardEffect) -> bool {
 /// Check if player can afford to power a card requiring the given color.
 ///
 /// Mirrors `collect_mana_sources` logic but doesn't mutate state.
-fn can_afford_powered(state: &GameState, player_idx: usize, color: BasicManaColor) -> bool {
+pub(crate) fn can_afford_powered(
+    state: &GameState,
+    player_idx: usize,
+    color: BasicManaColor,
+) -> bool {
     let player = &state.players[player_idx];
     let target = ManaColor::from(color);
 

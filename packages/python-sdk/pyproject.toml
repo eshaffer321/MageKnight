@@ -14,6 +14,7 @@ mage-knight-viewer = "mage_knight_sdk.viewer.__main__:main"
 mage-knight-run-native = "mage_knight_sdk.cli.run_native:main"
 mage-knight-train-rl = "mage_knight_sdk.cli.train_rl:main"
 mage-knight-import-tb = "mage_knight_sdk.tools.import_tensorboard:main"
+mage-knight-evaluate = "mage_knight_sdk.cli.evaluate:main"
 
 [project.optional-dependencies]
 dev = []
@@ -36,6 +37,9 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"mage_knight_sdk.evaluation" = ["suites/*.json"]
 
 [tool.pytest.ini_options]
 addopts = "-q"

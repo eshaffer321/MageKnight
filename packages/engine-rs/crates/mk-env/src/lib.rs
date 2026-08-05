@@ -11,17 +11,22 @@ use std::fmt;
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use rayon::prelude::*;
 
 use mk_engine::action_pipeline::{apply_legal_action, ApplyError};
-use mk_engine::combat_search::{search_combat, CombatSearchConfig};
+use mk_engine::combat_search::{
+    combat_resolution_cache_hash, search_combat, search_combat_greedy,
+    CombatSearchConfig, GreedyCombatConfig, GreedyCombatError,
+    DEFAULT_GREEDY_COMBAT_NODE_LIMIT, MAX_GREEDY_COMBAT_NODE_LIMIT,
+};
 use mk_engine::commerce_search::{search_commerce, CommerceSearchConfig};
 use mk_engine::legal_actions::enumerate_legal_actions_with_undo;
 use mk_engine::scoring::{calculate_category_base_points, calculate_final_scores};
 use mk_engine::undo::UndoStack;
 use mk_features::EncodedStep;
-use mk_types::enums::Hero;
+use mk_types::enums::{Hero, UnitState};
 use mk_types::legal_action::{LegalAction, LegalActionSet};
 use mk_types::scoring::AchievementCategory;
 use mk_types::state::{GameState, PlayerFlags};
@@ -73,17 +78,34 @@ pub const TERMINATION_CAUSE_ENGINE_FAILURE: i32 = 4;
 
 /// Language-binding name for production-Oracle search stepping.
 pub const SEARCH_COMBAT_MODE_FULL_ORACLE: &str = "full_oracle";
-/// Language-binding name for placeholder cheap-combat search stepping.
+/// Language-binding name for greedy cheap-combat search stepping.
 pub const SEARCH_COMBAT_MODE_CHEAP: &str = "cheap";
+/// Separator used by the tunable `cheap:<node_limit>` language-binding form.
+pub const SEARCH_COMBAT_MODE_PARAMETER_SEPARATOR: char = ':';
+/// Default node budget used by the plain `cheap` mode.
+pub const SEARCH_COMBAT_CHEAP_DEFAULT_NODE_LIMIT: u64 = DEFAULT_GREEDY_COMBAT_NODE_LIMIT;
+/// Hard safety ceiling accepted by `cheap:<node_limit>`.
+pub const SEARCH_COMBAT_CHEAP_MAX_NODE_LIMIT: u64 = MAX_GREEDY_COMBAT_NODE_LIMIT;
 
 /// Controls how a hypothetical search step handles combat entered by that step.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SearchCombatMode {
     /// Resolve combat with the same bounded DFS configuration as the real environment.
     FullOracle,
-    /// Placeholder for a future cheap/greedy resolver. This currently leaves combat
-    /// unresolved so the resulting combat state remains available for further search.
+    /// Greedy resolver using the default strict node budget.
     Cheap,
+    /// Greedy resolver with a caller-selected strict node budget.
+    CheapWithNodeLimit(u64),
+}
+
+impl SearchCombatMode {
+    fn cheap_node_limit(self) -> Option<u64> {
+        match self {
+            Self::FullOracle => None,
+            Self::Cheap => Some(DEFAULT_GREEDY_COMBAT_NODE_LIMIT),
+            Self::CheapWithNodeLimit(node_limit) => Some(node_limit),
+        }
+    }
 }
 
 impl std::str::FromStr for SearchCombatMode {
@@ -93,7 +115,24 @@ impl std::str::FromStr for SearchCombatMode {
         match value {
             SEARCH_COMBAT_MODE_FULL_ORACLE => Ok(Self::FullOracle),
             SEARCH_COMBAT_MODE_CHEAP => Ok(Self::Cheap),
-            _ => Err(SearchStateError::InvalidCombatMode(value.to_owned())),
+            _ => {
+                let prefix = format!(
+                    "{SEARCH_COMBAT_MODE_CHEAP}{SEARCH_COMBAT_MODE_PARAMETER_SEPARATOR}"
+                );
+                let Some(raw_limit) = value.strip_prefix(&prefix) else {
+                    return Err(SearchStateError::InvalidCombatMode(value.to_owned()));
+                };
+                let node_limit = raw_limit.parse::<u64>().map_err(|_| {
+                    SearchStateError::InvalidCombatMode(value.to_owned())
+                })?;
+                if node_limit == 0 || node_limit > MAX_GREEDY_COMBAT_NODE_LIMIT {
+                    return Err(SearchStateError::InvalidCheapCombatNodeLimit {
+                        requested: node_limit,
+                        maximum: MAX_GREEDY_COMBAT_NODE_LIMIT,
+                    });
+                }
+                Ok(Self::CheapWithNodeLimit(node_limit))
+            }
         }
     }
 }
@@ -133,7 +172,12 @@ pub enum SearchStateError {
         handle: SearchHandle,
         message: String,
     },
+    CombatResolutionFailed {
+        handle: SearchHandle,
+        message: String,
+    },
     InvalidCombatMode(String),
+    InvalidCheapCombatNodeLimit { requested: u64, maximum: u64 },
 }
 
 impl fmt::Display for SearchStateError {
@@ -160,9 +204,18 @@ impl fmt::Display for SearchStateError {
             Self::EnginePanicked { handle, message } => write!(
                 f, "search step panicked for handle {}: {message}", handle.as_u64()
             ),
+            Self::CombatResolutionFailed { handle, message } => write!(
+                f,
+                "cheap combat resolution failed for handle {}: {message}",
+                handle.as_u64()
+            ),
             Self::InvalidCombatMode(mode) => write!(
                 f,
-                "invalid search combat mode {mode:?}; expected {SEARCH_COMBAT_MODE_FULL_ORACLE:?} or {SEARCH_COMBAT_MODE_CHEAP:?}",
+                "invalid search combat mode {mode:?}; expected {SEARCH_COMBAT_MODE_FULL_ORACLE:?}, {SEARCH_COMBAT_MODE_CHEAP:?}, or {SEARCH_COMBAT_MODE_CHEAP:?}:<node_limit>",
+            ),
+            Self::InvalidCheapCombatNodeLimit { requested, maximum } => write!(
+                f,
+                "cheap combat node limit {requested} is invalid; expected 1..={maximum}"
             ),
         }
     }
@@ -653,10 +706,72 @@ fn resolve_search_combat_full(state: &mut GameState, undo_stack: &mut UndoStack)
     }
 }
 
-fn resolve_search_combat_cheap(_state: &mut GameState, _undo_stack: &mut UndoStack) {
-    // TODO(search-cheap-combat): replace this no-op with a bounded greedy resolver.
-    // Keeping combat unresolved is cheaper than silently invoking the production Oracle
-    // and preserves a valid state for further hypothetical branching.
+type CachedCheapResolution = Result<Vec<LegalAction>, GreedyCombatError>;
+
+/// Per-`step_search_batch` cache. `OnceLock` ensures duplicate combat states
+/// racing on Rayon compute one greedy path and all other workers reuse it.
+#[derive(Default)]
+struct CheapCombatBatchCache {
+    entries: Mutex<BTreeMap<u64, Arc<OnceLock<CachedCheapResolution>>>>,
+    computations: AtomicU64,
+}
+
+impl CheapCombatBatchCache {
+    fn resolution_actions(
+        &self,
+        state: &GameState,
+        node_limit: u64,
+    ) -> Result<Vec<LegalAction>, GreedyCombatError> {
+        let state_hash = combat_resolution_cache_hash(state)?;
+        let cell = {
+            let mut entries = self.entries.lock().expect("cheap combat cache mutex poisoned");
+            entries
+                .entry(state_hash)
+                .or_insert_with(|| Arc::new(OnceLock::new()))
+                .clone()
+        };
+        cell.get_or_init(|| {
+            self.computations.fetch_add(1, Ordering::Relaxed);
+            let config = GreedyCombatConfig {
+                node_limit,
+                ..GreedyCombatConfig::default()
+            };
+            search_combat_greedy(state, &config).map(|result| result.actions)
+        })
+        .clone()
+    }
+}
+
+fn resolve_search_combat_cheap(
+    handle: SearchHandle,
+    state: &mut GameState,
+    undo_stack: &mut UndoStack,
+    node_limit: u64,
+    cache: &CheapCombatBatchCache,
+) -> Result<(), SearchStateError> {
+    let actions = cache
+        .resolution_actions(state, node_limit)
+        .map_err(|error| SearchStateError::CombatResolutionFailed {
+            handle,
+            message: error.to_string(),
+        })?;
+
+    for action in &actions {
+        let epoch = state.action_epoch;
+        apply_legal_action(state, undo_stack, 0, action, epoch).map_err(|error| {
+            SearchStateError::CombatResolutionFailed {
+                handle,
+                message: format!("cached action {action:?} failed during replay: {error:?}"),
+            }
+        })?;
+    }
+    if state.combat.is_some() && !state.game_ended {
+        return Err(SearchStateError::CombatResolutionFailed {
+            handle,
+            message: "greedy action sequence ended before combat resolved".to_owned(),
+        });
+    }
+    Ok(())
 }
 
 fn step_search_state(
@@ -664,6 +779,7 @@ fn step_search_state(
     parent: &SearchState,
     action_index: usize,
     combat_mode: SearchCombatMode,
+    cheap_cache: &CheapCombatBatchCache,
 ) -> Result<SearchState, SearchStateError> {
     let action_count = parent.action_set.actions.len();
     let action = parent.action_set.actions.get(action_index)
@@ -687,8 +803,14 @@ fn step_search_state(
                 SearchCombatMode::FullOracle => {
                     resolve_search_combat_full(&mut child_state, &mut undo_stack);
                 }
-                SearchCombatMode::Cheap => {
-                    resolve_search_combat_cheap(&mut child_state, &mut undo_stack);
+                SearchCombatMode::Cheap | SearchCombatMode::CheapWithNodeLimit(_) => {
+                    resolve_search_combat_cheap(
+                        handle,
+                        &mut child_state,
+                        &mut undo_stack,
+                        combat_mode.cheap_node_limit().unwrap(),
+                        cheap_cache,
+                    )?;
                 }
             }
         }
@@ -767,6 +889,27 @@ pub struct StepResult {
     pub achievement_categories: Vec<[i32; 6]>,
     /// (N,) — actual action indices applied (post-clamping), for faithful replay logging
     pub applied_actions: Vec<i32>,
+    // ── Evaluation terminal/resource snapshot signals ───────────────
+    /// (N,) — player level after stepping, captured before auto-reset.
+    pub player_levels: Vec<i32>,
+    /// (N,) — reputation after stepping, captured before auto-reset.
+    pub reputations: Vec<i32>,
+    /// (N,) — current round after stepping, captured before auto-reset.
+    pub rounds: Vec<i32>,
+    /// (N,) — cards in hand after stepping.
+    pub hand_sizes: Vec<i32>,
+    /// (N,) — cards remaining in draw deck after stepping.
+    pub deck_sizes: Vec<i32>,
+    /// (N,) — cards in discard after stepping.
+    pub discard_sizes: Vec<i32>,
+    /// (N, 4) — red, blue, green, white crystals after stepping.
+    pub crystal_counts: Vec<[i32; 4]>,
+    /// (N,) — ready units after stepping.
+    pub ready_unit_counts: Vec<i32>,
+    /// (N,) — wounded units after stepping.
+    pub wounded_unit_counts: Vec<i32>,
+    /// (N,) — acquired skills after stepping.
+    pub skill_counts: Vec<i32>,
     // ── HRL goal detection signals ─────────────────────────────────
     /// (N, 2) — player hex position (q, r) after stepping
     pub player_positions: Vec<[i32; 2]>,
@@ -891,12 +1034,19 @@ impl VecEnv {
         }
 
         let search_states = &self.search_states;
+        let cheap_cache = CheapCombatBatchCache::default();
         let children: Vec<Result<SearchState, SearchStateError>> = handles.par_iter()
             .zip(action_indices.par_iter())
             .map(|(&handle, &action_index)| {
                 let parent = search_states.get(&handle)
                     .ok_or(SearchStateError::UnknownHandle(handle))?;
-                step_search_state(handle, parent, action_index, combat_mode)
+                step_search_state(
+                    handle,
+                    parent,
+                    action_index,
+                    combat_mode,
+                    &cheap_cache,
+                )
             })
             .collect();
         let children: Vec<SearchState> = children.into_iter().collect::<Result<_, _>>()?;
@@ -1038,6 +1188,16 @@ impl VecEnv {
         let mut rested_turns = Vec::with_capacity(n);
         let mut achievement_deltas = Vec::with_capacity(n);
         let mut applied_actions = Vec::with_capacity(n);
+        let mut player_levels = Vec::with_capacity(n);
+        let mut reputations = Vec::with_capacity(n);
+        let mut rounds = Vec::with_capacity(n);
+        let mut hand_sizes = Vec::with_capacity(n);
+        let mut deck_sizes = Vec::with_capacity(n);
+        let mut discard_sizes = Vec::with_capacity(n);
+        let mut crystal_counts = Vec::with_capacity(n);
+        let mut ready_unit_counts = Vec::with_capacity(n);
+        let mut wounded_unit_counts = Vec::with_capacity(n);
+        let mut skill_counts = Vec::with_capacity(n);
         let mut player_positions = Vec::with_capacity(n);
         let mut is_interacting_vec = Vec::with_capacity(n);
         let mut unit_counts = Vec::with_capacity(n);
@@ -1075,8 +1235,29 @@ impl VecEnv {
             rested_turns.push(if is_end_turn[i] && was_resting[i] { 1 } else { 0 });
             achievement_deltas.push(achievement_score_no_wounds(&env.state) - achievements_before[i]);
 
+            let player = &env.state.players[0];
+            player_levels.push(player.level as i32);
+            reputations.push(player.reputation as i32);
+            rounds.push(env.state.round as i32);
+            hand_sizes.push(player.hand.len() as i32);
+            deck_sizes.push(player.deck.len() as i32);
+            discard_sizes.push(player.discard.len() as i32);
+            crystal_counts.push([
+                player.crystals.red as i32,
+                player.crystals.blue as i32,
+                player.crystals.green as i32,
+                player.crystals.white as i32,
+            ]);
+            ready_unit_counts.push(
+                player.units.iter().filter(|unit| unit.state == UnitState::Ready).count() as i32,
+            );
+            wounded_unit_counts.push(
+                player.units.iter().filter(|unit| unit.wounded).count() as i32,
+            );
+            skill_counts.push(player.skills.len() as i32);
+
             // HRL goal detection signals
-            let pos = env.state.players[0].position;
+            let pos = player.position;
             player_positions.push(pos.map(|p| [p.q, p.r]).unwrap_or([0, 0]));
             is_interacting_vec.push(
                 env.state.players[0]
@@ -1183,6 +1364,16 @@ impl VecEnv {
             game_scores,
             achievement_categories,
             applied_actions,
+            player_levels,
+            reputations,
+            rounds,
+            hand_sizes,
+            deck_sizes,
+            discard_sizes,
+            crystal_counts,
+            ready_unit_counts,
+            wounded_unit_counts,
+            skill_counts,
             player_positions,
             is_interacting: is_interacting_vec,
             unit_counts,
@@ -1317,15 +1508,23 @@ mod tests {
     }
 
     #[test]
-    fn search_combat_modes_preserve_full_vs_cheap_contract() {
+    fn search_combat_modes_both_resolve_real_outcomes() {
         let scenario = TrainingScenario::CombatDrill {
             enemy_tokens: vec!["diggers_1".to_string()],
             is_fortified: false,
-            hand_override: None,
+            hand_override: Some(vec![
+                "rage".to_string(),
+                "determination".to_string(),
+                "stamina".to_string(),
+            ]),
             extra_cards: None,
             units: None,
             skills: None,
-            crystals: None,
+            crystals: Some(mk_types::state::Crystals {
+                red: 3,
+                blue: 3,
+                ..Default::default()
+            }),
         };
         let mut env = VecEnv::new(VecEnvConfig {
             scenario,
@@ -1337,14 +1536,62 @@ mod tests {
             .unwrap();
 
         let cheap = env.step_search_batch(
-            &[parent], &[action_index], SearchCombatMode::Cheap,
+            &[parent], &[action_index], SearchCombatMode::CheapWithNodeLimit(500),
         ).unwrap()[0];
-        assert!(env.search_states.get(&cheap).unwrap().state.combat.is_some());
+        let cheap_state = &env.search_states.get(&cheap).unwrap().state;
+        assert!(cheap_state.combat.is_none());
+        assert!(cheap_state.players[0].fame > 0);
 
         let full = env.step_search_batch(
             &[parent], &[action_index], SearchCombatMode::FullOracle,
         ).unwrap()[0];
         assert!(env.search_states.get(&full).unwrap().state.combat.is_none());
+    }
+
+    #[test]
+    fn cheap_combat_batch_cache_computes_identical_state_once() {
+        let scenario = TrainingScenario::CombatDrill {
+            enemy_tokens: vec!["diggers_1".to_string()],
+            is_fortified: false,
+            hand_override: Some(vec![
+                "rage".to_string(),
+                "determination".to_string(),
+                "stamina".to_string(),
+            ]),
+            extra_cards: None,
+            units: None,
+            skills: None,
+            crystals: None,
+        };
+        let mut env = VecEnv::new(VecEnvConfig {
+            scenario,
+            ..test_config(1, 42, 500)
+        });
+        let parent = env.fork_roots(&[0]).unwrap()[0];
+        let state = &env.search_states.get(&parent).unwrap().state;
+        let cache = CheapCombatBatchCache::default();
+
+        let paths: Vec<Vec<LegalAction>> = (0..32)
+            .into_par_iter()
+            .map(|_| cache.resolution_actions(state, 500).unwrap())
+            .collect();
+
+        assert!(paths.windows(2).all(|pair| pair[0] == pair[1]));
+        assert_eq!(cache.computations.load(Ordering::Relaxed), 1);
+    }
+
+    #[test]
+    fn cheap_combat_mode_parses_tunable_budget() {
+        let mode: SearchCombatMode = "cheap:500".parse().unwrap();
+        assert_eq!(mode, SearchCombatMode::CheapWithNodeLimit(500));
+        assert!(matches!(
+            "cheap:0".parse::<SearchCombatMode>(),
+            Err(SearchStateError::InvalidCheapCombatNodeLimit { .. })
+        ));
+        assert!(matches!(
+            "cheap:2001".parse::<SearchCombatMode>(),
+            Err(SearchStateError::InvalidCheapCombatNodeLimit { .. })
+        ));
     }
 
     /// Run manually with:
@@ -1664,7 +1911,7 @@ mod tests {
             let actions: Vec<i32> = batch
                 .action_counts
                 .iter()
-                .map(|&c| if c > 0 { 0 } else { 0 })
+                .map(|_| 0)
                 .collect();
             let result = env.step_batch(&actions);
             assert_eq!(result.dones.len(), 4);

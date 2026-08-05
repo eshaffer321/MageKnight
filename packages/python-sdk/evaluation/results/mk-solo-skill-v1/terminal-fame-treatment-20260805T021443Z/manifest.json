@@ -1,0 +1,63 @@
+{
+  "complete_suite": true,
+  "created_at": "2026-08-05T02:15:13.407067+00:00",
+  "git": {
+    "commit": "408c604b00beadfabd77e121797d84411735c975",
+    "dirty": true
+  },
+  "policy": {
+    "checkpoint": "/Users/erickshaffer/code/MageKnight-terminal-reward/packages/python-sdk/training/runs/terminal-fame-pilot-50k-seed1/checkpoints/policy_final.pt",
+    "checkpoint_metadata": {
+      "episode": 50393,
+      "timestamp": "2026-08-04T03:01:55.997855+00:00"
+    },
+    "checkpoint_sha256": "c8af73e9ee98b47de5263ebb3c91938d2ade7a38b3584e360f9f4087722be1ae",
+    "policy_config": {
+      "critic_coefficient": 0.5,
+      "d_model": 64,
+      "device": "cpu",
+      "embedding_dim": 16,
+      "entropy_coefficient": 0.03,
+      "gamma": 0.999,
+      "goal_dim": 0,
+      "hidden_size": 512,
+      "learning_rate": 0.0003,
+      "normalize_returns": true,
+      "num_hidden_layers": 2
+    },
+    "policy_id": "terminal-fame-treatment",
+    "policy_type": "checkpoint_greedy"
+  },
+  "regression_thresholds": {
+    "max_core_completion_drop": 0.05,
+    "max_core_mean_score_drop": 2.0,
+    "max_overall_paired_loss_rate": 0.55
+  },
+  "runtime": {
+    "active_transitions": 29749,
+    "transitions_per_second": 1009.2440775766337,
+    "wall_seconds": 29.47651679208502
+  },
+  "schema_version": 1,
+  "score_version": "engine_score_v1",
+  "selected_buckets": [
+    "full_arythea_core",
+    "full_tovak_transfer",
+    "full_goldyx_transfer",
+    "full_norowas_transfer",
+    "full_wolfhawk_transfer",
+    "full_krang_transfer",
+    "full_braevalar_transfer",
+    "combat_easy_diggers",
+    "combat_medium_prowlers",
+    "combat_powered_wolf_riders",
+    "combat_fortified_guardsmen",
+    "combat_unit_swordsmen",
+    "combat_multi_prowlers",
+    "exploration_tiny",
+    "exploration_standard"
+  ],
+  "suite_hash": "7dc9b153870c3d5cf65044a41216653bf966b95f3ab8621e95b40908fee9e629",
+  "suite_id": "mk-solo-skill-v1",
+  "suite_locked": true
+}

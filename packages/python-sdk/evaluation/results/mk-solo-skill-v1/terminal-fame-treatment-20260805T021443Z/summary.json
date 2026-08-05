@@ -1,0 +1,5795 @@
+{
+  "manifest": {
+    "complete_suite": true,
+    "created_at": "2026-08-05T02:15:13.407067+00:00",
+    "git": {
+      "commit": "408c604b00beadfabd77e121797d84411735c975",
+      "dirty": true
+    },
+    "policy": {
+      "checkpoint": "/Users/erickshaffer/code/MageKnight-terminal-reward/packages/python-sdk/training/runs/terminal-fame-pilot-50k-seed1/checkpoints/policy_final.pt",
+      "checkpoint_metadata": {
+        "episode": 50393,
+        "timestamp": "2026-08-04T03:01:55.997855+00:00"
+      },
+      "checkpoint_sha256": "c8af73e9ee98b47de5263ebb3c91938d2ade7a38b3584e360f9f4087722be1ae",
+      "policy_config": {
+        "critic_coefficient": 0.5,
+        "d_model": 64,
+        "device": "cpu",
+        "embedding_dim": 16,
+        "entropy_coefficient": 0.03,
+        "gamma": 0.999,
+        "goal_dim": 0,
+        "hidden_size": 512,
+        "learning_rate": 0.0003,
+        "normalize_returns": true,
+        "num_hidden_layers": 2
+      },
+      "policy_id": "terminal-fame-treatment",
+      "policy_type": "checkpoint_greedy"
+    },
+    "regression_thresholds": {
+      "max_core_completion_drop": 0.05,
+      "max_core_mean_score_drop": 2.0,
+      "max_overall_paired_loss_rate": 0.55
+    },
+    "runtime": {
+      "active_transitions": 29749,
+      "transitions_per_second": 1009.2440775766337,
+      "wall_seconds": 29.47651679208502
+    },
+    "schema_version": 1,
+    "score_version": "engine_score_v1",
+    "selected_buckets": [
+      "full_arythea_core",
+      "full_tovak_transfer",
+      "full_goldyx_transfer",
+      "full_norowas_transfer",
+      "full_wolfhawk_transfer",
+      "full_krang_transfer",
+      "full_braevalar_transfer",
+      "combat_easy_diggers",
+      "combat_medium_prowlers",
+      "combat_powered_wolf_riders",
+      "combat_fortified_guardsmen",
+      "combat_unit_swordsmen",
+      "combat_multi_prowlers",
+      "exploration_tiny",
+      "exploration_standard"
+    ],
+    "suite_hash": "7dc9b153870c3d5cf65044a41216653bf966b95f3ab8621e95b40908fee9e629",
+    "suite_id": "mk-solo-skill-v1",
+    "suite_locked": true
+  },
+  "metrics": {
+    "by_bucket": {
+      "combat_easy_diggers": {
+        "case_count": 16,
+        "fame": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "final_wounds": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "game_score": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 11.0,
+            "median": 11.0,
+            "min": 11.0,
+            "p10": 11.0,
+            "p90": 11.0,
+            "std": 0.0
+          },
+          "discard": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "green_crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "hand": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "level": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "round": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 12.0,
+            "mean": 12.0,
+            "median": 12.0,
+            "min": 12.0,
+            "p10": 12.0,
+            "p90": 12.0,
+            "std": 0.0
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 12.0,
+          "mean": 12.0,
+          "median": 12.0,
+          "min": 12.0,
+          "p10": 12.0,
+          "p90": 12.0,
+          "std": 0.0
+        },
+        "success_rate": 0.0,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 0.0,
+          "wounds_per_fame": 0.0
+        },
+        "wounds_gained": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        }
+      },
+      "combat_fortified_guardsmen": {
+        "case_count": 16,
+        "fame": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "final_wounds": {
+          "max": 2.0,
+          "mean": 0.875,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 0.9921567416492215
+        },
+        "game_score": {
+          "max": 2.0,
+          "mean": -0.5,
+          "median": 1.0,
+          "min": -3.0,
+          "p10": -3.0,
+          "p90": 2.0,
+          "std": 2.23606797749979
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 1.0,
+            "mean": 0.0625,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.24206145913796356
+          },
+          "crystals": {
+            "max": 4.0,
+            "mean": 3.25,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.4330127018922193
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 11.0,
+            "median": 11.0,
+            "min": 11.0,
+            "p10": 11.0,
+            "p90": 11.0,
+            "std": 0.0
+          },
+          "discard": {
+            "max": 1.0,
+            "mean": 0.0625,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.24206145913796356
+          },
+          "green_crystals": {
+            "max": 1.0,
+            "mean": 0.1875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.3903123748998999
+          },
+          "hand": {
+            "max": 6.0,
+            "mean": 3.1875,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 5.5,
+            "std": 1.8103435447450298
+          },
+          "level": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 4.0,
+            "mean": 2.3125,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 3.5,
+            "std": 1.0439558180306292
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.0
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "round": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 17.0,
+            "mean": 14.25,
+            "median": 14.0,
+            "min": 12.0,
+            "p10": 12.0,
+            "p90": 16.5,
+            "std": 1.713913650100261
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 12.0,
+          "mean": 8.3125,
+          "median": 8.0,
+          "min": 6.0,
+          "p10": 6.0,
+          "p90": 10.5,
+          "std": 1.9595519258238603
+        },
+        "success_rate": 0.0,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 0.0,
+          "wounds_per_fame": 0.0
+        },
+        "wounds_gained": {
+          "max": 2.0,
+          "mean": 0.875,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 0.9921567416492215
+        }
+      },
+      "combat_medium_prowlers": {
+        "case_count": 16,
+        "fame": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "final_wounds": {
+          "max": 2.0,
+          "mean": 1.625,
+          "median": 2.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 0.7806247497997998
+        },
+        "game_score": {
+          "max": 0.0,
+          "mean": -3.25,
+          "median": -4.0,
+          "min": -4.0,
+          "p10": -4.0,
+          "p90": 0.0,
+          "std": 1.5612494995995996
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 1.0,
+            "mean": 0.125,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.5,
+            "std": 0.33071891388307384
+          },
+          "crystals": {
+            "max": 1.0,
+            "mean": 0.25,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.4330127018922193
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 10.5,
+            "median": 11.0,
+            "min": 7.0,
+            "p10": 9.0,
+            "p90": 11.0,
+            "std": 1.3228756555322954
+          },
+          "discard": {
+            "max": 1.0,
+            "mean": 0.1875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.3903123748998999
+          },
+          "green_crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "hand": {
+            "max": 6.0,
+            "mean": 3.25,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 5.5,
+            "std": 1.6393596310755
+          },
+          "level": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 4.0,
+            "mean": 1.625,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 3.5,
+            "std": 1.165922381636102
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "round": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 17.0,
+            "mean": 13.9375,
+            "median": 14.0,
+            "min": 10.0,
+            "p10": 12.0,
+            "p90": 15.5,
+            "std": 1.5995604865087159
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 1.0,
+            "mean": 0.125,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.5,
+            "std": 0.33071891388307384
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 15.0,
+          "mean": 9.625,
+          "median": 9.0,
+          "min": 6.0,
+          "p10": 7.5,
+          "p90": 12.0,
+          "std": 2.1469455046647083
+        },
+        "success_rate": 0.0,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 0.0,
+          "wounds_per_fame": 0.0
+        },
+        "wounds_gained": {
+          "max": 2.0,
+          "mean": 1.625,
+          "median": 2.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 0.7806247497997998
+        }
+      },
+      "combat_multi_prowlers": {
+        "case_count": 16,
+        "fame": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "final_wounds": {
+          "max": 2.0,
+          "mean": 1.125,
+          "median": 2.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 0.9921567416492215
+        },
+        "game_score": {
+          "max": 2.0,
+          "mean": -1.0,
+          "median": -2.0,
+          "min": -3.0,
+          "p10": -3.0,
+          "p90": 1.5,
+          "std": 2.0615528128088303
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 1.0,
+            "mean": 0.0625,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.24206145913796356
+          },
+          "crystals": {
+            "max": 4.0,
+            "mean": 3.25,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.4330127018922193
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 10.75,
+            "median": 11.0,
+            "min": 7.0,
+            "p10": 11.0,
+            "p90": 11.0,
+            "std": 0.9682458365518543
+          },
+          "discard": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "green_crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "hand": {
+            "max": 8.0,
+            "mean": 4.3125,
+            "median": 5.0,
+            "min": 2.0,
+            "p10": 2.0,
+            "p90": 6.5,
+            "std": 2.0530084632071053
+          },
+          "level": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 6.0,
+            "mean": 3.1875,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.0,
+            "p90": 4.5,
+            "std": 1.184205957593526
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.0
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "round": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 18.0,
+            "mean": 15.0625,
+            "median": 15.5,
+            "min": 13.0,
+            "p10": 13.0,
+            "p90": 17.0,
+            "std": 1.818954026356906
+          },
+          "units": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 1.0,
+            "mean": 0.1875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.3903123748998999
+          },
+          "wounded_units": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 13.0,
+          "mean": 10.25,
+          "median": 10.0,
+          "min": 7.0,
+          "p10": 8.0,
+          "p90": 12.0,
+          "std": 1.6770509831248424
+        },
+        "success_rate": 0.0,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 0.0,
+          "wounds_per_fame": 0.0
+        },
+        "wounds_gained": {
+          "max": 2.0,
+          "mean": 1.125,
+          "median": 2.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 0.9921567416492215
+        }
+      },
+      "combat_powered_wolf_riders": {
+        "case_count": 16,
+        "fame": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "final_wounds": {
+          "max": 2.0,
+          "mean": 2.0,
+          "median": 2.0,
+          "min": 2.0,
+          "p10": 2.0,
+          "p90": 2.0,
+          "std": 0.0
+        },
+        "game_score": {
+          "max": -2.0,
+          "mean": -2.6875,
+          "median": -3.0,
+          "min": -3.0,
+          "p10": -3.0,
+          "p90": -2.0,
+          "std": 0.46351240544347894
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "crystals": {
+            "max": 4.0,
+            "mean": 3.3125,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.46351240544347894
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 11.0,
+            "median": 11.0,
+            "min": 11.0,
+            "p10": 11.0,
+            "p90": 11.0,
+            "std": 0.0
+          },
+          "discard": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "green_crystals": {
+            "max": 1.0,
+            "mean": 0.1875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.3903123748998999
+          },
+          "hand": {
+            "max": 7.0,
+            "mean": 5.3125,
+            "median": 5.0,
+            "min": 4.0,
+            "p10": 4.5,
+            "p90": 6.0,
+            "std": 0.7680128579652817
+          },
+          "level": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 5.0,
+            "mean": 3.3125,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.5,
+            "p90": 4.0,
+            "std": 0.7680128579652817
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.0
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "round": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 18.0,
+            "mean": 16.3125,
+            "median": 16.0,
+            "min": 15.0,
+            "p10": 15.5,
+            "p90": 17.0,
+            "std": 0.7680128579652817
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 1.0,
+            "mean": 0.125,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.5,
+            "std": 0.33071891388307384
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 10.0,
+          "mean": 6.75,
+          "median": 7.0,
+          "min": 4.0,
+          "p10": 5.0,
+          "p90": 8.5,
+          "std": 1.479019945774904
+        },
+        "success_rate": 0.0,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 0.0,
+          "wounds_per_fame": 0.0
+        },
+        "wounds_gained": {
+          "max": 2.0,
+          "mean": 2.0,
+          "median": 2.0,
+          "min": 2.0,
+          "p10": 2.0,
+          "p90": 2.0,
+          "std": 0.0
+        }
+      },
+      "combat_unit_swordsmen": {
+        "case_count": 16,
+        "fame": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "final_wounds": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "game_score": {
+          "max": 2.0,
+          "mean": 1.375,
+          "median": 1.0,
+          "min": 1.0,
+          "p10": 1.0,
+          "p90": 2.0,
+          "std": 0.4841229182759271
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "crystals": {
+            "max": 4.0,
+            "mean": 3.25,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.4330127018922193
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 10.75,
+            "median": 11.0,
+            "min": 7.0,
+            "p10": 11.0,
+            "p90": 11.0,
+            "std": 0.9682458365518543
+          },
+          "discard": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "green_crystals": {
+            "max": 1.0,
+            "mean": 0.125,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.5,
+            "std": 0.33071891388307384
+          },
+          "hand": {
+            "max": 5.0,
+            "mean": 3.125,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.0,
+            "p90": 4.5,
+            "std": 0.9270248108869579
+          },
+          "level": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 5.0,
+            "mean": 3.125,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.0,
+            "p90": 4.5,
+            "std": 0.9270248108869579
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.0
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "round": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 16.0,
+            "mean": 13.875,
+            "median": 14.0,
+            "min": 12.0,
+            "p10": 13.0,
+            "p90": 15.0,
+            "std": 0.9270248108869579
+          },
+          "units": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 1.0,
+            "mean": 0.125,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.5,
+            "std": 0.33071891388307384
+          },
+          "wounded_units": {
+            "max": 1.0,
+            "mean": 0.875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 1.0,
+            "std": 0.33071891388307384
+          }
+        },
+        "steps": {
+          "max": 13.0,
+          "mean": 9.5,
+          "median": 9.0,
+          "min": 6.0,
+          "p10": 8.0,
+          "p90": 11.0,
+          "std": 1.620185174601965
+        },
+        "success_rate": 0.0,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 0.0,
+          "wounds_per_fame": 0.0
+        },
+        "wounds_gained": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        }
+      },
+      "exploration_standard": {
+        "case_count": 16,
+        "fame": {
+          "max": 4.0,
+          "mean": 3.1875,
+          "median": 3.0,
+          "min": 3.0,
+          "p10": 3.0,
+          "p90": 4.0,
+          "std": 0.3903123748998999
+        },
+        "final_wounds": {
+          "max": 4.0,
+          "mean": 0.25,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.9682458365518543
+        },
+        "game_score": {
+          "max": 8.0,
+          "mean": 6.125,
+          "median": 6.0,
+          "min": 0.0,
+          "p10": 6.0,
+          "p90": 7.5,
+          "std": 1.7275343701356567
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 1.0,
+            "mean": 0.1875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.3903123748998999
+          },
+          "crystals": {
+            "max": 9.0,
+            "mean": 5.125,
+            "median": 5.0,
+            "min": 2.0,
+            "p10": 3.0,
+            "p90": 7.5,
+            "std": 1.8666480653835098
+          },
+          "deck": {
+            "max": 4.0,
+            "mean": 0.5,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.0,
+            "std": 1.1726039399558574
+          },
+          "discard": {
+            "max": 21.0,
+            "mean": 13.875,
+            "median": 15.0,
+            "min": 6.0,
+            "p10": 9.5,
+            "p90": 15.0,
+            "std": 3.276335605520289
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.8125,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.184205957593526
+          },
+          "hand": {
+            "max": 7.0,
+            "mean": 1.125,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.5,
+            "std": 2.368411915187052
+          },
+          "level": {
+            "max": 2.0,
+            "mean": 2.0,
+            "median": 2.0,
+            "min": 2.0,
+            "p10": 2.0,
+            "p90": 2.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 7.0,
+            "mean": 1.125,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.5,
+            "std": 2.368411915187052
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.875,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 3.0,
+            "std": 0.9921567416492215
+          },
+          "reputation": {
+            "max": -1.0,
+            "mean": -2.1875,
+            "median": -2.0,
+            "min": -4.0,
+            "p10": -4.0,
+            "p90": -1.0,
+            "std": 1.1301963325015703
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.6875,
+            "median": 4.0,
+            "min": 2.0,
+            "p10": 2.5,
+            "p90": 4.0,
+            "std": 0.6817945071647321
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 21.0,
+            "mean": 15.5,
+            "median": 15.0,
+            "min": 12.0,
+            "p10": 14.5,
+            "p90": 17.0,
+            "std": 1.8371173070873836
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.25,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.5,
+            "std": 0.9013878188659973
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 132.0,
+          "mean": 105.8125,
+          "median": 112.5,
+          "min": 50.0,
+          "p10": 73.0,
+          "p90": 120.0,
+          "std": 22.12243982362705
+        },
+        "success_rate": 0.1875,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 12.75,
+          "wounds_per_fame": 0.0784313725490196
+        },
+        "wounds_gained": {
+          "max": 10.0,
+          "mean": 0.625,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 2.4206145913796355
+        }
+      },
+      "exploration_tiny": {
+        "case_count": 16,
+        "fame": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "final_wounds": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "game_score": {
+          "max": 2.0,
+          "mean": 1.5625,
+          "median": 2.0,
+          "min": 0.0,
+          "p10": 1.0,
+          "p90": 2.0,
+          "std": 0.6091746465505602
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 1.0,
+            "mean": 0.0625,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.24206145913796356
+          },
+          "crystals": {
+            "max": 5.0,
+            "mean": 3.0625,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 2.0,
+            "p90": 4.0,
+            "std": 1.197327753791751
+          },
+          "deck": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "discard": {
+            "max": 16.0,
+            "mean": 13.75,
+            "median": 13.0,
+            "min": 12.0,
+            "p10": 12.5,
+            "p90": 15.5,
+            "std": 1.299038105676658
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.5,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.1726039399558574
+          },
+          "hand": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "level": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 0.4375,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.7880950133074057
+          },
+          "reputation": {
+            "max": -3.0,
+            "mean": -5.375,
+            "median": -5.0,
+            "min": -7.0,
+            "p10": -7.0,
+            "p90": -4.0,
+            "std": 1.1110243021644486
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 4.0,
+            "median": 4.0,
+            "min": 4.0,
+            "p10": 4.0,
+            "p90": 4.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 16.0,
+            "mean": 13.75,
+            "median": 13.0,
+            "min": 12.0,
+            "p10": 12.5,
+            "p90": 15.5,
+            "std": 1.299038105676658
+          },
+          "units": {
+            "max": 1.0,
+            "mean": 0.1875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.3903123748998999
+          },
+          "white_crystals": {
+            "max": 2.0,
+            "mean": 1.0625,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.0,
+            "std": 0.7473912964438374
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 124.0,
+          "mean": 107.5,
+          "median": 106.0,
+          "min": 98.0,
+          "p10": 100.5,
+          "p90": 114.0,
+          "std": 6.5383484153110105
+        },
+        "success_rate": 0.0,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 0.0,
+          "wounds_per_fame": 0.0
+        },
+        "wounds_gained": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        }
+      },
+      "full_arythea_core": {
+        "case_count": 128,
+        "fame": {
+          "max": 19.0,
+          "mean": 10.0390625,
+          "median": 9.0,
+          "min": 7.0,
+          "p10": 9.0,
+          "p90": 16.0,
+          "std": 2.8350549590958107
+        },
+        "final_wounds": {
+          "max": 11.0,
+          "mean": 0.9921875,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 3.0,
+          "std": 1.603200381999627
+        },
+        "game_score": {
+          "max": 25.0,
+          "mean": 12.765625,
+          "median": 13.0,
+          "min": -11.0,
+          "p10": 8.0,
+          "p90": 18.299999999999997,
+          "std": 4.5816965590679395
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.34375,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 3.0,
+            "std": 0.8425917976695477
+          },
+          "crystals": {
+            "max": 12.0,
+            "mean": 7.109375,
+            "median": 7.0,
+            "min": 3.0,
+            "p10": 5.0,
+            "p90": 10.0,
+            "std": 1.9970070378881992
+          },
+          "deck": {
+            "max": 15.0,
+            "mean": 4.359375,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 11.0,
+            "std": 4.549612577942764
+          },
+          "discard": {
+            "max": 19.0,
+            "mean": 9.453125,
+            "median": 10.0,
+            "min": 1.0,
+            "p10": 2.0,
+            "p90": 16.0,
+            "std": 5.200449762700819
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.6171875,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.1118754830662245
+          },
+          "hand": {
+            "max": 6.0,
+            "mean": 4.234375,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 5.0,
+            "std": 1.4868400584376922
+          },
+          "level": {
+            "max": 4.0,
+            "mean": 3.109375,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.3798514306607256
+          },
+          "non_wound_hand": {
+            "max": 6.0,
+            "mean": 4.046875,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 5.0,
+            "std": 1.5148193735145454
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.7265625,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.0055692087538033
+          },
+          "reputation": {
+            "max": 1.0,
+            "mean": -0.8125,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.409839907768875
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.6875,
+            "median": 4.0,
+            "min": 2.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.480071609241788
+          },
+          "skills": {
+            "max": 2.0,
+            "mean": 1.1328125,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 2.0,
+            "std": 0.3393719785777105
+          },
+          "total_cards": {
+            "max": 28.0,
+            "mean": 18.046875,
+            "median": 17.0,
+            "min": 15.0,
+            "p10": 17.0,
+            "p90": 20.0,
+            "std": 1.758281187516661
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.421875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.0797089813347853
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 160.0,
+          "mean": 113.1640625,
+          "median": 111.0,
+          "min": 75.0,
+          "p10": 101.0,
+          "p90": 125.0,
+          "std": 12.605044466248176
+        },
+        "success_rate": 0.9453125,
+        "termination_causes": {
+          "natural_end": 128
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 10.118110236220472,
+          "wounds_per_fame": 0.09883268482490272
+        },
+        "wounds_gained": {
+          "max": 18.0,
+          "mean": 1.546875,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 5.0,
+          "std": 2.8473106143122147
+        }
+      },
+      "full_braevalar_transfer": {
+        "case_count": 16,
+        "fame": {
+          "max": 9.0,
+          "mean": 8.25,
+          "median": 8.0,
+          "min": 7.0,
+          "p10": 7.5,
+          "p90": 9.0,
+          "std": 0.6614378277661477
+        },
+        "final_wounds": {
+          "max": 4.0,
+          "mean": 0.625,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 1.165922381636102
+        },
+        "game_score": {
+          "max": 14.0,
+          "mean": 11.8125,
+          "median": 12.5,
+          "min": 5.0,
+          "p10": 9.5,
+          "p90": 13.0,
+          "std": 2.297246993686138
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.875,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.5,
+            "p90": 3.0,
+            "std": 0.33071891388307384
+          },
+          "crystals": {
+            "max": 11.0,
+            "mean": 7.9375,
+            "median": 7.5,
+            "min": 6.0,
+            "p10": 6.0,
+            "p90": 10.5,
+            "std": 1.8864235340983213
+          },
+          "deck": {
+            "max": 3.0,
+            "mean": 0.6875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.5,
+            "std": 1.1021995055342748
+          },
+          "discard": {
+            "max": 21.0,
+            "mean": 13.75,
+            "median": 14.0,
+            "min": 9.0,
+            "p10": 10.0,
+            "p90": 15.5,
+            "std": 2.7950849718747373
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.5625,
+            "median": 1.5,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.0588171466310885
+          },
+          "hand": {
+            "max": 5.0,
+            "mean": 1.9375,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.3040385738958453
+          },
+          "level": {
+            "max": 3.0,
+            "mean": 2.875,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.5,
+            "p90": 3.0,
+            "std": 0.33071891388307384
+          },
+          "non_wound_hand": {
+            "max": 5.0,
+            "mean": 1.875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.2603926650031405
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 2.0625,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 1.5,
+            "p90": 3.0,
+            "std": 0.7473912964438374
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.8125,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.3903123748998999
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 4.0,
+            "median": 4.0,
+            "min": 4.0,
+            "p10": 4.0,
+            "p90": 4.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 21.0,
+            "mean": 16.375,
+            "median": 16.5,
+            "min": 13.0,
+            "p10": 14.0,
+            "p90": 19.0,
+            "std": 2.117634293262177
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.4375,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.2231491119238078
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 145.0,
+          "mean": 118.8125,
+          "median": 118.0,
+          "min": 109.0,
+          "p10": 111.0,
+          "p90": 124.5,
+          "std": 8.457383977921305
+        },
+        "success_rate": 0.375,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 13.2,
+          "wounds_per_fame": 0.07575757575757576
+        },
+        "wounds_gained": {
+          "max": 6.0,
+          "mean": 0.8125,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.5,
+          "std": 1.589762167747113
+        }
+      },
+      "full_goldyx_transfer": {
+        "case_count": 16,
+        "fame": {
+          "max": 9.0,
+          "mean": 8.875,
+          "median": 9.0,
+          "min": 8.0,
+          "p10": 8.5,
+          "p90": 9.0,
+          "std": 0.33071891388307384
+        },
+        "final_wounds": {
+          "max": 3.0,
+          "mean": 0.25,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.5,
+          "std": 0.75
+        },
+        "game_score": {
+          "max": 14.0,
+          "mean": 11.9375,
+          "median": 12.0,
+          "min": 8.0,
+          "p10": 11.0,
+          "p90": 13.5,
+          "std": 1.2975337182516684
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.5,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 1.5,
+            "p90": 3.0,
+            "std": 0.8660254037844386
+          },
+          "crystals": {
+            "max": 11.0,
+            "mean": 5.625,
+            "median": 5.0,
+            "min": 2.0,
+            "p10": 3.5,
+            "p90": 8.0,
+            "std": 2.2603926650031405
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 2.5,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 6.0,
+            "std": 3.0
+          },
+          "discard": {
+            "max": 16.0,
+            "mean": 10.875,
+            "median": 10.0,
+            "min": 4.0,
+            "p10": 5.5,
+            "p90": 15.5,
+            "std": 3.950870157319777
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.5625,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.1162856937182344
+          },
+          "hand": {
+            "max": 6.0,
+            "mean": 3.5,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.5,
+            "std": 2.2638462845343543
+          },
+          "level": {
+            "max": 3.0,
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 6.0,
+            "mean": 3.5,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.5,
+            "std": 2.2638462845343543
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 2.0,
+            "mean": 0.5,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.6123724356957945
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.8125,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.3903123748998999
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.6875,
+            "median": 4.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.46351240544347894
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 20.0,
+            "mean": 16.875,
+            "median": 17.0,
+            "min": 15.0,
+            "p10": 15.0,
+            "p90": 17.5,
+            "std": 1.165922381636102
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.0625,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.1439378261076953
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 127.0,
+          "mean": 105.5625,
+          "median": 105.5,
+          "min": 85.0,
+          "p10": 91.5,
+          "p90": 124.0,
+          "std": 11.55945905957541
+        },
+        "success_rate": 0.875,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 35.5,
+          "wounds_per_fame": 0.028169014084507043
+        },
+        "wounds_gained": {
+          "max": 5.0,
+          "mean": 0.375,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.5,
+          "std": 1.2183492931011204
+        }
+      },
+      "full_krang_transfer": {
+        "case_count": 16,
+        "fame": {
+          "max": 9.0,
+          "mean": 8.875,
+          "median": 9.0,
+          "min": 8.0,
+          "p10": 8.5,
+          "p90": 9.0,
+          "std": 0.33071891388307384
+        },
+        "final_wounds": {
+          "max": 2.0,
+          "mean": 0.3125,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 1.5,
+          "std": 0.6817945071647321
+        },
+        "game_score": {
+          "max": 15.0,
+          "mean": 13.0,
+          "median": 13.5,
+          "min": 9.0,
+          "p10": 10.5,
+          "p90": 14.5,
+          "std": 1.7320508075688772
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.75,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.0,
+            "p90": 3.0,
+            "std": 0.4330127018922193
+          },
+          "crystals": {
+            "max": 11.0,
+            "mean": 8.0,
+            "median": 8.0,
+            "min": 5.0,
+            "p10": 6.5,
+            "p90": 10.0,
+            "std": 1.5
+          },
+          "deck": {
+            "max": 10.0,
+            "mean": 2.875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 8.5,
+            "std": 3.4977671449083054
+          },
+          "discard": {
+            "max": 16.0,
+            "mean": 9.9375,
+            "median": 11.0,
+            "min": 4.0,
+            "p10": 4.5,
+            "p90": 15.5,
+            "std": 3.9444383313724147
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.25,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.0307764064044151
+          },
+          "hand": {
+            "max": 5.0,
+            "mean": 4.125,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 5.0,
+            "std": 1.8328597873268975
+          },
+          "level": {
+            "max": 3.0,
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 5.0,
+            "mean": 4.125,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 5.0,
+            "std": 1.8328597873268975
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.5625,
+            "median": 1.5,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 3.0,
+            "std": 0.9333240326917549
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.9375,
+            "median": -1.0,
+            "min": -2.0,
+            "p10": -1.5,
+            "p90": 0.0,
+            "std": 0.5555121510822243
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 4.0,
+            "median": 4.0,
+            "min": 4.0,
+            "p10": 4.0,
+            "p90": 4.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 19.0,
+            "mean": 16.9375,
+            "median": 17.0,
+            "min": 15.0,
+            "p10": 15.5,
+            "p90": 18.0,
+            "std": 1.0288798520721456
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 2.4375,
+            "median": 3.0,
+            "min": 1.0,
+            "p10": 1.5,
+            "p90": 3.0,
+            "std": 0.7043392293490403
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 124.0,
+          "mean": 114.25,
+          "median": 114.5,
+          "min": 107.0,
+          "p10": 108.0,
+          "p90": 121.0,
+          "std": 5.165994579942956
+        },
+        "success_rate": 0.875,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 28.4,
+          "wounds_per_fame": 0.035211267605633804
+        },
+        "wounds_gained": {
+          "max": 6.0,
+          "mean": 0.625,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 1.5360257159305635
+        }
+      },
+      "full_norowas_transfer": {
+        "case_count": 16,
+        "fame": {
+          "max": 16.0,
+          "mean": 10.25,
+          "median": 9.0,
+          "min": 8.0,
+          "p10": 9.0,
+          "p90": 16.0,
+          "std": 2.7726341266023544
+        },
+        "final_wounds": {
+          "max": 2.0,
+          "mean": 0.3125,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 1.0,
+          "std": 0.582961190818051
+        },
+        "game_score": {
+          "max": 22.0,
+          "mean": 14.375,
+          "median": 13.0,
+          "min": 9.0,
+          "p10": 11.5,
+          "p90": 20.5,
+          "std": 3.5333235062756425
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.4375,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 3.0,
+            "std": 1.0588171466310885
+          },
+          "crystals": {
+            "max": 10.0,
+            "mean": 7.0,
+            "median": 7.0,
+            "min": 3.0,
+            "p10": 5.0,
+            "p90": 9.5,
+            "std": 1.8371173070873836
+          },
+          "deck": {
+            "max": 12.0,
+            "mean": 2.625,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 8.0,
+            "std": 3.6550478793033614
+          },
+          "discard": {
+            "max": 16.0,
+            "mean": 10.1875,
+            "median": 10.5,
+            "min": 2.0,
+            "p10": 5.0,
+            "p90": 14.5,
+            "std": 3.77853725004796
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.5,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.2747548783981961
+          },
+          "hand": {
+            "max": 5.0,
+            "mean": 4.3125,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 2.5,
+            "p90": 5.0,
+            "std": 1.4882351124738322
+          },
+          "level": {
+            "max": 4.0,
+            "mean": 3.1875,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.3903123748998999
+          },
+          "non_wound_hand": {
+            "max": 5.0,
+            "mean": 4.25,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 2.5,
+            "p90": 5.0,
+            "std": 1.479019945774904
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.25,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.0,
+            "std": 0.82915619758885
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.5625,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.49607837082461076
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.9375,
+            "median": 4.0,
+            "min": 3.0,
+            "p10": 4.0,
+            "p90": 4.0,
+            "std": 0.24206145913796356
+          },
+          "skills": {
+            "max": 2.0,
+            "mean": 1.1875,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 2.0,
+            "std": 0.3903123748998999
+          },
+          "total_cards": {
+            "max": 19.0,
+            "mean": 17.125,
+            "median": 17.0,
+            "min": 15.0,
+            "p10": 16.0,
+            "p90": 18.5,
+            "std": 0.9921567416492215
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.8125,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 3.0,
+            "std": 0.8816709987291178
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 131.0,
+          "mean": 115.75,
+          "median": 114.5,
+          "min": 96.0,
+          "p10": 109.0,
+          "p90": 125.0,
+          "std": 7.830229881682913
+        },
+        "success_rate": 0.9375,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 32.8,
+          "wounds_per_fame": 0.03048780487804878
+        },
+        "wounds_gained": {
+          "max": 2.0,
+          "mean": 0.375,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 1.5,
+          "std": 0.6959705453537527
+        }
+      },
+      "full_tovak_transfer": {
+        "case_count": 16,
+        "fame": {
+          "max": 15.0,
+          "mean": 9.25,
+          "median": 9.0,
+          "min": 8.0,
+          "p10": 8.5,
+          "p90": 9.0,
+          "std": 1.5206906325745548
+        },
+        "final_wounds": {
+          "max": 3.0,
+          "mean": 0.4375,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 1.5,
+          "std": 0.8637671850678283
+        },
+        "game_score": {
+          "max": 21.0,
+          "mean": 12.75,
+          "median": 13.0,
+          "min": 7.0,
+          "p10": 9.5,
+          "p90": 14.0,
+          "std": 2.947456530637899
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.625,
+            "median": 3.0,
+            "min": 1.0,
+            "p10": 2.0,
+            "p90": 3.0,
+            "std": 0.5994789404140899
+          },
+          "crystals": {
+            "max": 9.0,
+            "mean": 7.0625,
+            "median": 7.0,
+            "min": 5.0,
+            "p10": 6.0,
+            "p90": 8.0,
+            "std": 0.9662265521087692
+          },
+          "deck": {
+            "max": 8.0,
+            "mean": 2.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.5,
+            "std": 2.57390753524675
+          },
+          "discard": {
+            "max": 19.0,
+            "mean": 11.5,
+            "median": 11.5,
+            "min": 4.0,
+            "p10": 7.0,
+            "p90": 16.0,
+            "std": 3.8890872965260113
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 2.375,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 1.5,
+            "p90": 3.0,
+            "std": 0.8569568250501305
+          },
+          "hand": {
+            "max": 6.0,
+            "mean": 3.5,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.1505813167606567
+          },
+          "level": {
+            "max": 4.0,
+            "mean": 3.0625,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.24206145913796356
+          },
+          "non_wound_hand": {
+            "max": 6.0,
+            "mean": 3.5,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.1505813167606567
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 2.0,
+            "mean": 1.1875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.0,
+            "std": 0.7261843774138906
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.75,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.4330127018922193
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.8125,
+            "median": 4.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.3903123748998999
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 20.0,
+            "mean": 17.0,
+            "median": 17.0,
+            "min": 14.0,
+            "p10": 15.5,
+            "p90": 18.5,
+            "std": 1.3228756555322954
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 0.875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.0,
+            "std": 0.9270248108869579
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 134.0,
+          "mean": 110.875,
+          "median": 109.0,
+          "min": 93.0,
+          "p10": 103.0,
+          "p90": 121.5,
+          "std": 9.088969963642745
+        },
+        "success_rate": 0.8125,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 21.142857142857142,
+          "wounds_per_fame": 0.0472972972972973
+        },
+        "wounds_gained": {
+          "max": 3.0,
+          "mean": 0.4375,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 1.5,
+          "std": 0.8637671850678283
+        }
+      },
+      "full_wolfhawk_transfer": {
+        "case_count": 16,
+        "fame": {
+          "max": 10.0,
+          "mean": 8.875,
+          "median": 9.0,
+          "min": 8.0,
+          "p10": 8.0,
+          "p90": 9.0,
+          "std": 0.4841229182759271
+        },
+        "final_wounds": {
+          "max": 7.0,
+          "mean": 1.0625,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 1.7488835724541527
+        },
+        "game_score": {
+          "max": 15.0,
+          "mean": 11.125,
+          "median": 12.5,
+          "min": -2.0,
+          "p10": 9.0,
+          "p90": 14.0,
+          "std": 3.8709656418005056
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.875,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.5,
+            "p90": 3.0,
+            "std": 0.33071891388307384
+          },
+          "crystals": {
+            "max": 11.0,
+            "mean": 7.3125,
+            "median": 7.0,
+            "min": 5.0,
+            "p10": 5.5,
+            "p90": 9.5,
+            "std": 1.6851835953390955
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 1.875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 7.0,
+            "std": 3.3517719194479807
+          },
+          "discard": {
+            "max": 18.0,
+            "mean": 12.4375,
+            "median": 14.0,
+            "min": 2.0,
+            "p10": 6.0,
+            "p90": 17.0,
+            "std": 4.568489219643623
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.1875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.184205957593526
+          },
+          "hand": {
+            "max": 5.0,
+            "mean": 3.125,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.2043990110685496
+          },
+          "level": {
+            "max": 3.0,
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 5.0,
+            "mean": 2.8125,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.1569292408421745
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.8125,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 3.0,
+            "std": 0.9499177595981665
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.875,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": -0.5,
+            "std": 0.33071891388307384
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.9375,
+            "median": 4.0,
+            "min": 3.0,
+            "p10": 4.0,
+            "p90": 4.0,
+            "std": 0.24206145913796356
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 24.0,
+            "mean": 17.4375,
+            "median": 17.0,
+            "min": 12.0,
+            "p10": 15.5,
+            "p90": 19.0,
+            "std": 2.3708845922988324
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.4375,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 0.998044963916957
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 141.0,
+          "mean": 119.0,
+          "median": 120.0,
+          "min": 99.0,
+          "p10": 107.0,
+          "p90": 130.5,
+          "std": 11.062323444918793
+        },
+        "success_rate": 0.75,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 8.352941176470589,
+          "wounds_per_fame": 0.11971830985915492
+        },
+        "wounds_gained": {
+          "max": 15.0,
+          "mean": 1.75,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 3.0,
+          "std": 3.59687364248454
+        }
+      }
+    },
+    "by_category": {
+      "combat_mechanics": {
+        "case_count": 96,
+        "fame": {
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.0
+        },
+        "final_wounds": {
+          "max": 2.0,
+          "mean": 0.9375,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 0.998044963916957
+        },
+        "game_score": {
+          "max": 2.0,
+          "mean": -1.0104166666666667,
+          "median": 0.0,
+          "min": -4.0,
+          "p10": -4.0,
+          "p90": 2.0,
+          "std": 2.1188380840424994
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 1.0,
+            "mean": 0.041666666666666664,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.19982631347136331
+          },
+          "crystals": {
+            "max": 4.0,
+            "mean": 2.21875,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 4.0,
+            "std": 1.5357077969132018
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 10.833333333333334,
+            "median": 11.0,
+            "min": 7.0,
+            "p10": 11.0,
+            "p90": 11.0,
+            "std": 0.7993052538854533
+          },
+          "discard": {
+            "max": 1.0,
+            "mean": 0.041666666666666664,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.19982631347136331
+          },
+          "green_crystals": {
+            "max": 1.0,
+            "mean": 0.08333333333333333,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.2763853991962833
+          },
+          "hand": {
+            "max": 8.0,
+            "mean": 3.3645833333333335,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 6.0,
+            "std": 1.9155057625569516
+          },
+          "level": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 6.0,
+            "mean": 2.4270833333333335,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 4.0,
+            "std": 1.2808264882705835
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 2.0,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.4142135623730951
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "round": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 18.0,
+            "mean": 14.239583333333334,
+            "median": 14.0,
+            "min": 10.0,
+            "p10": 12.0,
+            "p90": 17.0,
+            "std": 1.8469839810861621
+          },
+          "units": {
+            "max": 1.0,
+            "mean": 0.3333333333333333,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.4714045207910317
+          },
+          "white_crystals": {
+            "max": 1.0,
+            "mean": 0.09375,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.2914805954090255
+          },
+          "wounded_units": {
+            "max": 1.0,
+            "mean": 0.3125,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.46351240544347894
+          }
+        },
+        "steps": {
+          "max": 15.0,
+          "mean": 9.40625,
+          "median": 9.0,
+          "min": 4.0,
+          "p10": 6.0,
+          "p90": 12.0,
+          "std": 2.302978709736588
+        },
+        "success_rate": 0.0,
+        "termination_causes": {
+          "natural_end": 96
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 0.0,
+          "wounds_per_fame": 0.0
+        },
+        "wounds_gained": {
+          "max": 2.0,
+          "mean": 0.9375,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 0.998044963916957
+        }
+      },
+      "exploration_mechanics": {
+        "case_count": 32,
+        "fame": {
+          "max": 4.0,
+          "mean": 1.59375,
+          "median": 1.5,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 3.0,
+          "std": 1.6174705368259417
+        },
+        "final_wounds": {
+          "max": 4.0,
+          "mean": 0.125,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 0.6959705453537527
+        },
+        "game_score": {
+          "max": 8.0,
+          "mean": 3.84375,
+          "median": 2.0,
+          "min": 0.0,
+          "p10": 1.0,
+          "p90": 7.0,
+          "std": 2.623325358681229
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 1.0,
+            "mean": 0.125,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.9000000000000021,
+            "std": 0.33071891388307384
+          },
+          "crystals": {
+            "max": 9.0,
+            "mean": 4.09375,
+            "median": 4.0,
+            "min": 0.0,
+            "p10": 2.0,
+            "p90": 6.0,
+            "std": 1.8768220313870998
+          },
+          "deck": {
+            "max": 4.0,
+            "mean": 0.25,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.8660254037844386
+          },
+          "discard": {
+            "max": 21.0,
+            "mean": 13.8125,
+            "median": 15.0,
+            "min": 6.0,
+            "p10": 12.0,
+            "p90": 15.0,
+            "std": 2.4929588343973914
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.65625,
+            "median": 1.5,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.1887329126006396
+          },
+          "hand": {
+            "max": 7.0,
+            "mean": 0.5625,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 1.7666617531378213
+          },
+          "level": {
+            "max": 2.0,
+            "mean": 1.5,
+            "median": 1.5,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 2.0,
+            "std": 0.5
+          },
+          "non_wound_hand": {
+            "max": 7.0,
+            "mean": 0.5625,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 1.7666617531378213
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.15625,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.148623496843069
+          },
+          "reputation": {
+            "max": -1.0,
+            "mean": -3.78125,
+            "median": -4.0,
+            "min": -7.0,
+            "p10": -6.0,
+            "p90": -1.0,
+            "std": 1.9483065563457924
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.84375,
+            "median": 4.0,
+            "min": 2.0,
+            "p10": 4.0,
+            "p90": 4.0,
+            "std": 0.5067898356320892
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 0.5,
+            "median": 0.5,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.5
+          },
+          "total_cards": {
+            "max": 21.0,
+            "mean": 14.625,
+            "median": 15.0,
+            "min": 12.0,
+            "p10": 13.0,
+            "p90": 16.900000000000002,
+            "std": 1.8157298807917437
+          },
+          "units": {
+            "max": 1.0,
+            "mean": 0.09375,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.2914805954090255
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.15625,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.0,
+            "std": 0.8332682266233364
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 132.0,
+          "mean": 106.65625,
+          "median": 110.5,
+          "min": 50.0,
+          "p10": 98.2,
+          "p90": 117.8,
+          "std": 16.333648886195025
+        },
+        "success_rate": 0.09375,
+        "termination_causes": {
+          "natural_end": 32
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 12.75,
+          "wounds_per_fame": 0.0784313725490196
+        },
+        "wounds_gained": {
+          "max": 10.0,
+          "mean": 0.3125,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.0,
+          "std": 1.7399263633843818
+        }
+      },
+      "full_game_core": {
+        "case_count": 128,
+        "fame": {
+          "max": 19.0,
+          "mean": 10.0390625,
+          "median": 9.0,
+          "min": 7.0,
+          "p10": 9.0,
+          "p90": 16.0,
+          "std": 2.8350549590958107
+        },
+        "final_wounds": {
+          "max": 11.0,
+          "mean": 0.9921875,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 3.0,
+          "std": 1.603200381999627
+        },
+        "game_score": {
+          "max": 25.0,
+          "mean": 12.765625,
+          "median": 13.0,
+          "min": -11.0,
+          "p10": 8.0,
+          "p90": 18.299999999999997,
+          "std": 4.5816965590679395
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.34375,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 3.0,
+            "std": 0.8425917976695477
+          },
+          "crystals": {
+            "max": 12.0,
+            "mean": 7.109375,
+            "median": 7.0,
+            "min": 3.0,
+            "p10": 5.0,
+            "p90": 10.0,
+            "std": 1.9970070378881992
+          },
+          "deck": {
+            "max": 15.0,
+            "mean": 4.359375,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 11.0,
+            "std": 4.549612577942764
+          },
+          "discard": {
+            "max": 19.0,
+            "mean": 9.453125,
+            "median": 10.0,
+            "min": 1.0,
+            "p10": 2.0,
+            "p90": 16.0,
+            "std": 5.200449762700819
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.6171875,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.1118754830662245
+          },
+          "hand": {
+            "max": 6.0,
+            "mean": 4.234375,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 5.0,
+            "std": 1.4868400584376922
+          },
+          "level": {
+            "max": 4.0,
+            "mean": 3.109375,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.3798514306607256
+          },
+          "non_wound_hand": {
+            "max": 6.0,
+            "mean": 4.046875,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 5.0,
+            "std": 1.5148193735145454
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.7265625,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.0055692087538033
+          },
+          "reputation": {
+            "max": 1.0,
+            "mean": -0.8125,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.409839907768875
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.6875,
+            "median": 4.0,
+            "min": 2.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.480071609241788
+          },
+          "skills": {
+            "max": 2.0,
+            "mean": 1.1328125,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 2.0,
+            "std": 0.3393719785777105
+          },
+          "total_cards": {
+            "max": 28.0,
+            "mean": 18.046875,
+            "median": 17.0,
+            "min": 15.0,
+            "p10": 17.0,
+            "p90": 20.0,
+            "std": 1.758281187516661
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.421875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.0797089813347853
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 160.0,
+          "mean": 113.1640625,
+          "median": 111.0,
+          "min": 75.0,
+          "p10": 101.0,
+          "p90": 125.0,
+          "std": 12.605044466248176
+        },
+        "success_rate": 0.9453125,
+        "termination_causes": {
+          "natural_end": 128
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 10.118110236220472,
+          "wounds_per_fame": 0.09883268482490272
+        },
+        "wounds_gained": {
+          "max": 18.0,
+          "mean": 1.546875,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 5.0,
+          "std": 2.8473106143122147
+        }
+      },
+      "hero_transfer": {
+        "case_count": 96,
+        "fame": {
+          "max": 16.0,
+          "mean": 9.0625,
+          "median": 9.0,
+          "min": 7.0,
+          "p10": 8.0,
+          "p90": 9.0,
+          "std": 1.4776988021921111
+        },
+        "final_wounds": {
+          "max": 7.0,
+          "mean": 0.5,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 1.0801234497346435
+        },
+        "game_score": {
+          "max": 22.0,
+          "mean": 12.5,
+          "median": 13.0,
+          "min": -2.0,
+          "p10": 9.0,
+          "p90": 14.0,
+          "std": 2.9615592739861434
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.6770833333333335,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 2.0,
+            "p90": 3.0,
+            "std": 0.6845739500269898
+          },
+          "crystals": {
+            "max": 11.0,
+            "mean": 7.15625,
+            "median": 7.0,
+            "min": 2.0,
+            "p10": 5.0,
+            "p90": 10.0,
+            "std": 1.9057376360611658
+          },
+          "deck": {
+            "max": 12.0,
+            "mean": 2.09375,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 6.0,
+            "std": 3.0757049496822675
+          },
+          "discard": {
+            "max": 21.0,
+            "mean": 11.447916666666666,
+            "median": 12.0,
+            "min": 2.0,
+            "p10": 5.5,
+            "p90": 16.0,
+            "std": 4.077043944623223
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.5729166666666667,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.161399942478425
+          },
+          "hand": {
+            "max": 6.0,
+            "mean": 3.4166666666666665,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.2016408022704845
+          },
+          "level": {
+            "max": 4.0,
+            "mean": 3.0208333333333335,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.24913043214794578
+          },
+          "non_wound_hand": {
+            "max": 6.0,
+            "mean": 3.34375,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.1976698123618723
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.3958333333333333,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 0.951743648375035
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.7916666666666666,
+            "median": -1.0,
+            "min": -2.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.45452967144315476
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.8958333333333335,
+            "median": 4.0,
+            "min": 3.0,
+            "p10": 3.5,
+            "p90": 4.0,
+            "std": 0.3054766312211496
+          },
+          "skills": {
+            "max": 2.0,
+            "mean": 1.03125,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.17399263633843817
+          },
+          "total_cards": {
+            "max": 24.0,
+            "mean": 16.958333333333332,
+            "median": 17.0,
+            "min": 12.0,
+            "p10": 15.0,
+            "p90": 19.0,
+            "std": 1.6260680250906547
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.5104166666666667,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.1179854619160106
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 145.0,
+          "mean": 114.04166666666667,
+          "median": 113.0,
+          "min": 85.0,
+          "p10": 103.5,
+          "p90": 126.5,
+          "std": 10.249915311303255
+        },
+        "success_rate": 0.7708333333333334,
+        "termination_causes": {
+          "natural_end": 96
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 18.125,
+          "wounds_per_fame": 0.05517241379310345
+        },
+        "wounds_gained": {
+          "max": 15.0,
+          "mean": 0.7291666666666666,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 1.9120188210951854
+        }
+      }
+    },
+    "by_hero": {
+      "arythea": {
+        "case_count": 256,
+        "fame": {
+          "max": 19.0,
+          "mean": 5.21875,
+          "median": 5.5,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 9.0,
+          "std": 5.274403846644661
+        },
+        "final_wounds": {
+          "max": 11.0,
+          "mean": 0.86328125,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 1.3407886609747404
+        },
+        "game_score": {
+          "max": 25.0,
+          "mean": 6.484375,
+          "median": 6.5,
+          "min": -11.0,
+          "p10": -3.0,
+          "p90": 15.0,
+          "std": 7.3961395916636805
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 1.203125,
+            "median": 0.5,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.298192102261834
+          },
+          "crystals": {
+            "max": 12.0,
+            "mean": 4.8984375,
+            "median": 4.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 9.0,
+            "std": 2.921739218101737
+          },
+          "deck": {
+            "max": 15.0,
+            "mean": 6.2734375,
+            "median": 7.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 11.0,
+            "std": 4.984687245313767
+          },
+          "discard": {
+            "max": 21.0,
+            "mean": 6.46875,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 15.0,
+            "std": 6.403047980259089
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.046875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.1749958444075452
+          },
+          "hand": {
+            "max": 8.0,
+            "mean": 3.44921875,
+            "median": 4.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.0552332628313597
+          },
+          "level": {
+            "max": 4.0,
+            "mean": 2.1171875,
+            "median": 2.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 3.0,
+            "std": 1.0541665380022978
+          },
+          "non_wound_hand": {
+            "max": 7.0,
+            "mean": 3.00390625,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 1.8884890762752475
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.7578125,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.2199263153337376
+          },
+          "reputation": {
+            "max": 1.0,
+            "mean": -0.87890625,
+            "median": -1.0,
+            "min": -7.0,
+            "p10": -1.5,
+            "p90": 0.0,
+            "std": 1.3796032232895579
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 2.69921875,
+            "median": 3.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 4.0,
+            "std": 1.3719281649009316
+          },
+          "skills": {
+            "max": 2.0,
+            "mean": 0.62890625,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.605141040345916
+          },
+          "total_cards": {
+            "max": 28.0,
+            "mean": 16.19140625,
+            "median": 17.0,
+            "min": 10.0,
+            "p10": 12.5,
+            "p90": 19.0,
+            "std": 2.5872441704371347
+          },
+          "units": {
+            "max": 1.0,
+            "mean": 0.13671875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.3435501905085158
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 0.890625,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.0438388809461927
+          },
+          "wounded_units": {
+            "max": 1.0,
+            "mean": 0.1171875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.3216435757849828
+          }
+        },
+        "steps": {
+          "max": 160.0,
+          "mean": 73.44140625,
+          "median": 104.0,
+          "min": 4.0,
+          "p10": 8.0,
+          "p90": 122.0,
+          "std": 50.78697548852915
+        },
+        "success_rate": 0.484375,
+        "termination_causes": {
+          "natural_end": 256
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 6.04524886877828,
+          "wounds_per_fame": 0.16541916167664672
+        },
+        "wounds_gained": {
+          "max": 18.0,
+          "mean": 1.1640625,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 2.2335416933860337
+        }
+      },
+      "braevalar": {
+        "case_count": 16,
+        "fame": {
+          "max": 9.0,
+          "mean": 8.25,
+          "median": 8.0,
+          "min": 7.0,
+          "p10": 7.5,
+          "p90": 9.0,
+          "std": 0.6614378277661477
+        },
+        "final_wounds": {
+          "max": 4.0,
+          "mean": 0.625,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 1.165922381636102
+        },
+        "game_score": {
+          "max": 14.0,
+          "mean": 11.8125,
+          "median": 12.5,
+          "min": 5.0,
+          "p10": 9.5,
+          "p90": 13.0,
+          "std": 2.297246993686138
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.875,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.5,
+            "p90": 3.0,
+            "std": 0.33071891388307384
+          },
+          "crystals": {
+            "max": 11.0,
+            "mean": 7.9375,
+            "median": 7.5,
+            "min": 6.0,
+            "p10": 6.0,
+            "p90": 10.5,
+            "std": 1.8864235340983213
+          },
+          "deck": {
+            "max": 3.0,
+            "mean": 0.6875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.5,
+            "std": 1.1021995055342748
+          },
+          "discard": {
+            "max": 21.0,
+            "mean": 13.75,
+            "median": 14.0,
+            "min": 9.0,
+            "p10": 10.0,
+            "p90": 15.5,
+            "std": 2.7950849718747373
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.5625,
+            "median": 1.5,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.0588171466310885
+          },
+          "hand": {
+            "max": 5.0,
+            "mean": 1.9375,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.3040385738958453
+          },
+          "level": {
+            "max": 3.0,
+            "mean": 2.875,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.5,
+            "p90": 3.0,
+            "std": 0.33071891388307384
+          },
+          "non_wound_hand": {
+            "max": 5.0,
+            "mean": 1.875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.2603926650031405
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 2.0625,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 1.5,
+            "p90": 3.0,
+            "std": 0.7473912964438374
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.8125,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.3903123748998999
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 4.0,
+            "median": 4.0,
+            "min": 4.0,
+            "p10": 4.0,
+            "p90": 4.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 21.0,
+            "mean": 16.375,
+            "median": 16.5,
+            "min": 13.0,
+            "p10": 14.0,
+            "p90": 19.0,
+            "std": 2.117634293262177
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.4375,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.2231491119238078
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 145.0,
+          "mean": 118.8125,
+          "median": 118.0,
+          "min": 109.0,
+          "p10": 111.0,
+          "p90": 124.5,
+          "std": 8.457383977921305
+        },
+        "success_rate": 0.375,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 13.2,
+          "wounds_per_fame": 0.07575757575757576
+        },
+        "wounds_gained": {
+          "max": 6.0,
+          "mean": 0.8125,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.5,
+          "std": 1.589762167747113
+        }
+      },
+      "goldyx": {
+        "case_count": 16,
+        "fame": {
+          "max": 9.0,
+          "mean": 8.875,
+          "median": 9.0,
+          "min": 8.0,
+          "p10": 8.5,
+          "p90": 9.0,
+          "std": 0.33071891388307384
+        },
+        "final_wounds": {
+          "max": 3.0,
+          "mean": 0.25,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.5,
+          "std": 0.75
+        },
+        "game_score": {
+          "max": 14.0,
+          "mean": 11.9375,
+          "median": 12.0,
+          "min": 8.0,
+          "p10": 11.0,
+          "p90": 13.5,
+          "std": 1.2975337182516684
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.5,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 1.5,
+            "p90": 3.0,
+            "std": 0.8660254037844386
+          },
+          "crystals": {
+            "max": 11.0,
+            "mean": 5.625,
+            "median": 5.0,
+            "min": 2.0,
+            "p10": 3.5,
+            "p90": 8.0,
+            "std": 2.2603926650031405
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 2.5,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 6.0,
+            "std": 3.0
+          },
+          "discard": {
+            "max": 16.0,
+            "mean": 10.875,
+            "median": 10.0,
+            "min": 4.0,
+            "p10": 5.5,
+            "p90": 15.5,
+            "std": 3.950870157319777
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.5625,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.1162856937182344
+          },
+          "hand": {
+            "max": 6.0,
+            "mean": 3.5,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.5,
+            "std": 2.2638462845343543
+          },
+          "level": {
+            "max": 3.0,
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 6.0,
+            "mean": 3.5,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.5,
+            "std": 2.2638462845343543
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 2.0,
+            "mean": 0.5,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 1.0,
+            "std": 0.6123724356957945
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.8125,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.3903123748998999
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.6875,
+            "median": 4.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.46351240544347894
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 20.0,
+            "mean": 16.875,
+            "median": 17.0,
+            "min": 15.0,
+            "p10": 15.0,
+            "p90": 17.5,
+            "std": 1.165922381636102
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.0625,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.1439378261076953
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 127.0,
+          "mean": 105.5625,
+          "median": 105.5,
+          "min": 85.0,
+          "p10": 91.5,
+          "p90": 124.0,
+          "std": 11.55945905957541
+        },
+        "success_rate": 0.875,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 35.5,
+          "wounds_per_fame": 0.028169014084507043
+        },
+        "wounds_gained": {
+          "max": 5.0,
+          "mean": 0.375,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 0.5,
+          "std": 1.2183492931011204
+        }
+      },
+      "krang": {
+        "case_count": 16,
+        "fame": {
+          "max": 9.0,
+          "mean": 8.875,
+          "median": 9.0,
+          "min": 8.0,
+          "p10": 8.5,
+          "p90": 9.0,
+          "std": 0.33071891388307384
+        },
+        "final_wounds": {
+          "max": 2.0,
+          "mean": 0.3125,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 1.5,
+          "std": 0.6817945071647321
+        },
+        "game_score": {
+          "max": 15.0,
+          "mean": 13.0,
+          "median": 13.5,
+          "min": 9.0,
+          "p10": 10.5,
+          "p90": 14.5,
+          "std": 1.7320508075688772
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.75,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.0,
+            "p90": 3.0,
+            "std": 0.4330127018922193
+          },
+          "crystals": {
+            "max": 11.0,
+            "mean": 8.0,
+            "median": 8.0,
+            "min": 5.0,
+            "p10": 6.5,
+            "p90": 10.0,
+            "std": 1.5
+          },
+          "deck": {
+            "max": 10.0,
+            "mean": 2.875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 8.5,
+            "std": 3.4977671449083054
+          },
+          "discard": {
+            "max": 16.0,
+            "mean": 9.9375,
+            "median": 11.0,
+            "min": 4.0,
+            "p10": 4.5,
+            "p90": 15.5,
+            "std": 3.9444383313724147
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.25,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.0307764064044151
+          },
+          "hand": {
+            "max": 5.0,
+            "mean": 4.125,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 5.0,
+            "std": 1.8328597873268975
+          },
+          "level": {
+            "max": 3.0,
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 5.0,
+            "mean": 4.125,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 5.0,
+            "std": 1.8328597873268975
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.5625,
+            "median": 1.5,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 3.0,
+            "std": 0.9333240326917549
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.9375,
+            "median": -1.0,
+            "min": -2.0,
+            "p10": -1.5,
+            "p90": 0.0,
+            "std": 0.5555121510822243
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 4.0,
+            "median": 4.0,
+            "min": 4.0,
+            "p10": 4.0,
+            "p90": 4.0,
+            "std": 0.0
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 19.0,
+            "mean": 16.9375,
+            "median": 17.0,
+            "min": 15.0,
+            "p10": 15.5,
+            "p90": 18.0,
+            "std": 1.0288798520721456
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 2.4375,
+            "median": 3.0,
+            "min": 1.0,
+            "p10": 1.5,
+            "p90": 3.0,
+            "std": 0.7043392293490403
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 124.0,
+          "mean": 114.25,
+          "median": 114.5,
+          "min": 107.0,
+          "p10": 108.0,
+          "p90": 121.0,
+          "std": 5.165994579942956
+        },
+        "success_rate": 0.875,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 28.4,
+          "wounds_per_fame": 0.035211267605633804
+        },
+        "wounds_gained": {
+          "max": 6.0,
+          "mean": 0.625,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 1.5360257159305635
+        }
+      },
+      "norowas": {
+        "case_count": 16,
+        "fame": {
+          "max": 16.0,
+          "mean": 10.25,
+          "median": 9.0,
+          "min": 8.0,
+          "p10": 9.0,
+          "p90": 16.0,
+          "std": 2.7726341266023544
+        },
+        "final_wounds": {
+          "max": 2.0,
+          "mean": 0.3125,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 1.0,
+          "std": 0.582961190818051
+        },
+        "game_score": {
+          "max": 22.0,
+          "mean": 14.375,
+          "median": 13.0,
+          "min": 9.0,
+          "p10": 11.5,
+          "p90": 20.5,
+          "std": 3.5333235062756425
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.4375,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 0.5,
+            "p90": 3.0,
+            "std": 1.0588171466310885
+          },
+          "crystals": {
+            "max": 10.0,
+            "mean": 7.0,
+            "median": 7.0,
+            "min": 3.0,
+            "p10": 5.0,
+            "p90": 9.5,
+            "std": 1.8371173070873836
+          },
+          "deck": {
+            "max": 12.0,
+            "mean": 2.625,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 8.0,
+            "std": 3.6550478793033614
+          },
+          "discard": {
+            "max": 16.0,
+            "mean": 10.1875,
+            "median": 10.5,
+            "min": 2.0,
+            "p10": 5.0,
+            "p90": 14.5,
+            "std": 3.77853725004796
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.5,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.2747548783981961
+          },
+          "hand": {
+            "max": 5.0,
+            "mean": 4.3125,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 2.5,
+            "p90": 5.0,
+            "std": 1.4882351124738322
+          },
+          "level": {
+            "max": 4.0,
+            "mean": 3.1875,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.3903123748998999
+          },
+          "non_wound_hand": {
+            "max": 5.0,
+            "mean": 4.25,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 2.5,
+            "p90": 5.0,
+            "std": 1.479019945774904
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.25,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.0,
+            "std": 0.82915619758885
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.5625,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.49607837082461076
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.9375,
+            "median": 4.0,
+            "min": 3.0,
+            "p10": 4.0,
+            "p90": 4.0,
+            "std": 0.24206145913796356
+          },
+          "skills": {
+            "max": 2.0,
+            "mean": 1.1875,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 2.0,
+            "std": 0.3903123748998999
+          },
+          "total_cards": {
+            "max": 19.0,
+            "mean": 17.125,
+            "median": 17.0,
+            "min": 15.0,
+            "p10": 16.0,
+            "p90": 18.5,
+            "std": 0.9921567416492215
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.8125,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 3.0,
+            "std": 0.8816709987291178
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 131.0,
+          "mean": 115.75,
+          "median": 114.5,
+          "min": 96.0,
+          "p10": 109.0,
+          "p90": 125.0,
+          "std": 7.830229881682913
+        },
+        "success_rate": 0.9375,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 32.8,
+          "wounds_per_fame": 0.03048780487804878
+        },
+        "wounds_gained": {
+          "max": 2.0,
+          "mean": 0.375,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 1.5,
+          "std": 0.6959705453537527
+        }
+      },
+      "tovak": {
+        "case_count": 16,
+        "fame": {
+          "max": 15.0,
+          "mean": 9.25,
+          "median": 9.0,
+          "min": 8.0,
+          "p10": 8.5,
+          "p90": 9.0,
+          "std": 1.5206906325745548
+        },
+        "final_wounds": {
+          "max": 3.0,
+          "mean": 0.4375,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 1.5,
+          "std": 0.8637671850678283
+        },
+        "game_score": {
+          "max": 21.0,
+          "mean": 12.75,
+          "median": 13.0,
+          "min": 7.0,
+          "p10": 9.5,
+          "p90": 14.0,
+          "std": 2.947456530637899
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.625,
+            "median": 3.0,
+            "min": 1.0,
+            "p10": 2.0,
+            "p90": 3.0,
+            "std": 0.5994789404140899
+          },
+          "crystals": {
+            "max": 9.0,
+            "mean": 7.0625,
+            "median": 7.0,
+            "min": 5.0,
+            "p10": 6.0,
+            "p90": 8.0,
+            "std": 0.9662265521087692
+          },
+          "deck": {
+            "max": 8.0,
+            "mean": 2.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.5,
+            "std": 2.57390753524675
+          },
+          "discard": {
+            "max": 19.0,
+            "mean": 11.5,
+            "median": 11.5,
+            "min": 4.0,
+            "p10": 7.0,
+            "p90": 16.0,
+            "std": 3.8890872965260113
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 2.375,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 1.5,
+            "p90": 3.0,
+            "std": 0.8569568250501305
+          },
+          "hand": {
+            "max": 6.0,
+            "mean": 3.5,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.1505813167606567
+          },
+          "level": {
+            "max": 4.0,
+            "mean": 3.0625,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.24206145913796356
+          },
+          "non_wound_hand": {
+            "max": 6.0,
+            "mean": 3.5,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.1505813167606567
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 2.0,
+            "mean": 1.1875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.0,
+            "std": 0.7261843774138906
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.75,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": 0.0,
+            "std": 0.4330127018922193
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.8125,
+            "median": 4.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 4.0,
+            "std": 0.3903123748998999
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 20.0,
+            "mean": 17.0,
+            "median": 17.0,
+            "min": 14.0,
+            "p10": 15.5,
+            "p90": 18.5,
+            "std": 1.3228756555322954
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 0.875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 2.0,
+            "std": 0.9270248108869579
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 134.0,
+          "mean": 110.875,
+          "median": 109.0,
+          "min": 93.0,
+          "p10": 103.0,
+          "p90": 121.5,
+          "std": 9.088969963642745
+        },
+        "success_rate": 0.8125,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 21.142857142857142,
+          "wounds_per_fame": 0.0472972972972973
+        },
+        "wounds_gained": {
+          "max": 3.0,
+          "mean": 0.4375,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 1.5,
+          "std": 0.8637671850678283
+        }
+      },
+      "wolfhawk": {
+        "case_count": 16,
+        "fame": {
+          "max": 10.0,
+          "mean": 8.875,
+          "median": 9.0,
+          "min": 8.0,
+          "p10": 8.0,
+          "p90": 9.0,
+          "std": 0.4841229182759271
+        },
+        "final_wounds": {
+          "max": 7.0,
+          "mean": 1.0625,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 2.0,
+          "std": 1.7488835724541527
+        },
+        "game_score": {
+          "max": 15.0,
+          "mean": 11.125,
+          "median": 12.5,
+          "min": -2.0,
+          "p10": 9.0,
+          "p90": 14.0,
+          "std": 3.8709656418005056
+        },
+        "natural_end_rate": 1.0,
+        "resources": {
+          "blue_crystals": {
+            "max": 3.0,
+            "mean": 2.875,
+            "median": 3.0,
+            "min": 2.0,
+            "p10": 2.5,
+            "p90": 3.0,
+            "std": 0.33071891388307384
+          },
+          "crystals": {
+            "max": 11.0,
+            "mean": 7.3125,
+            "median": 7.0,
+            "min": 5.0,
+            "p10": 5.5,
+            "p90": 9.5,
+            "std": 1.6851835953390955
+          },
+          "deck": {
+            "max": 11.0,
+            "mean": 1.875,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 7.0,
+            "std": 3.3517719194479807
+          },
+          "discard": {
+            "max": 18.0,
+            "mean": 12.4375,
+            "median": 14.0,
+            "min": 2.0,
+            "p10": 6.0,
+            "p90": 17.0,
+            "std": 4.568489219643623
+          },
+          "green_crystals": {
+            "max": 3.0,
+            "mean": 1.1875,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 1.184205957593526
+          },
+          "hand": {
+            "max": 5.0,
+            "mean": 3.125,
+            "median": 5.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.2043990110685496
+          },
+          "level": {
+            "max": 3.0,
+            "mean": 3.0,
+            "median": 3.0,
+            "min": 3.0,
+            "p10": 3.0,
+            "p90": 3.0,
+            "std": 0.0
+          },
+          "non_wound_hand": {
+            "max": 5.0,
+            "mean": 2.8125,
+            "median": 3.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 5.0,
+            "std": 2.1569292408421745
+          },
+          "ready_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "red_crystals": {
+            "max": 3.0,
+            "mean": 1.8125,
+            "median": 2.0,
+            "min": 0.0,
+            "p10": 1.0,
+            "p90": 3.0,
+            "std": 0.9499177595981665
+          },
+          "reputation": {
+            "max": 0.0,
+            "mean": -0.875,
+            "median": -1.0,
+            "min": -1.0,
+            "p10": -1.0,
+            "p90": -0.5,
+            "std": 0.33071891388307384
+          },
+          "round": {
+            "max": 4.0,
+            "mean": 3.9375,
+            "median": 4.0,
+            "min": 3.0,
+            "p10": 4.0,
+            "p90": 4.0,
+            "std": 0.24206145913796356
+          },
+          "skills": {
+            "max": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "p10": 1.0,
+            "p90": 1.0,
+            "std": 0.0
+          },
+          "total_cards": {
+            "max": 24.0,
+            "mean": 17.4375,
+            "median": 17.0,
+            "min": 12.0,
+            "p10": 15.5,
+            "p90": 19.0,
+            "std": 2.3708845922988324
+          },
+          "units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          },
+          "white_crystals": {
+            "max": 3.0,
+            "mean": 1.4375,
+            "median": 1.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 3.0,
+            "std": 0.998044963916957
+          },
+          "wounded_units": {
+            "max": 0.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "std": 0.0
+          }
+        },
+        "steps": {
+          "max": 141.0,
+          "mean": 119.0,
+          "median": 120.0,
+          "min": 99.0,
+          "p10": 107.0,
+          "p90": 130.5,
+          "std": 11.062323444918793
+        },
+        "success_rate": 0.75,
+        "termination_causes": {
+          "natural_end": 16
+        },
+        "wound_efficiency": {
+          "fame_per_wound": 8.352941176470589,
+          "wounds_per_fame": 0.11971830985915492
+        },
+        "wounds_gained": {
+          "max": 15.0,
+          "mean": 1.75,
+          "median": 0.0,
+          "min": 0.0,
+          "p10": 0.0,
+          "p90": 3.0,
+          "std": 3.59687364248454
+        }
+      }
+    },
+    "case_count": 352,
+    "fame": {
+      "max": 19.0,
+      "mean": 6.267045454545454,
+      "median": 9.0,
+      "min": 0.0,
+      "p10": 0.0,
+      "p90": 9.0,
+      "std": 4.874241703050031
+    },
+    "final_wounds": {
+      "max": 11.0,
+      "mean": 0.7642045454545454,
+      "median": 0.0,
+      "min": 0.0,
+      "p10": 0.0,
+      "p90": 2.0,
+      "std": 1.2852186067949942
+    },
+    "game_score": {
+      "max": 25.0,
+      "mean": 8.125,
+      "median": 10.0,
+      "min": -11.0,
+      "p10": -3.0,
+      "p90": 15.0,
+      "std": 7.025218372536058
+    },
+    "natural_end_rate": 1.0,
+    "resources": {
+      "blue_crystals": {
+        "max": 3.0,
+        "mean": 1.6051136363636365,
+        "median": 2.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 3.0,
+        "std": 1.3358164802490493
+      },
+      "crystals": {
+        "max": 12.0,
+        "mean": 5.514204545454546,
+        "median": 6.0,
+        "min": 0.0,
+        "p10": 2.0,
+        "p90": 9.0,
+        "std": 2.8653142067870503
+      },
+      "deck": {
+        "max": 15.0,
+        "mean": 5.1335227272727275,
+        "median": 4.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 11.0,
+        "std": 4.910773300466474
+      },
+      "discard": {
+        "max": 21.0,
+        "mean": 7.826704545454546,
+        "median": 9.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 15.0,
+        "std": 6.266439510597652
+      },
+      "green_crystals": {
+        "max": 3.0,
+        "mean": 1.1903409090909092,
+        "median": 1.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 3.0,
+        "std": 1.1945034617549788
+      },
+      "hand": {
+        "max": 8.0,
+        "mean": 3.440340909090909,
+        "median": 5.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 5.0,
+        "std": 2.0962271025819637
+      },
+      "level": {
+        "max": 4.0,
+        "mean": 2.3636363636363638,
+        "median": 3.0,
+        "min": 1.0,
+        "p10": 1.0,
+        "p90": 3.0,
+        "std": 0.9935224088361088
+      },
+      "non_wound_hand": {
+        "max": 7.0,
+        "mean": 3.096590909090909,
+        "median": 4.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 5.0,
+        "std": 1.9833940643409242
+      },
+      "ready_units": {
+        "max": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "std": 0.0
+      },
+      "red_crystals": {
+        "max": 3.0,
+        "mean": 1.6590909090909092,
+        "median": 2.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 3.0,
+        "std": 1.1642044068059725
+      },
+      "reputation": {
+        "max": 1.0,
+        "mean": -0.8551136363636364,
+        "median": -1.0,
+        "min": -7.0,
+        "p10": -1.0,
+        "p90": 0.0,
+        "std": 1.2008647398647414
+      },
+      "round": {
+        "max": 4.0,
+        "mean": 3.0255681818181817,
+        "median": 4.0,
+        "min": 1.0,
+        "p10": 1.0,
+        "p90": 4.0,
+        "std": 1.295501270090379
+      },
+      "skills": {
+        "max": 2.0,
+        "mean": 0.7386363636363636,
+        "median": 1.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 1.0,
+        "std": 0.5537951332277821
+      },
+      "total_cards": {
+        "max": 28.0,
+        "mean": 16.400568181818183,
+        "median": 17.0,
+        "min": 10.0,
+        "p10": 13.0,
+        "p90": 19.0,
+        "std": 2.388728198109226
+      },
+      "units": {
+        "max": 1.0,
+        "mean": 0.09943181818181818,
+        "median": 0.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "std": 0.2992409258688992
+      },
+      "white_crystals": {
+        "max": 3.0,
+        "mean": 1.0596590909090908,
+        "median": 1.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 3.0,
+        "std": 1.099776784029415
+      },
+      "wounded_units": {
+        "max": 1.0,
+        "mean": 0.08522727272727272,
+        "median": 0.0,
+        "min": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "std": 0.27921959943876395
+      }
+    },
+    "steps": {
+      "max": 160.0,
+      "mean": 84.51420454545455,
+      "median": 108.0,
+      "min": 4.0,
+      "p10": 9.0,
+      "p90": 123.0,
+      "std": 47.23845244226338
+    },
+    "success_rate": 0.5625,
+    "termination_causes": {
+      "natural_end": 352
+    },
+    "wound_efficiency": {
+      "fame_per_wound": 8.200743494423792,
+      "wounds_per_fame": 0.12194016319129647
+    },
+    "wounds_gained": {
+      "max": 18.0,
+      "mean": 1.0454545454545454,
+      "median": 0.0,
+      "min": 0.0,
+      "p10": 0.0,
+      "p90": 2.0,
+      "std": 2.159330130288152
+    }
+  }
+}

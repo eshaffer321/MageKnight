@@ -956,7 +956,7 @@ class _EmbeddingActionScoringNetwork(nn.Module):
         """
         n = int(batch_dict["action_counts"].shape[0])
         action_counts = batch_dict["action_counts"]  # (N,)
-        max_m = int(action_counts.max())
+        max_m = int(batch_dict.get("max_actions", action_counts.max()))
 
         # ── State encoding with attention pools ──────────────────────
         scalars_t = torch.tensor(batch_dict["state_scalars"], dtype=torch.float32, device=device)
@@ -1235,6 +1235,41 @@ class ReinforcePolicy:
             selected.detach().cpu().numpy().astype(np.int32),
             selected_log_probs.detach().cpu().numpy().astype(np.float32),
             values.detach().cpu().numpy().astype(np.float32),
+        )
+
+    def evaluate_search_batch(
+        self, batch_dict: dict[str, Any],
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """Return policy priors and values without recording PPO transitions.
+
+        This is the standalone MCTS inference boundary. It performs exactly one
+        batched network forward pass, restores the network training mode afterward,
+        and safely handles an all-terminal batch whose action counts are all zero.
+        """
+
+        action_counts = np.asarray(batch_dict["action_counts"], dtype=np.int64)
+        if action_counts.ndim != 1 or action_counts.size == 0:
+            raise ValueError("search batch must contain at least one action count")
+
+        was_training = self._network.training
+        self._network.eval()
+        try:
+            with torch.inference_mode():
+                logits, values = self._network.forward_batch(batch_dict, self._device)
+                logits = logits.clamp(min=-50.0, max=50.0)
+                priors = torch.zeros_like(logits)
+                for row, raw_count in enumerate(action_counts):
+                    action_count = int(raw_count)
+                    if action_count > 0:
+                        priors[row, :action_count] = torch.softmax(
+                            logits[row, :action_count], dim=0,
+                        )
+        finally:
+            self._network.train(was_training)
+
+        return (
+            priors.cpu().numpy().astype(np.float32),
+            values.cpu().numpy().astype(np.float32),
         )
 
     def evaluate_values_batch(self, batch_dict: dict[str, Any]) -> np.ndarray:

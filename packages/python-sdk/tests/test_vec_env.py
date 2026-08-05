@@ -6,6 +6,8 @@ import unittest
 
 import numpy as np
 
+from mage_knight_sdk.sim.rl.features import STATE_SCALAR_DIM
+
 
 class TestPyVecEnv(unittest.TestCase):
     """Tests for the PyVecEnv Rust-backed vectorized environment."""
@@ -28,8 +30,8 @@ class TestPyVecEnv(unittest.TestCase):
         env = self.PyVecEnv(num_envs=n, base_seed=1)
         batch = env.encode_batch()
 
-        # State scalars: (N, STATE_SCALAR_DIM=99)
-        self.assertEqual(batch["state_scalars"].shape, (n, 99))
+        # State scalars use the shared Python/Rust encoding contract.
+        self.assertEqual(batch["state_scalars"].shape, (n, STATE_SCALAR_DIM))
         self.assertEqual(batch["state_scalars"].dtype, np.float32)
 
         # State IDs: (N, 3)
@@ -61,6 +63,19 @@ class TestPyVecEnv(unittest.TestCase):
         self.assertEqual(result["fame_deltas"].shape, (n,))
         self.assertEqual(result["dones"].shape, (n,))
         self.assertEqual(result["fames"].shape, (n,))
+
+        # Evaluation terminal/resource snapshot fields are present on every step
+        # so the auto-reset path cannot erase the final game state.
+        self.assertEqual(result["player_levels"].shape, (n,))
+        self.assertEqual(result["reputations"].shape, (n,))
+        self.assertEqual(result["rounds"].shape, (n,))
+        self.assertEqual(result["hand_sizes"].shape, (n,))
+        self.assertEqual(result["deck_sizes"].shape, (n,))
+        self.assertEqual(result["discard_sizes"].shape, (n,))
+        self.assertEqual(result["crystal_counts"].shape, (n, 4))
+        self.assertEqual(result["ready_unit_counts"].shape, (n,))
+        self.assertEqual(result["wounded_unit_counts"].shape, (n,))
+        self.assertEqual(result["skill_counts"].shape, (n,))
 
     def test_multiple_steps(self) -> None:
         """Run several steps and verify no crashes."""
@@ -118,9 +133,16 @@ class TestSearchStateApi(unittest.TestCase):
     """Hypothetical states must remain isolated from the live PyVecEnv batch."""
 
     def setUp(self) -> None:
-        from mk_python import PyVecEnv, SEARCH_COMBAT_MODE_CHEAP
+        from mk_python import (
+            PyVecEnv,
+            SEARCH_COMBAT_CHEAP_DEFAULT_NODE_LIMIT,
+            SEARCH_COMBAT_CHEAP_MAX_NODE_LIMIT,
+            SEARCH_COMBAT_MODE_CHEAP,
+        )
         self.env = PyVecEnv(num_envs=2, base_seed=42, max_steps=500)
         self.cheap_combat_mode = SEARCH_COMBAT_MODE_CHEAP
+        self.cheap_default_node_limit = SEARCH_COMBAT_CHEAP_DEFAULT_NODE_LIMIT
+        self.cheap_max_node_limit = SEARCH_COMBAT_CHEAP_MAX_NODE_LIMIT
 
     @staticmethod
     def _copy_batch(batch: dict) -> dict:
@@ -184,10 +206,33 @@ class TestSearchStateApi(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.env.step_search_batch([root], [0], "unknown")
         with self.assertRaises(ValueError):
+            self.env.step_search_batch([root], [0], f"{self.cheap_combat_mode}:0")
+        with self.assertRaises(ValueError):
+            self.env.step_search_batch(
+                [root],
+                [0],
+                f"{self.cheap_combat_mode}:{self.cheap_max_node_limit + 1}",
+            )
+        with self.assertRaises(ValueError):
             self.env.encode_search_batch([])
         self.env.drop_search_states([root])
         with self.assertRaises(ValueError):
             self.env.encode_search_batch([root])
+
+    def test_cheap_mode_exports_tunable_budget(self) -> None:
+        self.assertGreater(self.cheap_default_node_limit, 0)
+        self.assertLessEqual(
+            self.cheap_default_node_limit,
+            self.cheap_max_node_limit,
+        )
+        root = self.env.fork_roots([0])[0]
+        child = self.env.step_search_batch(
+            [root],
+            [0],
+            f"{self.cheap_combat_mode}:{self.cheap_default_node_limit}",
+        )[0]
+        self.assertEqual(self.env.search_state_count(), 2)
+        self.env.drop_search_states([root, child])
 
 
 class TestBatchedForward(unittest.TestCase):
@@ -471,7 +516,7 @@ class TestVecEnvRunner(unittest.TestCase):
         self.assertGreater(len(ep), 0)
 
         vt = ep[0]
-        self.assertEqual(vt.state_scalars.shape, (99,))
+        self.assertEqual(vt.state_scalars.shape, (STATE_SCALAR_DIM,))
         self.assertEqual(vt.state_ids.shape, (3,))
         self.assertGreater(vt.action_ids.shape[0], 0)
 
@@ -499,7 +544,7 @@ class TestVecEnvRunner(unittest.TestCase):
         vt = result.episodes[0][0]
         t = vec_transition_to_transition(vt)
 
-        self.assertEqual(len(t.encoded_step.state.scalars), 99)
+        self.assertEqual(len(t.encoded_step.state.scalars), STATE_SCALAR_DIM)
         self.assertGreater(len(t.encoded_step.actions), 0)
         self.assertIsInstance(t.reward, float)
 
