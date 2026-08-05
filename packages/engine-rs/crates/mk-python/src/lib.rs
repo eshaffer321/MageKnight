@@ -1028,7 +1028,8 @@ impl PyVecEnv {
     }
 
     /// Step hypothetical parents and return new child handles. Parents remain unchanged.
-    /// `combat_mode` is "full_oracle" or "cheap"; cheap currently leaves combat unresolved.
+    /// `combat_mode` is "full_oracle", "cheap", or "cheap:<node_limit>". Cheap mode
+    /// resolves combat greedily; its node limit must be within the exported hard cap.
     fn step_search_batch(
         &mut self,
         handles: Vec<u64>,
@@ -1229,6 +1230,14 @@ fn mk_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("TERMINATION_CAUSE_EARLY_ZERO_FAME", mk_env::TERMINATION_CAUSE_EARLY_ZERO_FAME)?;
     m.add("TERMINATION_CAUSE_HARD_LIMIT", mk_env::TERMINATION_CAUSE_HARD_LIMIT)?;
     m.add("TERMINATION_CAUSE_ENGINE_FAILURE", mk_env::TERMINATION_CAUSE_ENGINE_FAILURE)?;
+    m.add(
+        "SEARCH_COMBAT_CHEAP_DEFAULT_NODE_LIMIT",
+        mk_env::SEARCH_COMBAT_CHEAP_DEFAULT_NODE_LIMIT,
+    )?;
+    m.add(
+        "SEARCH_COMBAT_CHEAP_MAX_NODE_LIMIT",
+        mk_env::SEARCH_COMBAT_CHEAP_MAX_NODE_LIMIT,
+    )?;
     m.add_class::<GameEngine>()?;
     m.add_class::<PyEncodedStep>()?;
     m.add_class::<PyVecEnv>()?;

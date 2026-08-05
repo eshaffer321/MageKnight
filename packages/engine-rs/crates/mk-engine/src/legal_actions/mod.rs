@@ -17,7 +17,7 @@
 //! 11. CompleteRest
 //! 12. Undo
 
-mod cards;
+pub(crate) mod cards;
 pub mod combat;
 mod cooperative;
 mod explore;

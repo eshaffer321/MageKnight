@@ -110,6 +110,22 @@ scaling (`raw / std`; no mean subtraction for an individual component). These
 two metrics are diagnostic only: the normalization algorithm is unchanged.
 Time-limit bootstrap values are evaluated from the actual post-step state before
 the Rust vector environment resets; natural game endings bootstrap with zero.
+Run the bounded end-to-end check (including one PPO update, NDJSON/TensorBoard
+comparison, and checkpoint round trip) with:
+
+```bash
+python scripts/smoke_terminal_reward.py --num-envs 8 --episodes 256
+```
+
+### Hypothetical Search Rollouts
+
+The Rust vector environment exposes isolated fork/step/encode handles for future tree-search rollouts. **MCTS safety requirement:** the cheap combat resolver has a confirmed deterministic pessimistic bias—not zero-mean noise—against long-horizon combat lines involving card preservation and multi-contribution blocks in the 40-fixture Oracle diagnostic. MCTS visits cannot average this bias away, so search results that traverse cheap combat must use occasional full-Oracle calibration or a validated leaf-value correction before they are trusted; this mitigation is tracked in [issue #1123](https://github.com/mage-knight-digital/MageKnight/issues/1123).
+
+Standalone PUCT search is implemented by `BatchedMCTS` in `sim/rl/mcts.py`. It batches leaf inference and hypothetical child stepping across independent roots, supports optional root Dirichlet noise and subtree reuse, and is intentionally not connected to PPO rollout collection yet. Run the real-engine timing/demo harness with:
+
+```bash
+python scripts/benchmark_mcts.py --num-envs 4 --budgets 16 32 64
+```
 
 ### TensorBoard
 

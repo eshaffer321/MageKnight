@@ -403,6 +403,43 @@ class ReinforcePolicyTest(unittest.TestCase):
         result = policy.choose_action_from_encoded(step)
         self.assertEqual(result, 0)
 
+    def test_evaluate_search_batch_returns_priors_without_recording_training_state(self) -> None:
+        from mk_python import PyVecEnv
+
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            embedding_dim=8, hidden_size=64, device="cpu", d_model=32,
+        ))
+        batch = PyVecEnv(num_envs=3, base_seed=42).encode_batch()
+        policy._network.train()
+
+        priors, values = policy.evaluate_search_batch(batch)
+
+        self.assertEqual(priors.shape[0], 3)
+        self.assertEqual(values.shape, (3,))
+        self.assertTrue(policy._network.training)
+        self.assertEqual(len(policy._episode_log_probs), 0)
+        for row, raw_count in enumerate(batch["action_counts"]):
+            action_count = int(raw_count)
+            self.assertAlmostEqual(
+                float(priors[row, :action_count].sum()), 1.0, places=6,
+            )
+            self.assertEqual(float(priors[row, action_count:].sum()), 0.0)
+
+    def test_evaluate_search_batch_handles_all_terminal_rows(self) -> None:
+        from mk_python import PyVecEnv
+
+        policy = ReinforcePolicy(PolicyGradientConfig(
+            embedding_dim=8, hidden_size=64, device="cpu", d_model=32,
+        ))
+        batch = PyVecEnv(num_envs=2, base_seed=84).encode_batch()
+        batch["action_counts"] = batch["action_counts"] * 0
+
+        priors, values = policy.evaluate_search_batch(batch)
+
+        self.assertEqual(priors.shape, (2, int(batch["max_actions"])))
+        self.assertEqual(values.shape, (2,))
+        self.assertEqual(float(priors.sum()), 0.0)
+
 
 class CheckpointRoundTripTest(unittest.TestCase):
     def test_reward_normalizer_checkpoint_round_trip(self) -> None:
