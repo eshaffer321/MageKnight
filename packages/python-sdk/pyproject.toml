@@ -25,7 +25,7 @@ viewer = [
 rl = [
   "torch>=2.3",
   "tensorboard>=2.16",
-  "setuptools>=60,<82.1",  # tensorboard 2.20 requires pkg_resources; <67.5 avoids deprecation warning, <81 avoids removal
+  "setuptools>=60,<83.1",  # tensorboard 2.20 requires pkg_resources; <67.5 avoids deprecation warning, <81 avoids removal
 ]
 
 [build-system]
