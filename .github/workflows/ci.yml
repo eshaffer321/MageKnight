@@ -29,7 +29,7 @@ jobs:
           bun-version: latest
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.bun/install/cache
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/ruff-action@v4.0.0
+      - uses: astral-sh/ruff-action@v4.1.0
         with:
           args: check packages/python-sdk scripts --config packages/python-sdk/pyproject.toml
 
